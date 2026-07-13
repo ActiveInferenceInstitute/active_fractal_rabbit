@@ -1,0 +1,126 @@
+run_id: default
+seed: 7
+output_dir: output/runs/default
+
+fractalrabbit:
+  upstream_repo: https://github.com/NationalSecurityAgency/fractalrabbit.git
+  upstream_commit: 9933449c4f4fe1b26b6ac7bfdeeac76583085df5
+  cache_dir: .cache/fractalrabbit
+  execution: fixture
+  fixture_csv: data/fixtures/fractalrabbit_sample_large.csv
+  output_prefix: default
+  params:
+    space_dimension: 2
+    fractal_dimension: 1.33
+    number_of_points: 5000
+    number_of_travellers: 5
+    number_of_co_travellers: 1
+    number_of_days: 36.0
+    number_of_reports: 480.0
+
+observation:
+  spatial_discretizer: grid
+  spatial_bins: 4
+  spatial_bounds: null
+  time_bins_per_day: 4
+  speed_thresholds_km_per_day: [10.0, 50.0, 150.0]
+  burst_threshold_rule: median_positive
+  burst_fixed_days: null
+
+model:
+  smoothing: 0.05
+  controls: [empirical_continuation, high_entropy_exploration]
+  preference_prior: uniform
+  modalities: [location, time_of_day, speed, report_burst]
+  engine: both
+
+experiment:
+  repetitions: 2
+  holdout_fraction: 0.25
+  objective_direction: minimize
+  tie_breaker: declaration_order
+
+figures:
+  enabled:
+    - evidence_atlas
+    - waypoint_paths
+    - spatial_bins
+    - spatial_resolution_frontier
+    - reporting_bursts
+    - speed_categories
+    - transition_heatmap
+    - likelihood_panels
+    - posterior_entropy
+    - policy_proxy
+    - candidate_scores
+    - negative_controls
+    - pymdp_agreement
+    - pymdp_diagnostics
+    - state_recovery
+    - sparsity_recovery
+    - calibration
+    - anticipatory
+    - efe_decomposition
+    - anomaly_detection
+    - recoverability_frontier
+    - return_structure
+    - variance_bands
+    - upstream_sensitivity
+    - fractal_dimension_sweep
+    - circadian_phase_signal
+    - partial_observability
+    - sequence_baselines
+    - missingness_model
+    - model_gate_matrix
+    - m10_forward_gates
+    - factorial_pymdp_modes
+    - latent_mode_recovery
+    - factorial_model_gate_matrix
+    - efe_location_frontier
+    - linkage_risk_frontier
+    - poisoning_robustness
+    - privacy_frontier
+    - hardened_anomaly_detection
+    - sota_leaderboard
+    - aif_regime_map
+    - fair_inference
+    - fair_power_regime
+    - multiplicity_ledger
+    - confound_taxonomy
+    - regime_mechanism_synthesis
+    - regime_switch_phase_diagnostic
+    - privacy_utility_frontier
+    - privacy_utility_repeats
+    - synthetic_task_utility_privacy
+    - model_comparison_under_noise
+    - aif_deepening_candidates
+    - dataflow
+  dpi: 220
+  registry_path: output/figures/figure_registry.json
+  palette:
+    blue: "#0072B2"
+    green: "#009E73"
+    orange: "#E69F00"
+    purple: "#CC79A7"
+    red: "#D55E00"
+    sky: "#56B4E9"
+    yellow: "#F0E442"
+    gray: "#595959"
+
+closed_loop:
+  iterations: 2
+  objective: predictive_loss
+  objective_direction: minimize
+  tie_breaker: declaration_order
+  candidates:
+    - name: lower_reports
+      params:
+        number_of_reports: 320.0
+    - name: higher_reports
+      params:
+        number_of_reports: 960.0
+robustness:
+  n_realizations: 10
+  upstream_candidate_limit: 5
+  external_realization_fractal_dimensions: [1.21, 1.45, 1.7]
+  stop_on_external_unavailable: true

@@ -1,0 +1,56 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "active-fractal-rabbit"
+version = "0.2.0"
+description = "Closed-loop active-inference analysis of synthetic sporadic waypoint data from pinned FractalRabbit simulations."
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "Daniel Ari Friedman", email = "daniel@activeinference.institute" }]
+license = "MIT"
+license-files = ["LICENSE", "LICENSE-DOCS.md", "THIRD_PARTY_NOTICES.md"]
+dependencies = [
+    "defusedxml>=0.7.1",
+    "inferactively-pymdp==1.0.2",
+    "matplotlib>=3.7.0",
+    "numpy>=1.24.0",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-cov>=5.0.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = [".", "src"]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short --strict-markers"
+markers = [
+    "requires_fractalrabbit: integration test requiring JDK 21, Maven, git, and network/cache access",
+]
+
+[tool.coverage.run]
+source = ["src"]
+branch = true
+omit = ["tests/*", "*/__init__.py"]
+
+[tool.coverage.report]
+fail_under = 90
+show_missing = true
+precision = 2
+exclude_lines = [
+    "pragma: no cover",
+    "if __name__ == .__main__.:",
+    "raise NotImplementedError",
+]
+
+[tool.uv]

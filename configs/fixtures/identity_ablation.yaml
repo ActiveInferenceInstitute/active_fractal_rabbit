@@ -1,0 +1,76 @@
+run_id: fixture_identity_ablation
+seed: 7
+output_dir: output/runs/fixture_identity_ablation
+
+fractalrabbit:
+  upstream_repo: https://github.com/NationalSecurityAgency/fractalrabbit.git
+  upstream_commit: 9933449c4f4fe1b26b6ac7bfdeeac76583085df5
+  cache_dir: .cache/fractalrabbit
+  execution: fixture
+  fixture_csv: data/fixtures/fractalrabbit_sample_large.csv
+  output_prefix: fixture_identity_ablation
+  params:
+    space_dimension: 2
+    fractal_dimension: 1.33
+    number_of_points: 5000
+    number_of_travellers: 5
+    number_of_co_travellers: 1
+    number_of_days: 36.0
+    number_of_reports: 480.0
+
+observation:
+  spatial_discretizer: grid
+  spatial_bins: 4
+  spatial_bounds: null
+  time_bins_per_day: 4
+  speed_thresholds_km_per_day: [10.0, 50.0, 150.0]
+  burst_threshold_rule: median_positive
+  burst_fixed_days: null
+
+model:
+  smoothing: 0.05
+  controls: [empirical_continuation, high_entropy_exploration, identity]
+  preference_prior: uniform
+
+experiment:
+  repetitions: 2
+  holdout_fraction: 0.25
+  objective_direction: minimize
+  tie_breaker: declaration_order
+
+figures:
+  enabled:
+    - waypoint_paths
+    - spatial_bins
+    - reporting_bursts
+    - speed_categories
+    - transition_heatmap
+    - likelihood_panels
+    - posterior_entropy
+    - policy_proxy
+    - candidate_scores
+    - dataflow
+  dpi: 220
+  registry_path: output/figures/figure_registry.json
+  palette:
+    blue: "#0072B2"
+    green: "#009E73"
+    orange: "#E69F00"
+    purple: "#CC79A7"
+    red: "#D55E00"
+    sky: "#56B4E9"
+    yellow: "#F0E442"
+    gray: "#595959"
+
+closed_loop:
+  iterations: 2
+  objective: predictive_loss
+  objective_direction: minimize
+  tie_breaker: declaration_order
+  candidates:
+    - name: lower_reports
+      params:
+        number_of_reports: 320.0
+    - name: higher_reports
+      params:
+        number_of_reports: 960.0

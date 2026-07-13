@@ -1,0 +1,1 @@
+"""Thin script package marker."""

@@ -1,0 +1,858 @@
+# tasks.yaml - task + Gantt source of truth for this project.
+# status: todo | in_progress | blocked | done. dates: YYYY-MM-DD. progress: 0-100.
+project:
+  name: active_fractal_rabbit
+  title: Active Fractal Rabbit - active-inference analysis of FractalRabbit waypoint data
+  status: active
+  color: '#55A868'
+  lead: DAF
+tasks:
+- id: afr-1
+  title: Fixture pipeline baseline
+  status: done
+  start: '2026-06-09'
+  end: '2026-06-14'
+  progress: 100
+  milestone: false
+  deps: []
+  tags:
+  - pipeline
+  - tests
+  notes: >-
+    Completed as a fixture-lane baseline: the full pytest gate passed with
+    coverage above 90%, and scripts/07_run_full_study.py --lane both completed
+    fixture:pipeline, fixture:sweep, fixture:figures, manuscript_variables,
+    eval_contract, release_manifest, and claim_ledger_artifacts.
+- id: afr-2
+  title: Generated figures and manuscript variables
+  status: done
+  start: '2026-06-10'
+  end: '2026-06-16'
+  progress: 100
+  milestone: false
+  deps:
+  - afr-1
+  tags:
+  - figures
+  - manuscript
+  notes: >-
+    Completed with the registered output/figures PNG set and rendered manuscript
+    tokens generated through scripts/z_generate_manuscript_variables.py
+    and src/active_fractal_rabbit/manuscript_variables.py.
+- id: afr-3
+  title: Optional external FractalRabbit simulator lane
+  status: done
+  start: '2026-06-09'
+  end: '2026-06-22'
+  progress: 100
+  milestone: false
+  deps: []
+  tags:
+  - validation
+  - external
+  notes: >-
+    Current preflight reports a resolved JDK 21 and Maven at /opt/homebrew/bin/mvn.
+    scripts/07_run_full_study.py --lane both completed external:prepare,
+    external:pipeline, external:sweep, and external:figures against the pinned
+    external cache. FractalRabbit source, jars, Maven caches, and pymdp source
+    remain external/cache-only.
+- id: afr-4
+  title: Template render contract
+  status: done
+  start: '2026-06-16'
+  end: '2026-06-20'
+  progress: 100
+  milestone: false
+  deps:
+  - afr-1
+  - afr-2
+  tags:
+  - pipeline
+  - render
+  notes: >-
+    Completed from the sibling template checkout with link-projects and
+    scripts/03_render_pdf.py --project working/active_fractal_rabbit; the fresh
+    combined PDF is output/pdf/active_fractal_rabbit_combined.pdf.
+- id: afr-5
+  title: Rendered-output audit for dangling refs, tokens, and hardcoded numbering
+  status: done
+  start: '2026-06-14'
+  end: '2026-06-17'
+  progress: 100
+  milestone: false
+  deps:
+  - afr-2
+  tags:
+  - manuscript
+  - gates
+  notes: >-
+    Represents TODO M0: add a rendered-output audit that fails on dangling
+    `??`, unresolved `{{TOKEN}}`, and hardcoded figure/equation numbers.
+- id: afr-6
+  title: Schema reference for config keys, defaults, validation rules, and artifacts
+  status: done
+  start: '2026-06-14'
+  end: '2026-06-18'
+  progress: 100
+  milestone: false
+  deps:
+  - afr-1
+  tags:
+  - docs
+  - schema
+  notes: >-
+    Represents TODO M1: add a schema reference page with every config key,
+    default, validation rule, and artifact affected.
+- id: afr-7
+  title: Config fixtures for fixed grids, quantile bins, identity controls, and burst thresholds
+  status: done
+  start: '2026-06-16'
+  end: '2026-06-20'
+  progress: 100
+  milestone: false
+  deps:
+  - afr-6
+  tags:
+  - config
+  - tests
+  notes: >-
+    Represents completed TODO M1 evidence: default, sensitivity, identity-control,
+    no-location, fixed-burst, smoothing, and spatial-bin configs now feed
+    regenerated artifacts and tests rather than manuscript-only assertions.
+- id: afr-8
+  title: Image-integrity tests for nonblank PNGs and expected dimensions
+  status: done
+  start: '2026-06-16'
+  end: '2026-06-20'
+  progress: 100
+  milestone: false
+  deps:
+  - afr-2
+  tags:
+  - figures
+  - tests
+  notes: >-
+    Represents TODO M2: add image-integrity tests that verify nonblank PNGs
+    and expected dimensions for every enabled figure.
+- id: afr-9
+  title: Figure style provenance artifact
+  status: done
+  start: '2026-06-18'
+  end: '2026-06-21'
+  progress: 100
+  milestone: false
+  deps:
+  - afr-2
+  tags:
+  - figures
+  - provenance
+  notes: >-
+    Represents TODO M2: add a style provenance artifact recording DPI, palette,
+    backend, and figure keys for each run.
+- id: afr-10
+  title: JDK and Maven prerequisite documentation for host runtime
+  status: done
+  start: '2026-06-09'
+  end: '2026-06-22'
+  progress: 100
+  milestone: false
+  deps:
+  - afr-3
+  tags:
+  - docs
+  - external
+  notes: >-
+    Represents completed TODO M3 preflight evidence: java is available in the
+    host runtime, JDK 21 is resolved for the external simulator lane, and Maven
+    is available at /opt/homebrew/bin/mvn.
+- id: afr-11
+  title: External FractalRabbit run manifest from pinned upstream commit
+  status: done
+  start: '2026-06-22'
+  end: '2026-06-26'
+  progress: 100
+  milestone: false
+  deps:
+  - afr-10
+  tags:
+  - validation
+  - external
+  notes: >-
+    Represents completed TODO M3 evidence: scripts/07_run_full_study.py --lane
+    both regenerated the external lane from configs/fractalrabbit_external.yaml
+    and archived the resulting run/provenance artifacts under output/runs.
+- id: afr-12
+  title: Tiny upstream-run smoke scenario with explicit skip reasons
+  status: done
+  start: '2026-06-22'
+  end: '2026-06-26'
+  progress: 100
+  milestone: false
+  deps:
+  - afr-10
+  tags:
+  - tests
+  - external
+  notes: >-
+    Represents completed TODO M3 behavior: external preflight is fail-loud when
+    prerequisites are absent and the current run uses the available toolchain
+    rather than stale simulator output.
+- id: afr-13
+  title: Fixture and external-run tensor summary comparison with validity limits
+  status: done
+  start: '2026-06-26'
+  end: '2026-06-30'
+  progress: 100
+  milestone: false
+  deps:
+  - afr-11
+  tags:
+  - validation
+  - external
+  notes: >-
+    Represents completed TODO M3 comparison evidence: fixture/external artifacts
+    are generated in the same full-study run, and manuscript language preserves
+    the simulator-only validity boundary.
+- id: afr-14
+  title: Replicated sweeps over report count, bins, burst rules, smoothing, and controls
+  status: done
+  start: '2026-06-20'
+  end: '2026-06-28'
+  progress: 100
+  milestone: false
+  deps:
+  - afr-7
+  tags:
+  - experiment
+  - validation
+  notes: >-
+    Represents TODO M4: add replicated sweeps over report count, spatial bins,
+    burst rules, smoothing, and control sets.
+- id: afr-15
+  title: Negative controls for shuffled traces, bounds, and speed thresholds
+  status: done
+  start: '2026-06-20'
+  end: '2026-06-28'
+  progress: 100
+  milestone: false
+  deps:
+  - afr-7
+  tags:
+  - experiment
+  - validation
+  notes: >-
+    Represents completed TODO M4 evidence: shuffled/control artifacts are part
+    of the regenerated fixture study and remain covered by the evaluation
+    contract and manuscript-variable provenance checks.
+- id: afr-16
+  title: Dispersion report across repetitions
+  status: done
+  start: '2026-06-28'
+  end: '2026-07-02'
+  progress: 100
+  milestone: false
+  deps:
+  - afr-14
+  - afr-15
+  tags:
+  - experiment
+  - reporting
+  notes: >-
+    Represents TODO M4: report dispersion across repetitions for predictive
+    loss, posterior entropy, and selected candidate.
+- id: afr-17
+  title: Holdout scoring for next-observation predictive loss
+  status: done
+  start: '2026-06-28'
+  end: '2026-07-02'
+  progress: 100
+  milestone: false
+  deps:
+  - afr-14
+  tags:
+  - experiment
+  - validation
+  notes: >-
+    Represents completed TODO M4 evidence: sequence, HMM, neural, reporting,
+    and learned-stay-rate gates all emit holdout/prequential scoring artifacts.
+- id: afr-18
+  title: Claim ledger tying manuscript claims to evidence or limitations
+  status: done
+  start: '2026-07-01'
+  end: '2026-07-05'
+  progress: 100
+  milestone: false
+  deps:
+  - afr-5
+  tags:
+  - evidence
+  - provenance
+  notes: >-
+    Represents completed TODO M5 evidence: docs/claim_ledger.md ties claims to
+    code, generated artifacts, figures, citations, or explicit limitations, and
+    scripts/12_check_claim_ledger_artifacts.py checked 53 generated paths with
+    no missing artifacts.
+- id: afr-19
+  title: Release bundle manifest with checksums
+  status: done
+  start: '2026-07-03'
+  end: '2026-07-07'
+  progress: 100
+  milestone: false
+  deps:
+  - afr-18
+  tags:
+  - release
+  - provenance
+  notes: >-
+    Represents completed TODO M5 evidence: scripts/06_build_release_manifest.py
+    rebuilt output/release_manifest.json after the PDF render and verified no
+    missing or mismatched required paths.
+- id: afr-20
+  title: Full template render and PDF text sanity check
+  status: done
+  start: '2026-07-07'
+  end: '2026-07-10'
+  progress: 100
+  milestone: false
+  deps:
+  - afr-4
+  - afr-19
+  tags:
+  - release
+  - render
+  notes: >-
+    Represents completed TODO M5 evidence: template rendering produced a
+    54-page PDF with 37/37 figures found, and pdftotext confirmed the promoted
+    forward-gate, location-risk, and empirical-boundary sections are present.
+- id: afr-21
+  title: Separate empirical-validation protocol for real waypoint data
+  status: done
+  start: '2026-07-07'
+  end: '2026-07-12'
+  progress: 100
+  milestone: false
+  deps:
+  - afr-18
+  tags:
+  - validation
+  - protocol
+  notes: >-
+    Represents completed TODO M5 protocol drafting: docs/empirical_validation_protocol.md
+    exists as a draft prerequisite. Execution on real waypoint data remains
+    blocked by afr-23 and the standing boundary.
+- id: afr-22
+  title: Future gate for stronger non-pymdp baseline families
+  status: done
+  start: '2026-07-12'
+  end: '2026-07-26'
+  progress: 100
+  milestone: false
+  deps:
+  - afr-20
+  tags:
+  - experiment
+  - validation
+  - future
+  notes: >-
+    Represents completed M10+ baseline promotion: HMM, neural sequence,
+    learned-stay-rate, held-out reporting, and cross-generator gates now emit
+    canonical artifacts under the null hierarchy. Remaining continuous,
+    multiscale, particle-filter, and larger-stressor work is tracked in the
+    Active Forward Gates roadmap rather than hidden under this completed parent.
+- id: afr-23
+  title: Future gate for real waypoint-data claim validation
+  status: blocked
+  start: '2026-07-12'
+  end: '2026-08-02'
+  progress: 0
+  milestone: false
+  deps:
+  - afr-21
+  tags:
+  - validation
+  - protocol
+  - external
+  notes: >-
+    Represents TODO M8 future gate: validate any real waypoint-data claim only
+    through the separate empirical-validation protocol, including
+    pre-registration, steward approval, consent/provenance records,
+    re-identification risk review, aggregate-only outputs, and an explicit
+    claim-ledger unlock.
+- id: afr-24
+  title: Hidden Markov and switching-state baseline comparison
+  status: done
+  start: '2026-07-26'
+  end: '2026-08-09'
+  progress: 100
+  milestone: false
+  deps:
+  - afr-22
+  tags:
+  - experiment
+  - validation
+  - future
+  notes: >-
+    Completed as output/runs/latent_regime_hmm.json plus the external variant
+    and the forward-gate summary; the manuscript now reports the negative
+    held-out verdict rather than a broad stronger-baseline claim.
+- id: afr-25
+  title: Neural sequence baseline comparison
+  status: done
+  start: '2026-08-09'
+  end: '2026-08-23'
+  progress: 100
+  milestone: false
+  deps:
+  - afr-22
+  tags:
+  - experiment
+  - validation
+  - future
+  notes: >-
+    Completed as output/runs/neural_baseline.json plus the external variant;
+    the manuscript reports that the dependency-light neural sequence gate beats
+    weak nulls but not the particle/state-space mixture.
+- id: afr-26
+  title: Learned hierarchical active-inference variants
+  status: done
+  start: '2026-08-23'
+  end: '2026-09-06'
+  progress: 100
+  milestone: false
+  deps:
+  - afr-22
+  tags:
+  - experiment
+  - validation
+  - future
+  notes: >-
+    Completed as output/runs/learned_stay_rate.json plus the external variant;
+    the manuscript keeps the result as an honest regime-null/weak-survivor
+    boundary instead of promoting learned-prior performance.
+- id: afr-27
+  title: Held-out missingness and reporting-process model
+  status: done
+  start: '2026-09-06'
+  end: '2026-09-20'
+  progress: 100
+  milestone: false
+  deps:
+  - afr-22
+  tags:
+  - experiment
+  - validation
+  - future
+  notes: >-
+    Completed as output/runs/heldout_reporting_process.json plus the external
+    variant; the expanded fixture and current external rows now keep the
+    reporting-process result as an honest null rather than a promoted
+    burst-cadence claim.
+- id: afr-28
+  title: Cross-generator transfer gate
+  status: done
+  start: '2026-09-20'
+  end: '2026-10-04'
+  progress: 100
+  milestone: false
+  deps:
+  - afr-22
+  tags:
+  - experiment
+  - validation
+  - future
+  notes: >-
+    Completed as output/runs/cross_generator_transfer.json plus the external
+    variant; persistence-transfer and particle-regime-dependence verdicts are
+    preserved as lane-qualified generated evidence.
+- id: afr-29
+  title: Location minimization and linkage-risk safety boundaries
+  status: done
+  start: '2026-06-14'
+  end: '2026-06-14'
+  progress: 100
+  milestone: false
+  deps:
+  - afr-22
+  tags:
+  - safety
+  - active-inference
+  - validation
+  notes: >-
+    Completed as output/runs/efe_location_frontier.json and
+    output/runs/linkage_risk_frontier.json plus registered figures and
+    provenance-checked manuscript tokens. The fixture and external verdicts are
+    lane-qualified, and manuscript prose keeps the location-minimization result
+    within the synthetic generative-model boundary.
+- id: afr-30
+  title: Poisoning robustness and data-integrity gate
+  status: done
+  start: '2026-06-14'
+  end: '2026-06-14'
+  progress: 100
+  milestone: false
+  deps:
+  - afr-22
+  tags:
+  - safety
+  - validation
+  - robustness
+  notes: >-
+    Completed as output/runs/poisoning_robustness.json plus the external
+    variant and registered figure. The gate is now explicitly verdict-bound:
+    gross teleporting corruption is detected beyond the Markov baseline, and
+    label-flip/subtle-drift boundaries are read from the generated artifact
+    rather than preserved as prose-only nulls.
+- id: afr-31
+  title: Spatial-resolution frontier and 4x4 default
+  status: done
+  start: '2026-06-15'
+  end: '2026-06-15'
+  progress: 100
+  milestone: false
+  deps:
+  - afr-2
+  - afr-6
+  - afr-22
+  tags:
+  - config
+  - active-inference
+  - validation
+  notes: >-
+    Completed as a first-class model-surface gate: default fixture and sweep
+    configs now use 4x4 spatial bins, output/runs/spatial_resolution_frontier.json
+    compares 3/4/5/6/8 grids with bounded real-pymdp agreement, and the manuscript
+    promotes only the observed-location fit/granularity result while preserving
+    the no-location recovery guardrail.
+- id: afr-m1
+  title: Active Fractal Rabbit readiness pass
+  status: done
+  start: '2026-06-20'
+  end: '2026-06-24'
+  progress: 100
+  milestone: true
+  deps:
+  - afr-1
+  - afr-2
+  - afr-4
+  - afr-5
+  - afr-6
+  - afr-7
+  - afr-8
+  - afr-9
+  - afr-14
+  - afr-15
+  - afr-16
+  - afr-17
+  - afr-18
+  - afr-19
+  - afr-20
+  - afr-21
+  - afr-22
+  - afr-29
+  - afr-30
+  - afr-31
+  tags:
+  - release
+  notes: >-
+    Completed for the synthetic FractalRabbit manuscript release surface:
+    fixture and external simulator lanes, generated figures/manuscript tokens,
+    coverage gate, claim ledger, release manifest, template render, and PDF text
+    sanity checks all passed. Real waypoint-data validation remains a separate
+    blocked future gate under afr-23.
+- id: afr-32
+  title: External-realization promotion gate
+  status: in_progress
+  start: '2026-06-15'
+  end: '2026-08-30'
+  progress: 70
+  milestone: false
+  deps:
+  - afr-23
+  tags:
+  - external
+  - validation
+  - protocol
+  notes: >-
+    The full-study runner now preflights JDK/Maven/cache prerequisites, runs
+    the current pinned external lane plus three deterministic pinned external
+    repeats when prerequisites pass, and writes required/completed/unavailable/
+    failed rows to output/runs/fair_inference_external_realizations.json. The
+    current artifact has all required rows completed and no unavailable
+    rows, but still blocks promotion because the completed rows do not agree on
+    the fair-ladder oracle boundary controls; fixture language remains
+    canonical.
+- id: afr-33
+  title: Continuous multiscale particle-filter dynamics gate
+  status: in_progress
+  start: '2026-06-15'
+  end: '2026-09-30'
+  progress: 60
+  milestone: false
+  deps:
+  - afr-31
+  tags:
+  - active-inference
+  - validation
+  - future
+  notes: >-
+    Particle/state-space and switching-HMM candidates are now scored inside the
+    locked SOTA-program candidate table with uncertainty, calibration, runtime,
+    dependency footprint, failure-mode, and lane-coverage fields. The modular
+    AIF-deepening audit now emits aif_deepening_candidates.json for factorial
+    tensor provenance, multiscale soft-belief backoff, and online adaptation,
+    while keeping audit-only rows out of predictive promotion until they enter
+    Candidate.predict(PredictContext). The remaining open scope is true
+    continuous or multiscale latent state beyond the fixed grid, with matched
+    predictive scoring and guardrails intact.
+- id: afr-34
+  title: Larger regime-structured synthetic stressors
+  status: in_progress
+  start: '2026-06-15'
+  end: '2026-10-31'
+  progress: 90
+  milestone: false
+  deps:
+  - afr-31
+  tags:
+  - experiment
+  - validation
+  - future
+  notes: >-
+    The canonical SOTA-program harness scores reporting-gap and larger
+    regime-stressor lanes, and the diagnostic robustness grid now adds repeated
+    reporting-gap, high-motion adversarial-missingness, high-motion adversarial
+    repeat, and two regime-stressor repeat rows while keeping them outside the
+    canonical four-lane SOTA gate. The regenerated SOTA and AIF-regime artifacts
+    keep those stressors lane-bound and synthetic-only. Remaining work is a
+    broader stressor grid and enough repeated realizations to revisit negative
+    HMM, learned-sequence, learned-prior, and reporting-process gates without
+    weakening the current bounded-null artifacts.
+- id: afr-35
+  title: SOTA task contract and false-claim oracle
+  status: done
+  start: '2026-11-01'
+  end: '2026-11-14'
+  progress: 100
+  milestone: false
+  deps:
+  - afr-33
+  - afr-34
+  tags:
+  - benchmark
+  - validation
+  - claims
+  notes: >-
+    Define the state-of-the-art task contract as a locked sparse-waypoint
+    predictive distribution problem: primary prequential next-cell loss,
+    secondary calibration/Brier/ECE, persistence-relative gap-filling skill,
+    runtime, minimization, and integrity regressions. Add a negative-control
+    oracle proving performance-leading language stays blocked when the gate is
+    absent, partial, fixture-only, or beaten by a baseline.
+- id: afr-36
+  title: Literature and leaderboard baseline map
+  status: in_progress
+  start: '2026-11-15'
+  end: '2026-12-15'
+  progress: 90
+  milestone: false
+  deps:
+  - afr-35
+  tags:
+  - literature
+  - benchmark
+  - validation
+  notes: >-
+    The scholarship ledger and challenge-pack literature refresh now map
+    primary-source mobility surveys, foundation/LLM mobility candidates,
+    training-free LLM-agent predictors, active-inference POMDP/world-model
+    candidates, sparse/self-supervised trajectory predictors, synthetic-trip
+    utility evaluation, higher-order mobility-network evaluation, privacy-risk
+    sources, and reproducibility sources to allowed wording, forbidden overreach,
+    official/DOI/arXiv source status, and manuscript surfaces. The docs contract
+    now treats stale release, empirical, external-lane, SOTA, and roadmap recap
+    drift as reviewer-facing failures. Remaining work is leaderboard admission
+    for auditable locked-split adapters; the map remains a candidate-baseline
+    source, not a frozen claim that any current method is state of the art.
+- id: afr-37
+  title: Synthetic challenge suite and leakage-resistant splits
+  status: in_progress
+  start: '2026-12-01'
+  end: '2027-01-15'
+  progress: 88
+  milestone: false
+  deps:
+  - afr-35
+  tags:
+  - experiment
+  - benchmark
+  - validation
+  notes: >-
+    Build a leakage-resistant synthetic challenge suite spanning fixture,
+    external FractalRabbit replicates, larger regime-structured stressors, and
+    second-generator transfer. The local challenge pack now ingests the richer
+    four-lane SOTA-program table, diagnostic robustness grid, external
+    fair-ladder realization manifest with completed/unavailable/failed row
+    accounting, lane definitions, robustness summary, repeated diagnostic
+    stressor rows, stronger fair-baseline metadata, the refreshed primary-source
+    literature candidates, publication metadata/license notices, and the new
+    privacy/task utility plus AIF-deepening audit artifacts while preserving
+    blocked empirical/foundation boundaries; remaining work is external
+    publication plus additional pinned stressor/realization lanes.
+- id: afr-38
+  title: Strong baseline harness and leaderboard artifact
+  status: in_progress
+  start: '2027-01-01'
+  end: '2027-02-28'
+  progress: 94
+  milestone: false
+  deps:
+  - afr-36
+  - afr-37
+  tags:
+  - benchmark
+  - baselines
+  - validation
+  notes: >-
+    Implement the strong-baseline harness and leaderboard artifact, starting
+    from persistence, base-rate, Markov, switching-HMM, particle/state-space,
+    neural sequence, dependency-light recency and multi-horizon attention/sequence,
+    Transformer/BERT-style mobility, mobility-foundation, and
+    LLM/fine-tuned mobility families where dependencies and data licenses allow.
+    The four-lane SOTA-program leaderboard now reports loss, calibration,
+    top-1 accuracy, traveller-clustered uncertainty intervals, runtime,
+    dependency footprint, failure modes, lane coverage, scored-or-blocked
+    robustness status, and foundation/Transformer-style blocked-row rationale.
+    A protocol-compatible higher_order_backoff_markov fair baseline is now in
+    the transparent baseline ladder and family/dependency metadata. Remaining
+    work is admissible stronger/foundation rows and broader repeated stressor
+    grids.
+- id: afr-39
+  title: Learned active-inference candidate models
+  status: in_progress
+  start: '2027-02-01'
+  end: '2027-04-15'
+  progress: 90
+  milestone: false
+  deps:
+  - afr-38
+  tags:
+  - active-inference
+  - benchmark
+  - validation
+  notes: >-
+    Prototype learned active-inference candidates that can compete on the
+    locked predictive task: learned hierarchical/factorial dynamics, multiscale
+    or continuous states, amortized or online adaptation, and calibrated priors.
+    A separate regime-qualified AIF search now scores current AIF-family
+    candidates across identity-collapse, noisy, ambiguous/coarsened,
+    reporting-gap, and latent-regime-switching synthetic regimes. After the
+    nested-tuning correction and canonical regeneration, no current regime
+    clears promotion. The aif_deepening_candidates.json artifact tracks
+    factorial matched priors and multiscale soft-belief backoff as audit-only
+    surfaces, while online transition adaptation is now a scored candidate:
+    repeated switching realizations improve on fixed-transition AIF but do not
+    clear the predeclared online-base-rate comparator. VFE, EFE,
+    policy posterior, epistemic value, and pragmatic value remain audit surfaces
+    and cannot substitute for predictive improvement.
+- id: afr-40
+  title: SOTA promotion matrix, manuscript tokens, and claim-ledger lock
+  status: in_progress
+  start: '2027-04-01'
+  end: '2027-04-30'
+  progress: 90
+  milestone: false
+  deps:
+  - afr-38
+  - afr-39
+  tags:
+  - claims
+  - manuscript
+  - benchmark
+  notes: >-
+    Emit sota_task_contract.json, sota_benchmark_matrix.json,
+    sota_leaderboard.csv, and sota_claim_gate.json only after the benchmark
+    program exists. The SOTA-program gate now carries candidate-table,
+    canonical-lane, reporting-gap, regime-stressor, and diagnostic stressor
+    contracts while keeping the global manuscript token blocked. The
+    multiplicity ledger now enumerates a nine-comparison family; one comparison
+    is uncorrected-significant and zero survive Holm/BH, while the separate
+    partial-observability mechanism-level positive clears its conservative
+    Bonferroni sign-test bound with ten independent draws. The regime-qualified
+    AIF gate is a separate token/provenance/figure surface whose positive
+    wording is limited to exact synthetic regime IDs and implemented fair
+    baselines. Manuscript variables, figure registry captions, visual-claim
+    audits, release-manifest required paths, and TODO/taskboard surfaces now
+    include privacy_utility_frontier_repeats.json,
+    synthetic_task_utility_privacy.json, and aif_deepening_candidates.json.
+    Global performance-leading language remains locked until the claim gate is
+    cleared across locked splits and lanes with no minimization or integrity
+    regression.
+- id: afr-41
+  title: Consented empirical benchmark execution
+  status: blocked
+  start: '2027-05-01'
+  end: '2027-06-30'
+  progress: 0
+  milestone: false
+  deps:
+  - afr-23
+  - afr-40
+  tags:
+  - empirical
+  - protocol
+  - validation
+  notes: >-
+    Run a consented empirical benchmark only after the separate real-data
+    protocol, steward approval, provenance records, minimization endpoints,
+    privacy review, and non-operational publication plan are complete. Synthetic
+    evidence alone cannot unlock real waypoint, national-security deployment,
+    surveillance-readiness, or operational tasking claims.
+- id: afr-42
+  title: Partial-observability noisy-emission benchmark (confound-immune AIF regime)
+  status: done
+  start: '2026-06-18'
+  end: '2026-06-18'
+  progress: 100
+  milestone: false
+  deps:
+  - afr-39
+  tags:
+  - benchmark
+  - claims
+  - manuscript
+  notes: >-
+    Landed partial_observability.py as the fair-by-construction isolation of the
+    genuine regime where active inference helps: soft belief-marginalization vs a
+    hard MAP point estimate under a known symmetric emission, sharing model,
+    emission, observations, and priors so no knob can be asymmetric — the failure
+    mode that retracted the earlier noise-frontier. Measured advantage is zero at
+    zero noise and grows monotonically with the emission flip rate (0.260 nats at
+    eps=0.40 over 16 latent cells). Wired through the full result contract:
+    output/runs/partial_observability_analysis.json (required artifact + 07
+    orchestrator stage), six provenance-bound manuscript variables, the
+    partial_observability figure with registry/caption/visual-expectation
+    contracts, a roadmap subsection, and release-manifest checksums. Bounded:
+    synthetic latent, does not beat the oracle, SOTA gate unchanged, not a
+    real-mobility claim.
+- id: afr-43
+  title: Modular results manuscript split
+  status: done
+  start: '2026-06-19'
+  end: '2026-06-19'
+  progress: 100
+  milestone: false
+  deps:
+  - afr-5
+  tags:
+  - manuscript
+  - gates
+  notes: >-
+    Split the authored results section into ordered result/control/gate modules
+    while keeping the unsuffixed section as the stable reader anchor. Verified
+    read-only manuscript cross-reference, review-regression, title-margin,
+    abstract-boundary, supplemental-placement, hardcoded-number, operational-claim,
+    docs-contract, claim-audit, claim-ledger, and non-heavy variable-provenance
+    gates. The two manuscript tests that regenerate default output artifacts were
+    bounded out after repeated stalls inside the real pymdp/JAX preparation path;
+    rerun them with a larger timeout when refreshing full study outputs.

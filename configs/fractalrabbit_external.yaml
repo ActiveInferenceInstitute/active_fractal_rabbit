@@ -1,0 +1,77 @@
+run_id: fractalrabbit_external
+seed: 19
+output_dir: output/runs/fractalrabbit_external
+
+fractalrabbit:
+  upstream_repo: https://github.com/NationalSecurityAgency/fractalrabbit.git
+  upstream_commit: 9933449c4f4fe1b26b6ac7bfdeeac76583085df5
+  cache_dir: .cache/fractalrabbit
+  execution: external
+  output_prefix: fractalrabbit_external
+  params:
+    space_dimension: 2
+    fractal_dimension: 1.33
+    number_of_points: 250
+    number_of_travellers: 8
+    number_of_co_travellers: 1
+    number_of_days: 18.0
+    number_of_reports: 720.0
+
+observation:
+  spatial_discretizer: fixed_bounds
+  spatial_bins: 4
+  spatial_bounds: [-250.0, 250.0, -250.0, 250.0]
+  time_bins_per_day: 6
+  speed_thresholds_km_per_day: [10.0, 50.0, 150.0]
+  burst_threshold_rule: median_positive
+  burst_fixed_days: null
+
+model:
+  smoothing: 0.05
+  controls: [empirical_continuation, high_entropy_exploration, identity]
+  preference_prior: uniform
+  modalities: [location, time_of_day, speed, report_burst]
+  engine: both
+
+experiment:
+  repetitions: 2
+  holdout_fraction: 0.25
+  objective_direction: minimize
+  tie_breaker: declaration_order
+
+figures:
+  enabled:
+    - waypoint_paths
+    - spatial_bins
+    - reporting_bursts
+    - speed_categories
+    - transition_heatmap
+    - likelihood_panels
+    - posterior_entropy
+    - policy_proxy
+    - candidate_scores
+    - pymdp_agreement
+    - pymdp_diagnostics
+    - state_recovery
+    - calibration
+    - dataflow
+  dpi: 220
+  registry_path: output/figures/figure_registry.json
+
+closed_loop:
+  iterations: 2
+  objective: predictive_loss
+  objective_direction: minimize
+  tie_breaker: declaration_order
+  candidates:
+    - name: short_reporting
+      params:
+        number_of_reports: 360.0
+    - name: long_reporting
+      params:
+        number_of_reports: 1440.0
+robustness:
+  n_realizations: 10
+  upstream_candidate_limit: 5
+  external_realization_fractal_dimensions: [1.21, 1.45, 1.7]
+  stop_on_external_unavailable: true
