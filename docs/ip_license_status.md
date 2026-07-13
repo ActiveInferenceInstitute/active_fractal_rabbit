@@ -83,3 +83,21 @@ resolves to the latest version) and
 manifest carry the destination-specific URL and DOI; update all four together
 if the destination or DOI ever changes (e.g. a future `--new-version` Zenodo
 deposit for a subsequent release).
+
+## Archival Redundancy Spans Independent Failure Domains
+
+Per [`docs/maintenance/archival-targets.md`](maintenance/archival-targets.md),
+the `v0.2.0` publication is mirrored across independent archival systems
+rather than concentrated on a single vendor:
+
+| System | Reference | Verified |
+| --- | --- | --- |
+| GitHub (source + release) | [`ActiveInferenceInstitute/active_fractal_rabbit`](https://github.com/ActiveInferenceInstitute/active_fractal_rabbit), [`v0.2.0` release](https://github.com/ActiveInferenceInstitute/active_fractal_rabbit/releases/tag/v0.2.0) | Yes — live commit `fd45579` on `main`. |
+| Zenodo (files + metadata + DOI) | Concept [`10.5281/zenodo.21330636`](https://doi.org/10.5281/zenodo.21330636), version [`10.5281/zenodo.21330637`](https://doi.org/10.5281/zenodo.21330637) | Yes — record state `done`, DOI-bearing PDF attached. |
+| Software Heritage (source snapshot) | [`swh:1:snp:f6238b4081939a8f2e64185804cfff57b4a2851a`](https://archive.softwareheritage.org/swh:1:snp:f6238b4081939a8f2e64185804cfff57b4a2851a/), [browse origin](https://archive.softwareheritage.org/browse/origin/?origin_url=https://github.com/ActiveInferenceInstitute/active_fractal_rabbit) | Yes — `save_task_status: succeeded`, `visit_status: full`. |
+| IPFS (content-addressed release bundle) | CID [`QmUX68wWQ7HQ9HmCqGBsE5XvRtM8ixcYw1KcFHdMbW3y2s`](https://gateway.pinata.cloud/ipfs/QmUX68wWQ7HQ9HmCqGBsE5XvRtM8ixcYw1KcFHdMbW3y2s) via Pinata (release bundle: DOI-bearing PDF + manifest + publication metadata) | Yes — pinned, gateway-resolvable. |
+
+This satisfies the archival-targets guide's "pick 3 independent systems"
+recommendation (four here). No arXiv deposit exists for this release; add one
+manually if desired, since no arXiv credential is configured in this
+environment.
