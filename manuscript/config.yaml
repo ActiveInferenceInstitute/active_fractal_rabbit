@@ -11,8 +11,11 @@ authors:
     corresponding: true
 
 publication:
-  doi_status: "forthcoming"
+  doi_status: "published"
   repository_url: "https://github.com/ActiveInferenceInstitute/active_fractal_rabbit"
+  doi: "10.5281/zenodo.21330636"
+  version_doi: "10.5281/zenodo.21330637"
+  version_record: "https://zenodo.org/records/21330637"
 
 testing:
   max_test_failures: 0

@@ -2,7 +2,7 @@ cff-version: 1.2.0
 message: "If you use this project, please cite the software and rendered manuscript."
 title: "Active FractalRabbit: Synthetic Waypoint Active-Inference Scaffold"
 version: "0.2.0"
-date-released: "2026-07-03"
+date-released: "2026-07-12"
 type: software
 authors:
   - family-names: "Friedman"
@@ -10,6 +10,14 @@ authors:
     email: "daniel@activeinference.institute"
 repository-code: "https://github.com/ActiveInferenceInstitute/active_fractal_rabbit"
 url: "https://github.com/ActiveInferenceInstitute/active_fractal_rabbit"
+doi: "10.5281/zenodo.21330636"
+identifiers:
+  - type: doi
+    value: "10.5281/zenodo.21330636"
+    description: "The concept DOI, representing all versions of this software."
+  - type: doi
+    value: "10.5281/zenodo.21330637"
+    description: "The versioned DOI for release v0.2.0 of this software."
 license: "MIT"
 abstract: >-
   Active FractalRabbit is a fixture-first synthetic waypoint analysis scaffold

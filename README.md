@@ -1,5 +1,12 @@
 # Active FractalRabbit: Synthetic Waypoint Active-Inference Scaffold
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21330636.svg)](https://doi.org/10.5281/zenodo.21330636)
+[![GitHub release](https://img.shields.io/badge/release-v0.2.0-blue)](https://github.com/ActiveInferenceInstitute/active_fractal_rabbit/releases/tag/v0.2.0)
+
+Source, fixtures, manuscript, and the release manifest are public at
+[github.com/ActiveInferenceInstitute/active_fractal_rabbit](https://github.com/ActiveInferenceInstitute/active_fractal_rabbit),
+archived at Zenodo under [10.5281/zenodo.21330636](https://doi.org/10.5281/zenodo.21330636).
+
 Active FractalRabbit is a closed-loop research scaffold for active-inference
 analysis of synthetic sporadic waypoint data. It keeps the external simulator
 boundary explicit: FractalRabbit is pinned to commit
@@ -43,20 +50,21 @@ The current scaffold emits:
   render-freshness proof and checksummed release manifest covering the final PDF
   and combined HTML.
 
-## Citation and License Bound the Release Candidate
+## Citation and License Bound the Release
 
 Original project code is licensed under MIT in `LICENSE`. Project-authored
 documentation, manuscript source, figures, fixture descriptions, and other
 scholarly outputs are licensed under CC-BY-4.0 in `LICENSE-DOCS.md` unless a
-file states otherwise. Citation metadata lives in `CITATION.cff`; third-party
-simulator and dependency notices live in `THIRD_PARTY_NOTICES.md`; the current
-IP/license and publication-readiness status is recorded in
-`docs/ip_license_status.md`.
+file states otherwise. Citation metadata, including the Zenodo DOI, lives in
+`CITATION.cff`; third-party simulator and dependency notices live in
+`THIRD_PARTY_NOTICES.md`; the current IP/license and publication-readiness
+status is recorded in `docs/ip_license_status.md`.
 
-This repository is a release-candidate surface being prepared for its first
-public publication. Release requires a current template render, full test gate,
-claim and visual audits, and regenerated `output/release_manifest.json` after
-final docs/manuscript/license changes.
+This repository reached public release as `v0.2.0` (2026-07-12): a current
+template render, full test gate (658 tests, 91.33% coverage), claim and
+visual audits, and a regenerated, verified `output/release_manifest.json` all
+passed before the [GitHub release](https://github.com/ActiveInferenceInstitute/active_fractal_rabbit/releases/tag/v0.2.0)
+and [Zenodo deposit](https://doi.org/10.5281/zenodo.21330636).
 
 ## Quick Start Runs the Fixture-First Lane
 
