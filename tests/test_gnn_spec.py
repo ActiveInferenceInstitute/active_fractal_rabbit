@@ -368,6 +368,15 @@ def test_pinned_revision_and_parser_source_when_checkout_available() -> None:
     assert present.returncode == 0, (
         f"pinned revision {pin['revision']} is not present in {checkout}"
     )
+    head = _git(checkout, "rev-parse", "HEAD")
+    head_revision = head.stdout.strip() if head.returncode == 0 else ""
+    if head_revision != pin["revision"]:
+        pytest.skip(
+            f"upstream checkout HEAD is {head_revision or 'unreadable'}, not the "
+            f"pinned {pin['revision']}; the pin itself is verified above, but a "
+            "moved checkout cannot prove that the working-tree parser is the "
+            "pinned parser"
+        )
     for relative in _PINNED_PARSER_FILES:
         pinned_blob = _git(checkout, "show", f"{pin['revision']}:{relative}")
         if pinned_blob.returncode != 0:

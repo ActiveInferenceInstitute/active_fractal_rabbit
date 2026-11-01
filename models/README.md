@@ -55,9 +55,12 @@ its virtualenv is absent.
 
 The machine-readable copy of this pin is `.github/gnn-pin.json`; when the
 checkout is present, `tests/test_gnn_spec.py` re-verifies that the recorded tag
-still dereferences to the recorded revision and that the parser source in use
-matches that revision. The syntax authority is `docs/gnn/gnn_syntax.md` in that
-checkout. Re-validation runs the upstream validator against these files:
+still dereferences to the recorded revision and that the revision is present.
+When the checkout stands at that revision it also compares the parser source in
+use against the pinned source byte for byte; a checkout parked on another
+revision skips that comparison with a reason naming the observed `HEAD`, since a
+moved checkout cannot prove which parser its virtualenv imports. The syntax
+authority is `docs/gnn/gnn_syntax.md` in that checkout. Re-validation runs the upstream validator against these files:
 
 ```bash
 cd <Generalized_Notation_Notation checkout>
