@@ -3,9 +3,34 @@
 Machine-checkable specification of the active-inference generative model, emitted by
 `src/active_fractal_rabbit/model_spec.py` and verified by
 `tests/test_model_spec.py` (a de-normalized tensor, stale cardinality, or drifted
-dependency is caught). This card describes the current default 4x4 fixture surface:
+dependency is caught). Model structure is declared in the Generalized Notation
+Notation (GNN) specs under `models/` and held equal to the in-code declarations by
+`tests/test_gnn_spec.py`. This card describes the current default 4x4 fixture surface:
 sixteen spatial cells, four time bins, four speed categories, and two burst
 categories. Synthetic-only; no real-mobility claim.
+
+## GNN Specs Declare the Model Structure
+
+The committed GNN specs under `models/` are the single source of truth for model
+*structure*: hidden factors and their cardinalities, observation modalities and
+their cardinalities, the `A`/`B` factor-dependency structure, the control
+cardinalities, and whether the conditional-independence approximation applies.
+`src/active_fractal_rabbit/gnn_spec.py` parses those files into the same
+`GenerativeModelSpec` dataclass used below, and `tests/test_gnn_spec.py` holds the
+GNN-derived declarations equal to `single_factor_spec(...)` and
+`factorial_spec(...)` field by field, so editing one side without the other fails
+the suite. When the pinned upstream GNN checkout (sibling
+`Generalized_Notation_Notation`, or `$GNN_CHECKOUT`) is present, the same suite
+re-parses both files with the upstream
+`gnn.parsers.markdown_parser.MarkdownGNNParser` and compares the parsed factor,
+observation, and control cardinalities plus the `A`/`B` dependency edges and the
+conditional-independence flag against the in-code declarations; it skips with an
+explicit reason when the checkout or its virtualenv is absent.
+
+The `A`/`B`/`D` *values* are not declared in the GNN files: they are learned from
+declared training rows by the model builders, so the specs carry no
+`## InitialParameterization` block. The upstream revision the specs are validated
+against is pinned in `.github/gnn-pin.json` and `models/README.md`.
 
 ## `single_factor_reference` Defines the Baseline POMDP
 
