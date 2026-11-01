@@ -10,6 +10,8 @@ Ownership:
 
 Core modules:
 - `manuscript_variables.py` owns manuscript-facing numbers and derived values.
+- `model_spec.py` owns the declarative generative-model contract and conformance checks.
+- `gnn_spec.py` owns GNN spec parsing and the declared model-structure source of truth.
 - `aif_regime_search.py` owns active-inference regime search behavior.
 - `sota_program_harness.py` owns benchmark program orchestration.
 - `release.py` owns release manifest and readiness assembly.

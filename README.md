@@ -36,9 +36,11 @@ The current scaffold emits:
   SOTA task-contract, SOTA leaderboard, SOTA program gate, SOTA program leaderboard,
   SOTA robustness-grid, regime-qualified AIF search/gate, AIF sweep, and
   open challenge-pack artifacts;
-- a machine-checked single/factorial generative-model specification, a
-  within-regime model-comparison leaderboard, and a repeated online-transition
-  adaptation ablation whose completed evidence is separated from forward work;
+- a machine-checked single/factorial generative-model specification declared in
+  Generalized Notation Notation (`models/*.gnn.md`) with an upstream-parser drift
+  guard, a within-regime model-comparison leaderboard, and a repeated
+  online-transition adaptation ablation whose completed evidence is separated
+  from forward work;
 - return-structure, variance-band, upstream-sensitivity, fractal-dimension,
   circadian-phase, sequence-baseline, reporting-process/missingness,
   return-plus-phase, lane-resolved model-gate, privacy-frontier,
@@ -101,6 +103,7 @@ uv run python scripts/02_run_pipeline.py --config configs/fractalrabbit_external
 | --- | --- |
 | `configs/` | Default fixture, external FractalRabbit, and `fixtures/` variant configs |
 | `data/fixtures/` | Default 2,400-row fixture plus small regression/parser-contract CSV |
+| `models/` | Generalized Notation Notation specs for the generative models (structural source of truth) plus the pinned upstream revision |
 | `src/active_fractal_rabbit/` | Config, simulator boundary, observation, POMDP, inference, and loop code |
 | `scripts/` | Thin CLI entrypoints |
 | `tests/` | Unit, fixture-pipeline, and optional external integration tests |

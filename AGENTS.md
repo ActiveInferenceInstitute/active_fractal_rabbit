@@ -63,6 +63,7 @@ regime-qualified AIF search into global SOTA language.
 | --- | --- | --- |
 | `scripts/07_run_full_study.py` | Full-study orchestration for fixture/external lanes and downstream artifacts. | Prefer fixture-first; external requires config, JDK 21, Maven. |
 | `src/active_fractal_rabbit/fractalrabbit.py` | FractalRabbit CSV parsing, contracts, and lane data loading. | Do not vendor upstream simulator code or caches. |
+| `models/*.gnn.md`, `src/active_fractal_rabbit/gnn_spec.py` | Generalized Notation Notation specs for the generative models and the loader that checks them against `model_spec.py`. | Structural source of truth; `A`/`B`/`D` values stay learned, not declared. |
 | `src/active_fractal_rabbit/manuscript_variables.py` | Source-owned manuscript variable generation. | All manuscript numbers must flow from here or generated artifacts. |
 | `src/active_fractal_rabbit/figures.py` | Figure generation and registries. | Figures must stay tied to output artifacts and synthetic scope. |
 | `src/active_fractal_rabbit/release.py` | Release manifest assembly and generated release surfaces. | Local artifacts are not public publication readiness by themselves. |
