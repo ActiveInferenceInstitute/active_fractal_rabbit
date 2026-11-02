@@ -4,6 +4,8 @@ import hashlib
 import json
 from pathlib import Path
 
+import pytest
+
 import active_fractal_rabbit.visual_claim_audit as visual_claim_audit
 from active_fractal_rabbit.visual_claim_audit import (
     VISUAL_CLAIM_AUDIT_SCHEMA,
@@ -14,6 +16,14 @@ from active_fractal_rabbit.visual_claim_audit import (
 
 def test_real_visual_claim_audit_passes() -> None:
     root = Path(__file__).resolve().parents[1]
+    registry = root / "output" / "figures" / "figure_registry.json"
+    if not registry.is_file():
+        pytest.skip(
+            f"generated figure surface not present: missing {registry} "
+            "(removal condition: run scripts/07_run_full_study.py --lane "
+            "fixture and scripts/04_generate_figures.py --run "
+            "output/runs/default; owner: fixture lane)"
+        )
     payload = audit_visual_claims(root)
 
     assert payload["schema"] == VISUAL_CLAIM_AUDIT_SCHEMA

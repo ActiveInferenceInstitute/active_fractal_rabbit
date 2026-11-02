@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-import shutil
 import os
 from pathlib import Path
 
 import numpy as np
+
+from png_fixtures import synthetic_png_bytes
 
 import active_fractal_rabbit.render_freshness as freshness
 from active_fractal_rabbit.render_freshness import (
@@ -82,8 +83,7 @@ def test_rebuilding_manifest_cannot_certify_stale_render(monkeypatch, tmp_path) 
 def test_cover_check_rejects_stale_embedded_cover(monkeypatch, tmp_path) -> None:
     cover_path = tmp_path / "cover.png"
     pdf_path = tmp_path / "paper.pdf"
-    source_cover = Path(__file__).resolve().parents[1] / "output/cover/active_fractal_rabbit_cover.png"
-    shutil.copy2(source_cover, cover_path)
+    cover_path.write_bytes(synthetic_png_bytes(0.0))
     pdf_path.write_bytes(b"not-used-by-mocked-extractor")
     monkeypatch.setattr(
         freshness,

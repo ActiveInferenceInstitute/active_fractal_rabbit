@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.14"
+
+      - name: Run the documented gate
+        # Documented gate: uv run pytest tests/ --cov=src --cov-fail-under=90.
+        # --frozen keeps CI on the committed uv.lock and --extra dev installs
+        # the test dependencies. Tests that need the generated output surface
+        # or the sibling render toolchain skip with explicit reasons naming the
+        # missing artifact.
+        run: uv run --frozen --extra dev pytest tests/ --cov=src --cov-fail-under=90
+
+      - name: Fetch the pinned GNN checkout
+        id: gnn
+        # A failed fetch downgrades to a warning; the pin-verification step
+        # below is skipped rather than failing the job (mirrors the fleet
+        # pattern).
+        run: |
+          PIN=$(uv run --frozen --extra dev python -c "import json;print(json.load(open('.github/gnn-pin.json'))['revision'])")
+          if git clone --quiet --filter=blob:none --no-checkout \
+              https://github.com/ActiveInferenceInstitute/Generalized_Notation_Notation.git "$RUNNER_TEMP/gnn" \
+             && git -C "$RUNNER_TEMP/gnn" checkout --quiet "$PIN"; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::pinned GNN checkout unavailable; pin re-verification is skipped in this run"
+          fi
+
+      - name: Verify the recorded GNN pin against the fetched checkout
+        if: steps.gnn.outputs.available == 'true'
+        env:
+          GNN_CHECKOUT: ${{ runner.temp }}/gnn
+        # The upstream virtualenv is intentionally not built here; the
+        # upstream-parser tests skip with explicit reasons until a caller
+        # provides it (see tests/test_gnn_spec.py).
+        run: uv run --frozen --extra dev pytest tests/test_gnn_spec.py -q

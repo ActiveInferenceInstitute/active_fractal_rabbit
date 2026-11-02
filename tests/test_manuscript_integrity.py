@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import os
 import re
 import sys
 from pathlib import Path
 
+import pytest
 import yaml
 
 from active_fractal_rabbit.circadian_phase import run_and_write_circadian_phase
@@ -521,8 +523,9 @@ def test_manuscript_title_margin_and_new_section_references() -> None:
         == "output/cover/active_fractal_rabbit_cover.png"
     )
     assert config["authors"][0]["orcid"] == "0000-0001-6232-9096"
-    assert config["publication"]["doi_status"] == "forthcoming"
-    assert "doi" not in config["publication"]
+    assert config["publication"]["doi_status"] == "published"
+    assert config["publication"]["doi"] == "10.5281/zenodo.21330636"
+    assert config["publication"]["version_doi"] == "10.5281/zenodo.21330637"
     assert (
         config["metadata"]["geometry"]
         == "left=0.12in,right=0.12in,top=0.28in,bottom=0.28in"
@@ -545,9 +548,21 @@ def test_resolved_manuscript_has_no_unresolved_tokens_or_refs(repo_sandbox) -> N
     # write_variables is deliberately NOT called here: its provenance side
     # effect requires the full 40-artifact surface (exercised by the sandboxed
     # figures/release tests and by the full study), not this render check.
+    template_root = Path(
+        os.environ.get("TEMPLATE_REPO_ROOT", ROOT.parents[2] / "template")
+    )
+    injection = (
+        template_root / "infrastructure" / "rendering" / "manuscript_injection.py"
+    )
+    if not injection.is_file():
+        pytest.skip(
+            "manuscript render toolchain not present: missing "
+            f"{injection}; set $TEMPLATE_REPO_ROOT or check out the sibling "
+            "`template` repository (removal condition: render toolchain "
+            "available; owner: render lane)"
+        )
     _prepare_default_outputs(repo_sandbox)
     variables = compute_variables(repo_sandbox)
-    template_root = ROOT.parents[2] / "template"
     if str(template_root) not in sys.path:
         sys.path.insert(0, str(template_root))
     from infrastructure.rendering.manuscript_injection import (
@@ -582,8 +597,14 @@ def test_abstract_is_problem_framed_not_environment_framed() -> None:
         "code formatting": r"`",
         "numeric quantity": r"\b\d+(?:\.\d+)?(?:e-?\d+)?\b",
     }
+    # Repository URLs and DOIs are publication identifiers, not run-dependent
+    # numeric quantities; strip them before the numeric-prose scan.
+    scan_body = re.sub(r"https?://\S+", "", body)
+    scan_body = re.sub(r"10\.\d{4,}/\S+", "", scan_body)
     offenders = [
-        name for name, pattern in forbidden_patterns.items() if re.search(pattern, body)
+        name
+        for name, pattern in forbidden_patterns.items()
+        if re.search(pattern, scan_body)
     ]
     assert not offenders, (
         f"abstract contains forbidden plain-text element(s): {offenders}"
@@ -732,6 +753,10 @@ def test_no_hardcoded_run_dependent_numbers() -> None:
         text = re.sub(r"`[^`]*`", "", text)
         text = re.sub(r"\[@[^\]]*\]", "", text)
         text = re.sub(r"\{#[^}]*\}", "", text)
+        # Publication identifiers (repository URLs, DOIs) are metadata, not
+        # run-dependent numbers; strip them before the numeral scan.
+        text = re.sub(r"https?://\S+", "", text)
+        text = re.sub(r"10\.\d{4,}/\S+", "", text)
         for match in re.finditer(r"\b\d+(?:\.\d+)?(?:e-?\d+)?\b", text):
             if match.group(0) not in allowed:
                 start = max(0, match.start() - 60)

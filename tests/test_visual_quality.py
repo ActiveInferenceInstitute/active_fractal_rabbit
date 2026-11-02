@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 
 import pytest
+from png_fixtures import synthetic_png_bytes
 
 from active_fractal_rabbit.figure_style import font_contract_payload
 from active_fractal_rabbit.visual_quality import (
@@ -19,6 +20,14 @@ from active_fractal_rabbit.visual_quality import (
 
 def test_visual_quality_audit_passes_for_generated_figures() -> None:
     root = Path(__file__).resolve().parents[1]
+    registry = root / "output" / "figures" / "figure_registry.json"
+    if not registry.is_file():
+        pytest.skip(
+            f"generated figure surface not present: missing {registry} "
+            "(removal condition: run scripts/07_run_full_study.py --lane "
+            "fixture and scripts/04_generate_figures.py --run "
+            "output/runs/default; owner: fixture lane)"
+        )
     payload = audit_visual_quality(root)
 
     assert payload["schema"] == VISUAL_QUALITY_SCHEMA
@@ -88,6 +97,19 @@ def test_visual_quality_audit_passes_for_generated_figures() -> None:
 def test_contact_sheet_is_review_only_not_manuscript_registered() -> None:
     root = Path(__file__).resolve().parents[1]
     figure_dir = root / "output" / "figures"
+    required = (
+        figure_dir / "figure_registry.json",
+        figure_dir / "figure_manifest.json",
+        root / "output" / "release_manifest.json",
+    )
+    missing = [str(path) for path in required if not path.is_file()]
+    if missing:
+        pytest.skip(
+            "generated figure/release surface not present; missing "
+            + ", ".join(missing)
+            + " (removal condition: run the full study and "
+            "scripts/29_finalize_publication_package.py; owner: release lane)"
+        )
     registry = json.loads(
         (figure_dir / "figure_registry.json").read_text(encoding="utf-8")
     )
@@ -115,11 +137,7 @@ def test_visual_quality_audit_detects_missing_data_source(tmp_path) -> None:
     source_dir.mkdir(parents=True)
     (source_dir / "source.json").write_text("{}\n", encoding="utf-8")
     png = figure_dir / "figure.png"
-    png.write_bytes(
-        (
-            Path(__file__).resolve().parents[1] / "output" / "figures" / "dataflow.png"
-        ).read_bytes()
-    )
+    png.write_bytes(synthetic_png_bytes(0.0))
     registry = {
         "schema": "active-fractal-rabbit-figure-registry-v1",
         "entries": [
@@ -167,9 +185,7 @@ def test_visual_quality_audit_detects_unregistered_png(tmp_path) -> None:
     source_dir = tmp_path / "output" / "runs"
     source_dir.mkdir(parents=True)
     (source_dir / "source.json").write_text("{}\n", encoding="utf-8")
-    source_png = (
-        Path(__file__).resolve().parents[1] / "output" / "figures" / "dataflow.png"
-    ).read_bytes()
+    source_png = synthetic_png_bytes(0.0)
     (figure_dir / "figure.png").write_bytes(source_png)
     (figure_dir / "review_crop.png").write_bytes(source_png)
     registry = {
@@ -213,11 +229,7 @@ def test_visual_quality_audit_detects_missing_style_provenance(tmp_path) -> None
     source_dir.mkdir(parents=True)
     (source_dir / "source.json").write_text("{}\n", encoding="utf-8")
     png = figure_dir / "figure.png"
-    png.write_bytes(
-        (
-            Path(__file__).resolve().parents[1] / "output" / "figures" / "dataflow.png"
-        ).read_bytes()
-    )
+    png.write_bytes(synthetic_png_bytes(0.0))
     registry = {
         "schema": "active-fractal-rabbit-figure-registry-v1",
         "entries": [
@@ -249,11 +261,7 @@ def test_visual_quality_audit_detects_missing_contact_sheet(tmp_path) -> None:
     source_dir.mkdir(parents=True)
     (source_dir / "source.json").write_text("{}\n", encoding="utf-8")
     png = figure_dir / "figure.png"
-    png.write_bytes(
-        (
-            Path(__file__).resolve().parents[1] / "output" / "figures" / "dataflow.png"
-        ).read_bytes()
-    )
+    png.write_bytes(synthetic_png_bytes(0.0))
     registry = {
         "schema": "active-fractal-rabbit-figure-registry-v1",
         "entries": [
@@ -291,7 +299,6 @@ def test_visual_quality_audit_detects_missing_contact_sheet(tmp_path) -> None:
 
 
 def test_visual_quality_rejects_swapped_registered_figure(tmp_path: Path) -> None:
-    root = Path(__file__).resolve().parents[1]
     figure_dir = tmp_path / "output" / "figures"
     source_dir = tmp_path / "output" / "runs"
     figure_dir.mkdir(parents=True)
@@ -299,7 +306,7 @@ def test_visual_quality_rejects_swapped_registered_figure(tmp_path: Path) -> Non
     source = source_dir / "source.json"
     source.write_text('{"value": 1}\n', encoding="utf-8")
     figure = figure_dir / "figure.png"
-    figure.write_bytes((root / "output/figures/dataflow.png").read_bytes())
+    figure.write_bytes(synthetic_png_bytes(0.0))
     caption = (
         "Source source.json provides a sufficiently long synthetic figure caption with "
         "an explicit boundary. Supports a source-bound diagnostic; does not support an "
@@ -342,7 +349,7 @@ def test_visual_quality_rejects_swapped_registered_figure(tmp_path: Path) -> Non
     contact = figure_dir / "figure_contact_sheet.png"
     contact.write_bytes(figure.read_bytes())
 
-    figure.write_bytes((root / "output/figures/transition_heatmap.png").read_bytes())
+    figure.write_bytes(synthetic_png_bytes(0.5))
     contact.write_bytes(figure.read_bytes())
     payload = audit_visual_quality(tmp_path)
 

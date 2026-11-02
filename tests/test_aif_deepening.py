@@ -3,6 +3,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
+
 from active_fractal_rabbit.aif_deepening import (
     AIF_DEEPENING_SCHEMA,
     aif_deepening_candidates,
@@ -13,6 +15,13 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_aif_deepening_admits_only_scored_online_adaptation_without_promotion() -> None:
+    ablation = ROOT / "output" / "runs" / "adaptive_aif_ablation.json"
+    if not ablation.is_file():
+        pytest.skip(
+            f"scored ablation artifact not present: missing {ablation} "
+            "(removal condition: run scripts/07_run_full_study.py --lane "
+            "fixture; owner: fixture lane)"
+        )
     payload = aif_deepening_candidates(ROOT)
 
     assert payload["schema"] == AIF_DEEPENING_SCHEMA

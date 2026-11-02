@@ -4,6 +4,7 @@ import json
 import re
 from pathlib import Path
 
+import pytest
 import yaml
 
 from active_fractal_rabbit.config import load_config
@@ -187,11 +188,15 @@ def test_default_fixture_signposts_match_default_config() -> None:
 
 
 def test_documented_figure_counts_match_registry_and_default_config() -> None:
-    registry = json.loads(
-        (ROOT / "output" / "figures" / "figure_registry.json").read_text(
-            encoding="utf-8"
+    registry_path = ROOT / "output" / "figures" / "figure_registry.json"
+    if not registry_path.is_file():
+        pytest.skip(
+            f"generated figure registry not present: missing {registry_path} "
+            "(removal condition: run scripts/07_run_full_study.py --lane "
+            "fixture and scripts/04_generate_figures.py --run "
+            "output/runs/default; owner: fixture lane)"
         )
-    )
+    registry = json.loads(registry_path.read_text(encoding="utf-8"))
     config = load_config(ROOT / "configs" / "default.yaml")
     expected = len(registry["entries"])
 
@@ -465,6 +470,14 @@ def test_scholarship_forbidden_overreach_phrases_stay_quarantined_to_ledger() ->
 
 
 def test_visual_audit_contract_shape_is_documented() -> None:
+    registry_path = ROOT / "output" / "figures" / "figure_registry.json"
+    if not registry_path.is_file():
+        pytest.skip(
+            f"generated figure registry not present: missing {registry_path} "
+            "(removal condition: run scripts/07_run_full_study.py --lane "
+            "fixture and scripts/04_generate_figures.py --run "
+            "output/runs/default; owner: fixture lane)"
+        )
     quality = audit_visual_quality(ROOT)
     visual_claims = audit_visual_claims(ROOT)
     docs_blob = "\n".join(
@@ -551,8 +564,9 @@ def test_publication_metadata_and_ip_status_are_signposted() -> None:
     for rel_path in required_paths:
         assert rel_path in readme or rel_path == "docs/ip_license_status.md"
     assert "ip_license_status.md" in docs_index
-    assert "private release-candidate" in status_doc
-    assert "public release remains blocked" in status_doc.lower()
+    assert "public release" in status_doc.lower()
+    assert "release manifest" in status_doc.lower()
+    assert "10.5281/zenodo.21330636" in status_doc
     assert "Apache-2.0" in status_doc
     assert "MIT License" in third_party
     assert "9933449c4f4fe1b26b6ac7bfdeeac76583085df5" in third_party
@@ -662,6 +676,13 @@ def test_roadmap_is_forward_only_not_a_delivered_work_recap() -> None:
 
 
 def test_fair_frontier_method_links_existing_output_artifacts() -> None:
+    runs_dir = ROOT / "output" / "runs"
+    if not runs_dir.is_dir():
+        pytest.skip(
+            f"generated run surface not present: missing {runs_dir} (removal "
+            "condition: run scripts/07_run_full_study.py --lane fixture; "
+            "owner: fixture lane)"
+        )
     doc_path = ROOT / "docs" / "methods" / "fair-frontier-sota.md"
     text = doc_path.read_text(encoding="utf-8")
     artifact_paths = re.findall(r"`((?:\.\./\.\./)?output/runs/[^`]+)`", text)
