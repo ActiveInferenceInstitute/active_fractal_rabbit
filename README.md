@@ -40,7 +40,9 @@ The current scaffold emits:
   Generalized Notation Notation (`models/*.gnn.md`) with an upstream-parser drift
   guard, a within-regime model-comparison leaderboard, and a repeated
   online-transition adaptation ablation whose completed evidence is separated
-  from forward work;
+  from forward work. GNN maintains a [downstream adoption
+  guide](https://github.com/ActiveInferenceInstitute/Generalized_Notation_Notation/blob/main/docs/gnn/integration/downstream_adoption.md)
+  for repositories that consume the notation;
 - return-structure, variance-band, upstream-sensitivity, fractal-dimension,
   circadian-phase, sequence-baseline, reporting-process/missingness,
   return-plus-phase, lane-resolved model-gate, privacy-frontier,
