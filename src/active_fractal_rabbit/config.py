@@ -300,14 +300,23 @@ def with_candidate(
 
 
 def _find_project_root(config_path: Path) -> Path:
-    """Walk upward to the directory holding pyproject.toml.
+    """Walk upward to the directory holding this project's pyproject.toml.
 
     Supports nested config folders such as ``configs/fixtures/``; ad-hoc test
-    configs without a pyproject fall back to the historical ``parents[1]``.
+    configs without a project marker fall back to the historical ``parents[1]``.
+
+    A bare ``pyproject.toml`` check is not enough. When a config lives in a
+    temporary directory inside an enclosing repository (a vault checkout whose
+    ``TMPDIR`` points inside it, for example), the walk would otherwise anchor
+    relative paths to that outer repository's root and read or write files in
+    the wrong tree. The marker therefore requires the sibling
+    ``src/active_fractal_rabbit`` package that belongs to this project.
     """
 
     for parent in config_path.parents:
-        if (parent / "pyproject.toml").exists():
+        if (parent / "pyproject.toml").exists() and (
+            parent / "src" / "active_fractal_rabbit"
+        ).is_dir():
             return parent
     return config_path.parents[1]
 

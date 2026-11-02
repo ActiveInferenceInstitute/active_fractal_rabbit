@@ -24,6 +24,25 @@ def test_fixture_config_roster_is_complete() -> None:
     }
 
 
+def test_sandbox_fixture_config_anchors_at_sandbox_root(repo_sandbox: Path) -> None:
+    """The sandbox must satisfy the project-root marker.
+
+    ``_find_project_root`` requires ``pyproject.toml`` plus the sibling
+    ``src/active_fractal_rabbit`` package. If the sandbox carries only the
+    marker file, the walk escapes to an unrelated ancestor and repo-relative
+    inputs such as ``data/fixtures/fractalrabbit_sample_large.csv`` resolve
+    under ``<sandbox>/repo/configs/data/...`` instead of the sandbox.
+    """
+    config_path = repo_sandbox / "configs" / "fixtures" / "deep_latent.yaml"
+    config = load_config(config_path)
+    sandbox_root = repo_sandbox.resolve()
+    assert config.project_root == sandbox_root
+    fixture_csv = config.fractalrabbit.fixture_csv
+    assert fixture_csv is not None
+    assert fixture_csv.exists()
+    assert fixture_csv.is_relative_to(sandbox_root)
+
+
 @pytest.mark.parametrize("config_path", FIXTURE_CONFIGS, ids=lambda path: path.stem)
 def test_fixture_configs_load_and_run(config_path: Path, repo_sandbox: Path) -> None:
     # Run against the sandbox COPY of the config so the pipeline's project

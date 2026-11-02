@@ -44,11 +44,15 @@ if str(SRC) not in sys.path:
 #: Read-only inputs a surface-regeneration test may need, exposed into the
 #: sandbox as symlinks. output/ is deliberately NOT linked — each sandbox
 #: gets a fresh, empty output tree; configs/ is copied (see _build_sandbox).
+#: ``pyproject.toml`` plus ``src/`` carry the project-root marker that
+#: ``_find_project_root`` requires, so a sandbox config anchors at the sandbox
+#: rather than walking up into an unrelated enclosing repository.
 _SANDBOX_LINKS = (
     "data",
     "manuscript",
     "docs",
     "pyproject.toml",
+    "src",
     "uv.lock",
     "tasks.yaml",
     "README.md",
@@ -71,8 +75,10 @@ def _build_sandbox(base: Path) -> Path:
     path (following symlinks) before walking up to the ``pyproject.toml``
     project root, so a symlinked config would silently anchor ``output_dir``
     back at the production repo and defeat the sandbox. The remaining
-    read-only inputs are symlinks; ``pyproject.toml`` is linked at the sandbox
-    root so ``_find_project_root`` stops there.
+    read-only inputs are symlinks; ``pyproject.toml`` and ``src/`` are linked
+    at the sandbox root so ``_find_project_root`` — which requires both the
+    marker file and the sibling ``src/active_fractal_rabbit`` package — stops
+    there.
     """
     sandbox = base / "repo"
     sandbox.mkdir()

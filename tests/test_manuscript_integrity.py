@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import os
 import re
 import sys
 from pathlib import Path
 
+import pytest
 import yaml
 
 from active_fractal_rabbit.circadian_phase import run_and_write_circadian_phase
@@ -44,6 +46,63 @@ DISPLAY_EQUATION_LABEL_RE = re.compile(r"\{#eq:[A-Za-z0-9_-]+(?:\s[^}]*)?\}")
 # doubled-backslash LaTeX row-break-with-spacing token (`\\[4pt]`, legitimate inside a `cases`
 # environment) via the negative lookbehind.
 RAW_BRACKET_DISPLAY_MATH_RE = re.compile(r"(?<!\\)\\[\[\]]")
+
+#: Structural constants allowed in manuscript prose: JDK 21, SHA-256, top-1, and
+#: the 95% CI convention (percentile(2.5, 97.5) is a fixed code constant in
+#: power_analysis.traveller_clustered_bootstrap_stats, independent of the
+#: family-level MULTIPLICITY_ALPHA).
+STRUCTURAL_NUMERALS = frozenset({"21", "256", "1", "95"})
+
+#: Repository URLs and DOIs are publication identifiers, not run-dependent
+#: numbers, so they are stripped before prose-numeral scans. The scoping stays
+#: honest because test_publication_identifier_scoping_keeps_prose_drift_failing
+#: proves other numerals still fail, and
+#: test_abstract_publication_identifiers_match_configured_doi pins the
+#: abstract's identifiers to manuscript/config.yaml.
+PUBLICATION_IDENTIFIER_PATTERNS = (
+    re.compile(r"https?://\S+"),
+    re.compile(r"10\.\d{4,}/\S+"),
+)
+NUMERAL_RE = re.compile(r"\b\d+(?:\.\d+)?(?:e-?\d+)?\b")
+ABSTRACT_FORBIDDEN_PATTERNS = {
+    "citation": r"\[@",
+    "figure reference": r"\bfig(?:ure)?[.:]",
+    "manuscript token": r"\{\{[A-Z][A-Z0-9_]*\}\}",
+    "code formatting": r"`",
+    "numeric quantity": r"\b\d+(?:\.\d+)?(?:e-?\d+)?\b",
+}
+ABSTRACT_ENVIRONMENT_TERMS = ("java", "maven", "toolchain", "jdk")
+
+
+def _strip_publication_identifiers(text: str) -> str:
+    """Remove publication identifiers (URLs, DOIs) before prose-numeral scans."""
+
+    for pattern in PUBLICATION_IDENTIFIER_PATTERNS:
+        text = pattern.sub("", text)
+    return text
+
+
+def _abstract_offenders(body: str) -> list[str]:
+    """Forbidden plain-text element names present in a lowercased abstract body."""
+
+    scan_body = _strip_publication_identifiers(body)
+    return [
+        name
+        for name, pattern in ABSTRACT_FORBIDDEN_PATTERNS.items()
+        if re.search(pattern, scan_body)
+    ]
+
+
+def _numeral_scan(text: str) -> tuple[str, list[re.Match[str]]]:
+    """Return (scan_text, offenders) for run-dependent numerals left in prose."""
+
+    scan_text = _strip_publication_identifiers(text)
+    offenders = [
+        match
+        for match in NUMERAL_RE.finditer(scan_text)
+        if match.group(0) not in STRUCTURAL_NUMERALS
+    ]
+    return scan_text, offenders
 
 
 def _prepare_default_outputs(root: Path) -> None:
@@ -521,8 +580,9 @@ def test_manuscript_title_margin_and_new_section_references() -> None:
         == "output/cover/active_fractal_rabbit_cover.png"
     )
     assert config["authors"][0]["orcid"] == "0000-0001-6232-9096"
-    assert config["publication"]["doi_status"] == "forthcoming"
-    assert "doi" not in config["publication"]
+    assert config["publication"]["doi_status"] == "published"
+    assert config["publication"]["doi"] == "10.5281/zenodo.21330636"
+    assert config["publication"]["version_doi"] == "10.5281/zenodo.21330637"
     assert (
         config["metadata"]["geometry"]
         == "left=0.12in,right=0.12in,top=0.28in,bottom=0.28in"
@@ -545,9 +605,21 @@ def test_resolved_manuscript_has_no_unresolved_tokens_or_refs(repo_sandbox) -> N
     # write_variables is deliberately NOT called here: its provenance side
     # effect requires the full 40-artifact surface (exercised by the sandboxed
     # figures/release tests and by the full study), not this render check.
+    template_root = Path(
+        os.environ.get("TEMPLATE_REPO_ROOT", ROOT.parents[2] / "template")
+    )
+    injection = (
+        template_root / "infrastructure" / "rendering" / "manuscript_injection.py"
+    )
+    if not injection.is_file():
+        pytest.skip(
+            "manuscript render toolchain not present: missing "
+            f"{injection}; set $TEMPLATE_REPO_ROOT or check out the sibling "
+            "`template` repository (removal condition: render toolchain "
+            "available; owner: render lane)"
+        )
     _prepare_default_outputs(repo_sandbox)
     variables = compute_variables(repo_sandbox)
-    template_root = ROOT.parents[2] / "template"
     if str(template_root) not in sys.path:
         sys.path.insert(0, str(template_root))
     from infrastructure.rendering.manuscript_injection import (
@@ -575,16 +647,7 @@ def test_abstract_is_problem_framed_not_environment_framed() -> None:
     ]
     body = "\n".join(body_lines).lower()
     assert len(body_lines) == 1, "abstract must be exactly one plain-text paragraph"
-    forbidden_patterns = {
-        "citation": r"\[@",
-        "figure reference": r"\bfig(?:ure)?[.:]",
-        "manuscript token": r"\{\{[A-Z][A-Z0-9_]*\}\}",
-        "code formatting": r"`",
-        "numeric quantity": r"\b\d+(?:\.\d+)?(?:e-?\d+)?\b",
-    }
-    offenders = [
-        name for name, pattern in forbidden_patterns.items() if re.search(pattern, body)
-    ]
+    offenders = _abstract_offenders(body)
     assert not offenders, (
         f"abstract contains forbidden plain-text element(s): {offenders}"
     )
@@ -607,8 +670,7 @@ def test_abstract_is_problem_framed_not_environment_framed() -> None:
     }
     missing = sorted(phrase for phrase in required_phrases if phrase not in body)
     assert not missing, f"abstract missing problem-framing phrase(s): {missing}"
-    forbidden_environment_terms = {"java", "maven", "toolchain", "jdk"}
-    offenders = sorted(term for term in forbidden_environment_terms if term in body)
+    offenders = sorted(term for term in ABSTRACT_ENVIRONMENT_TERMS if term in body)
     assert not offenders, f"abstract drifted back into environment framing: {offenders}"
     assert "deterministic project-local synthetic fractalrabbit-format fixture" in body
     assert "separately retained lane" in body
@@ -708,12 +770,6 @@ def test_no_hardcoded_run_dependent_numbers() -> None:
     """Every run-dependent number must arrive via a {{TOKEN}}; prose numerals are
     limited to structural constants (tool versions, algorithm names)."""
 
-    allowed = {
-        "21",
-        "256",
-        "1",
-        "95",
-    }  # JDK 21, SHA-256, top-1, 95% CI convention (fixed code constant: percentile(2.5, 97.5) in power_analysis.traveller_clustered_bootstrap_stats, independent of the family-level MULTIPLICITY_ALPHA)
     excluded = {
         "AGENTS.md",
         "README.md",
@@ -732,15 +788,60 @@ def test_no_hardcoded_run_dependent_numbers() -> None:
         text = re.sub(r"`[^`]*`", "", text)
         text = re.sub(r"\[@[^\]]*\]", "", text)
         text = re.sub(r"\{#[^}]*\}", "", text)
-        for match in re.finditer(r"\b\d+(?:\.\d+)?(?:e-?\d+)?\b", text):
-            if match.group(0) not in allowed:
-                start = max(0, match.start() - 60)
-                offenders.append(
-                    f"{path.name}: '{match.group(0)}' ...{text[start : match.end() + 30]!r}"
-                )
+        scan_text, numeral_matches = _numeral_scan(text)
+        for match in numeral_matches:
+            start = max(0, match.start() - 60)
+            offenders.append(
+                f"{path.name}: '{match.group(0)}' "
+                f"...{scan_text[start : match.end() + 30]!r}"
+            )
     assert not offenders, "hardcoded run-dependent numbers found:\n" + "\n".join(
         offenders
     )
+
+
+def test_publication_identifier_scoping_keeps_prose_drift_failing() -> None:
+    """The DOI/URL exemption must not turn off numeric or boundary prose checks.
+
+    Only the publication identifiers themselves are metadata. Any other
+    run-dependent numeral in abstract/manuscript prose still fails both scans,
+    so a drifted result number cannot hide behind a link or a DOI.
+    """
+
+    identifiers = (
+        "archived at doi.org/10.5281/zenodo.21330636 and "
+        "https://github.com/ActiveInferenceInstitute/active_fractal_rabbit"
+    )
+    assert _abstract_offenders(identifiers) == []
+    assert _numeral_scan(identifiers)[1] == []
+
+    drifted_number = "latent recovery reached 0.42 under the noisy regime"
+    assert _abstract_offenders(drifted_number) == ["numeric quantity"]
+    assert [match.group(0) for match in _numeral_scan(drifted_number)[1]] == ["0.42"]
+
+    drifted_framing = "a java toolchain builds the synthetic fixture"
+    assert sorted(
+        term for term in ABSTRACT_ENVIRONMENT_TERMS if term in drifted_framing
+    ) == ["java", "toolchain"]
+
+
+def test_abstract_publication_identifiers_match_configured_doi() -> None:
+    """The DOI/URL exemption is compensated by an explicit provenance pin.
+
+    The numeric-prose scans no longer flag the abstract's DOI digits (they are
+    publication metadata). Instead the abstract must cite exactly the concept
+    DOI and repository URL recorded in ``manuscript/config.yaml``, so a drifted
+    or typo'd identifier fails here.
+    """
+
+    abstract = (ROOT / "manuscript" / "00_abstract.md").read_text(encoding="utf-8")
+    config = yaml.safe_load(
+        (ROOT / "manuscript" / "config.yaml").read_text(encoding="utf-8")
+    )
+    publication = config["publication"]
+    cited_dois = set(re.findall(r"10\.\d{4,}/[^\s)\]]+", abstract))
+    assert cited_dois == {publication["doi"]}
+    assert publication["repository_url"] in abstract
 
 
 def test_manuscript_and_docs_do_not_make_positive_operational_claims() -> None:

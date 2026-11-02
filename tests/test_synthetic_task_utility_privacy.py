@@ -3,6 +3,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
+
 from active_fractal_rabbit.synthetic_task_utility_privacy import (
     SYNTHETIC_TASK_UTILITY_PRIVACY_SCHEMA,
     run_and_write_synthetic_task_utility_privacy,
@@ -15,6 +17,23 @@ ROOT = Path(__file__).resolve().parents[1]
 def test_synthetic_task_utility_privacy_denies_release_claim_when_joint_gate_fails() -> (
     None
 ):
+    inputs = [
+        ROOT / "output" / "runs" / name
+        for name in (
+            "privacy_utility_frontier.json",
+            "frontier_analysis.json",
+            "linkage_risk_frontier.json",
+            "privacy_frontier_analysis.json",
+        )
+    ]
+    missing = [str(path) for path in inputs if not path.is_file()]
+    if missing:
+        pytest.skip(
+            "generated privacy/utility inputs not present: missing "
+            + ", ".join(missing)
+            + " (removal condition: run scripts/07_run_full_study.py --lane "
+            "fixture; owner: fixture lane)"
+        )
     payload = synthetic_task_utility_privacy(ROOT)
 
     assert payload["schema"] == SYNTHETIC_TASK_UTILITY_PRIVACY_SCHEMA
