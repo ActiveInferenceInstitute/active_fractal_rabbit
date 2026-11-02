@@ -13,7 +13,7 @@ license = "MIT"
 license-files = ["LICENSE", "LICENSE-DOCS.md", "THIRD_PARTY_NOTICES.md"]
 dependencies = [
     "defusedxml>=0.7.1",
-    "inferactively-pymdp==1.0.4",
+    "inferactively-pymdp==1.0.2",
     "matplotlib>=3.7.0",
     "numpy>=1.24.0",
     "pyyaml>=6.0",
