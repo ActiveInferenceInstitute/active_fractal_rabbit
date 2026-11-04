@@ -28,7 +28,7 @@ jobs:
         run: uv run --frozen --extra dev pytest tests/ --cov=src --cov-fail-under=90
 
   gnn-conformance:
-    name: gnn conformance (pinned v5.0.3)
+    name: gnn conformance (pinned)
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
