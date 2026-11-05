@@ -7,7 +7,7 @@ name = "active-fractal-rabbit"
 version = "0.2.0"
 description = "Closed-loop active-inference analysis of synthetic sporadic waypoint data from pinned FractalRabbit simulations."
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 authors = [{ name = "Daniel Ari Friedman", email = "daniel@activeinference.institute" }]
 license = "MIT"
 license-files = ["LICENSE", "LICENSE-DOCS.md", "THIRD_PARTY_NOTICES.md"]
