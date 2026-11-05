@@ -54,3 +54,4 @@ exclude_lines = [
 ]
 
 [tool.uv]
+constraint-dependencies = ["pillow>=13.0.0"]
