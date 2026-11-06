@@ -5,8 +5,10 @@
 `ActiveInferenceInstitute/Generalized_Notation_Notation` at `v5.0.3`
 (`8f293d9ba810e6eda5c09842d9c7ed9ffa5f92c1`).
 
-The job verifies the pin and installed parser, parses every `*.gnn.md` sketch
-in the repository, and type-checks them. When the repository has no sketch yet,
-it parses the pinned upstream `input/gnn_files/basics/static_perception.md`
-exemplar; this is a pipeline and pin conformance baseline, not a claim that the
-repository already contains a model.
+The job verifies the pin and installed parser, then runs
+`tests/test_gnn_spec.py`. That test parses the two committed specifications
+`models/single_factor_reference.gnn.md` and
+`models/factorial_latent_mode.gnn.md` and validates each against the pinned
+upstream `gnn.cli validate --strict`. It does not scan arbitrary repository
+`*.gnn.md` files; this is a pin and model conformance baseline for those two
+specifications, not a claim that every sketch is covered.
