@@ -18,3 +18,8 @@ output/figures/*.png
 output/figures/*.json
 output/data/manuscript_variables.json
 .omo/
+
+# Owner decision (generated artifacts): the whole output/ tree is generated and carries no tracked
+# file, so ignoring it is lossless — the bytes stay on disk untouched and nothing leaves the index.
+# The more specific output/ rules above remain in place for readers.
+output/
