@@ -90,6 +90,14 @@ regime-qualified AIF search into global SOTA language.
 
 - Green project gate:
   `uv run pytest tests/ --cov=src --cov-fail-under=90`
+- Required PR status on `main` is `gnn conformance (local)`. Follow the
+  [local GNN run and publication instructions](README.md#required-local-gnn-check).
+  Use the parser checkout bound by [the GNN pin](.github/gnn-pin.json),
+  run strict validation and `tests/test_gnn_spec.py` offline on the clean PR
+  head, and retain the successful source-bound receipt and zero-skip report.
+  Publish through the reviewed GitVault status plan using the mapped
+  Institute identity. Recheck the live PR head before publishing and rerun
+  for a new head. The hosted `gnn conformance (pinned)` job is optional.
 - Render from the sibling `template` checkout (`$TEMPLATE_REPO_ROOT`):
 
 ```bash
