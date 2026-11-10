@@ -110,7 +110,8 @@ uses GitHub's commit-status API without starting an Actions job.
 Start in a clean checkout of the PR head. Set `PR_NUMBER` to the PR number
 and `GNN_SCRATCH` to an absolute path to a fresh scratch directory outside
 the project checkout. These Bash commands prepare Python 3.14 environments
-from the project locks. This preparation may use the network. In GitVault,
+from the project locks. The pinned GNN checkout requires uv 0.13.4 and
+Rabbit requires uv 0.13.7. This preparation may use the network. In GitVault,
 use the repository's governed preparation workflow or an already prepared
 scratch checkout.
 
@@ -131,8 +132,12 @@ export GNN_CHECKOUT="$GNN_SCRATCH/gnn"
 git clone --depth 1 --branch "$tag" -- "$upstream" "$GNN_CHECKOUT" </dev/null
 test "$(git -C "$GNN_CHECKOUT" rev-parse HEAD </dev/null)" = "$pin"
 test "$(git -C "$GNN_CHECKOUT" rev-parse "refs/tags/$tag^{commit}" </dev/null)" = "$pin"
-uv sync --project "$GNN_CHECKOUT" --frozen --no-default-groups --python 3.14
-uv sync --frozen --extra dev --python 3.14
+rabbit_root=$(pwd -P)
+(
+  cd "$GNN_SCRATCH"
+  uvx --from 'uv==0.13.4' uv sync --project "$GNN_CHECKOUT" --frozen --no-default-groups --python 3.14
+  uvx --from 'uv==0.13.7' uv sync --project "$rabbit_root" --frozen --extra dev --python 3.14
+)
 ```
 
 Run the strict validator on both specs named in the pin and then the focused
