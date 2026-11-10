@@ -99,6 +99,131 @@ uv run python scripts/01_prepare_fractalrabbit.py --config configs/fractalrabbit
 uv run python scripts/02_run_pipeline.py --config configs/fractalrabbit_external.yaml
 ```
 
+## Required local GNN check
+
+The `main` ruleset requires `gnn conformance (local)` on the current pull
+request head. The hosted `gnn conformance (pinned)` job in
+[CI](.github/workflows/ci.yml) is a separate, optional signal. The local
+gate runs offline after dependency preparation, and publishing the result
+uses GitHub's commit-status API without starting an Actions job.
+
+Start in a clean checkout of the PR head. Set `PR_NUMBER` to the PR number
+and `GNN_SCRATCH` to an absolute path to a fresh scratch directory outside
+the project checkout. These Bash commands prepare Python 3.14 environments
+from the project locks. The pinned GNN checkout requires uv 0.13.4 and
+Rabbit requires uv 0.13.7. This preparation may use the network. In GitVault,
+use the repository's governed preparation workflow or an already prepared
+scratch checkout.
+
+```bash
+set -euo pipefail
+repo=ActiveInferenceInstitute/active_fractal_rabbit
+tested_head=$(gh pr view "$PR_NUMBER" --repo "$repo" --json headRefOid --jq .headRefOid)
+test "$(git rev-parse HEAD </dev/null)" = "$tested_head"
+changes=$(git status --porcelain </dev/null)
+test -z "$changes"
+
+pin_file=.github/gnn-pin.json
+upstream=$(jq -er '.upstream_repository' "$pin_file")
+test "$upstream" = https://github.com/ActiveInferenceInstitute/Generalized_Notation_Notation.git
+tag=$(jq -er '.tag' "$pin_file")
+pin=$(jq -er '.revision' "$pin_file")
+export GNN_CHECKOUT="$GNN_SCRATCH/gnn"
+git clone --depth 1 --branch "$tag" -- "$upstream" "$GNN_CHECKOUT" </dev/null
+test "$(git -C "$GNN_CHECKOUT" rev-parse HEAD </dev/null)" = "$pin"
+test "$(git -C "$GNN_CHECKOUT" rev-parse "refs/tags/$tag^{commit}" </dev/null)" = "$pin"
+rabbit_root=$(pwd -P)
+(
+  cd "$GNN_SCRATCH"
+  uvx --from 'uv==0.13.4' uv sync --project "$GNN_CHECKOUT" --frozen --no-default-groups --python 3.14
+  uvx --from 'uv==0.13.7' uv sync --project "$rabbit_root" --frozen --extra dev --python 3.14
+)
+```
+
+Run the strict validator on both specs named in the pin and then the focused
+parser and model-declaration tests. In GitVault, run this gate through
+`execute --classification test` as described in GitVault's `docs/EXECUTE.md`.
+Bind the clean Rabbit source and pin file in the intent, pass the prepared
+parser path and tested head as arguments to the gate runner, and set
+`GNN_CHECKOUT` inside the child. Use its `GITVAULT_EXECUTION_OUTPUT` for the
+test report. The shell example uses the prepared variables above.
+
+```bash
+set -euo pipefail
+export GNN_CHECKOUT PYTHONDONTWRITEBYTECODE=1
+root=$(pwd -P)
+evidence=${GITVAULT_EXECUTION_OUTPUT:-"$GNN_SCRATCH/evidence"}
+mkdir -p "$evidence"
+test "$(git rev-parse HEAD </dev/null)" = "$tested_head"
+changes=$(git status --porcelain </dev/null)
+test -z "$changes"
+test "$(git -C "$GNN_CHECKOUT" rev-parse HEAD </dev/null)" = "$(jq -er '.revision' .github/gnn-pin.json)"
+gnn_changes=$(git -C "$GNN_CHECKOUT" status --porcelain </dev/null)
+test -z "$gnn_changes"
+
+specs=$(jq -er '.spec_files[]' .github/gnn-pin.json)
+while IFS= read -r spec; do
+  (cd "$GNN_CHECKOUT" && .venv/bin/python -B -m gnn.cli validate "$root/$spec" --strict)
+done <<< "$specs"
+.venv/bin/python -B -m pytest tests/test_gnn_spec.py -q -ra -p no:cacheprovider \
+  --junitxml="$evidence/gnn-pytest.xml"
+.venv/bin/python -B - "$evidence/gnn-pytest.xml" <<'PY'
+from sys import argv
+from xml.etree import ElementTree
+
+report = ElementTree.parse(argv[1])
+if not report.findall(".//testcase") or any(
+    report.findall(f".//{tag}") for tag in ("skipped", "failure", "error")
+):
+    raise SystemExit("The local GNN gate requires a nonempty suite with zero skips or failures.")
+PY
+```
+
+Keep the source-bound GitVault receipt and the test output together. A skipped
+parser test means the required check is incomplete even if pytest exits zero.
+
+### Publish the local GNN result
+
+Use the GitVault CLI with its `state` write class enabled and its mapped
+Institute identity. Set `VAULT` to the launcher path and `GNN_EXIT_RECEIPT`
+to the successful governed run's `exit.json`. Review that receipt and the
+zero-skip report, then re-read the PR head. Plan a success only if the live
+head is the commit tested. A new head needs a fresh run.
+
+```bash
+set -euo pipefail
+repo=ActiveInferenceInstitute/active_fractal_rabbit
+tested_head=$(jq -er --arg repo "$repo" '
+  .payload | select(.classification == "test" and .outcome == "SUCCEEDED"
+    and .returncode == 0 and .source_unchanged == true and .binding.source == $repo
+    and .descendants.sample_errors == 0 and .descendants.remaining == [])
+  | .binding.revision | select(test("^[0-9a-f]{40}$"))
+' "$GNN_EXIT_RECEIPT")
+test "$(gh pr view "$PR_NUMBER" --repo "$repo" --json headRefOid --jq .headRefOid)" = "$tested_head"
+
+digest=$(shasum -a 256 "$GNN_EXIT_RECEIPT")
+request=$(jq -cn --arg repo "$repo" --arg head "$tested_head" --arg digest "${digest%% *}" '{
+  method:"plan", arguments:{action:"github-status", parameters:{
+    repository:$repo, expected_commit:$head, context:"gnn conformance (local)",
+    state:"success", description:("Local pinned GNN checks passed. Receipt SHA-256 " + $digest[:16])
+  }}
+}')
+plan=$("$VAULT" api --json "$request" | jq -er 'select(.ok == true) | .result.github')
+"$VAULT" github-apply --plan "$plan"
+```
+
+After reviewing the exact repository, commit, and context, apply and verify
+that specific status on GitHub.
+
+```bash
+set -euo pipefail
+test "$(gh pr view "$PR_NUMBER" --repo "$repo" --json headRefOid --jq .headRefOid)" = "$tested_head"
+"$VAULT" github-apply --plan "$plan" --apply --confirm 'REPORT 1 COMMIT STATUS'
+gh api --method GET "repos/$repo/commits/$tested_head/status" |
+  jq -e --arg head "$tested_head" '.sha == $head and
+    (.statuses | any(.context == "gnn conformance (local)" and .state == "success"))'
+```
+
 ## Repository Layout Assigns Artifact Ownership
 
 | Path | Purpose |
