@@ -1,7 +1,7 @@
 # AII sidecar — InstituteOS metadata. Schema: aii_platform.aii_sidecar
 meta:
   sidecar_version: 1.2.1
-  updated: '2026-11-10'
+  updated: '2026-11-11'
 repo:
   name: active_fractal_rabbit
   slug: active-fractal-rabbit
@@ -19,6 +19,7 @@ ecosystem:
     relation: referenced-by
     note: Federated via the InstituteOS .aii manifest.
   - repo: ActiveInferenceInstitute/Active_Inference_Ontology
+    relation: references
     note: Uses Active Inference Ontology terms.
   - repo: ActiveInferenceInstitute/ActiveInferenceJournal
     relation: referenced-by
@@ -27,6 +28,7 @@ ecosystem:
     relation: depends-on
     note: Consumes the pymdp active-inference library.
   - repo: ActiveInferenceInstitute/Generalized_Notation_Notation
+    relation: references
     note: Uses Generalized Notation Notation (GNN) for model specifications.
   links:
     website: https://www.activeinference.org
@@ -62,7 +64,7 @@ artifacts:
 provenance:
   license: MIT
   citation:
-    doi: 10.5281/zenodo.21330636.svg
+    doi: 10.5281/zenodo.21330636
     text: Active Inference Institute — active_fractal_rabbit.
 instituteos:
   tags:

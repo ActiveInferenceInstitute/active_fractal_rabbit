@@ -86,8 +86,7 @@ deposit for a subsequent release).
 
 ## Archival Redundancy Spans Independent Failure Domains
 
-Per [`docs/maintenance/archival-targets.md`](maintenance/archival-targets.md),
-the `v0.2.0` publication is mirrored across independent archival systems
+The `v0.2.0` publication is mirrored across independent archival systems
 rather than concentrated on a single vendor:
 
 | System | Reference | Verified |
@@ -97,7 +96,7 @@ rather than concentrated on a single vendor:
 | Software Heritage (source snapshot) | [`swh:1:snp:f6238b4081939a8f2e64185804cfff57b4a2851a`](https://archive.softwareheritage.org/swh:1:snp:f6238b4081939a8f2e64185804cfff57b4a2851a/), [browse origin](https://archive.softwareheritage.org/browse/origin/?origin_url=https://github.com/ActiveInferenceInstitute/active_fractal_rabbit) | Yes — `save_task_status: succeeded`, `visit_status: full`. |
 | IPFS (content-addressed release bundle) | CID [`QmUX68wWQ7HQ9HmCqGBsE5XvRtM8ixcYw1KcFHdMbW3y2s`](https://gateway.pinata.cloud/ipfs/QmUX68wWQ7HQ9HmCqGBsE5XvRtM8ixcYw1KcFHdMbW3y2s) via Pinata (release bundle: DOI-bearing PDF + manifest + publication metadata) | Yes — pinned, gateway-resolvable. |
 
-This satisfies the archival-targets guide's "pick 3 independent systems"
-recommendation (four here). No arXiv deposit exists for this release; add one
+This satisfies the independent-systems redundancy recommendation (four
+here). No arXiv deposit exists for this release; add one
 manually if desired, since no arXiv credential is configured in this
 environment.
