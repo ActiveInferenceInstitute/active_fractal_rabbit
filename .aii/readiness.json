@@ -1,0 +1,11 @@
+{
+  "schema": "aii-readiness/v1",
+  "repo": "ActiveInferenceInstitute/active_fractal_rabbit",
+  "tier": "python-library",
+  "standard_version": "1.0.0",
+  "baseline": {
+    "commit": "1f8aecac943b143dec2c8a5c63d66aa9d19dabcf",
+    "measured_at": "2026-11-10"
+  },
+  "waivers": []
+}

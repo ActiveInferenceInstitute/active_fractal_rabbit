@@ -260,3 +260,11 @@ This project analyzes synthetic waypoint data. It does not claim that inferred
 latent states are real human intent, that FractalRabbit reproduces any specific
 population, or that active-inference metrics validate operational decisions on
 real mobility traces without separate empirical validation.
+
+## InstituteOS sidecar
+
+This repository carries a committed [`.aii/`](.aii/README.md) sidecar with curated
+InstituteOS metadata (`aii-sidecar/v1`): category, maturity, ecosystem relations,
+key artifacts, provenance, and portable tasks. It is read by
+[InstituteOS](https://github.com/ActiveInferenceInstitute/InstituteOS) tooling and
+does not affect the project's build or runtime.

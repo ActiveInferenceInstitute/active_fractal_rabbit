@@ -1,0 +1,92 @@
+# AII sidecar — InstituteOS metadata. Schema: aii_platform.aii_sidecar
+meta:
+  sidecar_version: 1.2.1
+  updated: '2026-11-10'
+repo:
+  name: active_fractal_rabbit
+  slug: active-fractal-rabbit
+  full_name: ActiveInferenceInstitute/active_fractal_rabbit
+  description: Closed-loop active-inference research scaffold analyzing synthetic
+    sporadic waypoint data with a pinned FractalRabbit simulator, a real pymdp JAX
+    agent, and a reproducible manuscript and audit pipeline.
+institute:
+  category: research-software
+  maturity: released
+  steward: Active Inference Institute
+ecosystem:
+  relations:
+  - repo: ActiveInferenceInstitute/InstituteOS
+    relation: referenced-by
+    note: Federated via the InstituteOS .aii manifest.
+  - repo: ActiveInferenceInstitute/Active_Inference_Ontology
+    note: Uses Active Inference Ontology terms.
+  - repo: ActiveInferenceInstitute/ActiveInferenceJournal
+    relation: referenced-by
+    note: Featured in Institute materials.
+  - repo: ActiveInferenceInstitute/pymdp
+    relation: depends-on
+    note: Consumes the pymdp active-inference library.
+  - repo: ActiveInferenceInstitute/Generalized_Notation_Notation
+    note: Uses Generalized Notation Notation (GNN) for model specifications.
+  links:
+    website: https://www.activeinference.org
+    github: https://github.com/ActiveInferenceInstitute/active_fractal_rabbit
+artifacts:
+- path: README.md
+  kind: doc
+  description: Repository overview.
+- path: src
+  kind: code
+  description: Source tree.
+- path: pyproject.toml
+  kind: code
+  description: Python package config.
+- path: LICENSE
+  kind: doc
+  description: License.
+- path: AGENTS.md
+  kind: doc
+  description: Agent guidance.
+- path: CITATION.cff
+  kind: citation
+  description: Machine-readable citation metadata.
+- path: tests
+  kind: test
+  description: Test suite.
+- path: docs
+  kind: doc
+  description: Documentation tree.
+- path: manuscript
+  kind: publication
+  description: Manuscript sources and artifacts.
+provenance:
+  license: MIT
+  citation:
+    doi: 10.5281/zenodo.21330636.svg
+    text: Active Inference Institute — active_fractal_rabbit.
+instituteos:
+  tags:
+  - active-inference
+  - pymdp
+  - simulation
+  - research
+capabilities:
+- python-package
+- tested
+- documentation
+- research-scaffold
+- manuscript-publication
+- doi
+- ci
+- citation
+tasks:
+  test:
+    cmd: python -m pytest
+    description: Run the test suite.
+docs:
+- README.md
+- AGENTS.md
+- docs/INTEGRATION.md
+- docs/README.md
+- docs/AGENTS.md
+schema: aii-sidecar/v1
