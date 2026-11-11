@@ -75,3 +75,19 @@ from them.
 - Forward, project-scale work is also scoped in the manuscript roadmap
   ([`../manuscript/07_roadmap.md`](../manuscript/07_roadmap.md)).
 - Contributor and agent conventions are in [`AGENTS.md`](AGENTS.md).
+
+### Scoped TODO briefs
+
+Each brief below carries its source task id and acceptance gates; the table in
+[`todo/README.md`](todo/README.md) maps ids to status:
+
+- [`todo/real-waypoint-data-validation-blocked.md`](todo/real-waypoint-data-validation-blocked.md)
+- [`todo/external-realization-promotion-gate.md`](todo/external-realization-promotion-gate.md)
+- [`todo/continuous-multiscale-particle-filter-dynamics.md`](todo/continuous-multiscale-particle-filter-dynamics.md)
+- [`todo/larger-regime-structured-synthetic-stressors.md`](todo/larger-regime-structured-synthetic-stressors.md)
+- [`todo/literature-and-leaderboard-baseline-map.md`](todo/literature-and-leaderboard-baseline-map.md)
+- [`todo/synthetic-challenge-suite-leakage-resistant-splits.md`](todo/synthetic-challenge-suite-leakage-resistant-splits.md)
+- [`todo/strong-baseline-harness-leaderboard.md`](todo/strong-baseline-harness-leaderboard.md)
+- [`todo/learned-active-inference-candidate-models.md`](todo/learned-active-inference-candidate-models.md)
+- [`todo/sota-promotion-claim-lock.md`](todo/sota-promotion-claim-lock.md)
+- [`todo/consented-empirical-benchmark-execution-blocked.md`](todo/consented-empirical-benchmark-execution-blocked.md)
