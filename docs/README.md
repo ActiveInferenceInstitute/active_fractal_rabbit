@@ -49,11 +49,29 @@ then follow the category that matches your task.
 | [`config_schema.md`](config_schema.md) | Every supported config key, validation rule, and affected artifact group. |
 | [`external_lane.md`](external_lane.md) | The JDK 21 + Maven toolchain for the pinned external FractalRabbit build, with explicit skip reasons when absent. |
 
+## Scholarship Stays Primary-Source Backed
+
+[`scholarship_ledger.md`](scholarship_ledger.md) maps every manuscript citation key to
+a primary source and its allowed/forbidden claim language; it is enforced by the
+documentation contract.
+
+## Revision Program Retains Historical Planning
+
+The documents in [`revision/`](revision/REVISION_PROGRAM.md) are a frozen planning
+record kept for provenance, not current results — do not cite numbers or structure
+from them.
+
+- [`revision/REVISION_PROGRAM.md`](revision/REVISION_PROGRAM.md) — master plan (superseded snapshot).
+- [`revision/aif-model-designs.md`](revision/aif-model-designs.md) — AIF model design notes.
+- [`revision/pass-A-peer-review.md`](revision/pass-A-peer-review.md) — peer-review pass.
+- [`revision/pass-B-restructure-imrad.md`](revision/pass-B-restructure-imrad.md) — IMRaD restructure pass.
+- [`revision/pass-C-pymdp-push.md`](revision/pass-C-pymdp-push.md) — pymdp push pass.
+
 ## Process Documents Preserve Workflows
 
 - Near-term task tracking lives in [`../tasks.yaml`](../tasks.yaml); the
   top-level [`../TODO.md`](../TODO.md) routes only active or blocked work to the
-  scoped briefs in [`todo/`](todo/).
+  scoped briefs indexed in [`todo/README.md`](todo/README.md).
 - Forward, project-scale work is also scoped in the manuscript roadmap
   ([`../manuscript/07_roadmap.md`](../manuscript/07_roadmap.md)).
 - Contributor and agent conventions are in [`AGENTS.md`](AGENTS.md).

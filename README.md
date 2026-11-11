@@ -7,6 +7,21 @@ Source, fixtures, manuscript, and the release manifest are public at
 [github.com/ActiveInferenceInstitute/active_fractal_rabbit](https://github.com/ActiveInferenceInstitute/active_fractal_rabbit),
 archived at Zenodo under [10.5281/zenodo.21330636](https://doi.org/10.5281/zenodo.21330636).
 
+## Documentation
+
+Full, category-organized documentation lives in [`docs/`](docs/README.md) — start at the
+[documentation index](docs/README.md).
+
+## Table of contents
+
+- [Citation and license](#citation-and-license-bound-the-release)
+- [Quick start](#quick-start-runs-the-fixture-first-lane)
+- [Required local GNN check](#required-local-gnn-check)
+- [Repository layout](#repository-layout-assigns-artifact-ownership)
+- [Configuration groups](#configuration-groups-define-fixture-model-and-artifact-lanes)
+- [Synthetic-only evidence](#synthetic-only-evidence-blocks-real-trace-claims)
+- [InstituteOS sidecar](#instituteos-sidecar)
+
 Active FractalRabbit is a closed-loop research scaffold for active-inference
 analysis of synthetic sporadic waypoint data. It keeps the external simulator
 boundary explicit: FractalRabbit is pinned to commit
