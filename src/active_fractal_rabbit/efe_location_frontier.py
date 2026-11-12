@@ -20,7 +20,6 @@ operational, or surveillance claim.
 from __future__ import annotations
 
 import json
-from itertools import product
 from pathlib import Path
 
 import numpy as np
@@ -44,19 +43,30 @@ _LARGE_SEQUENCE_NULL_MAX_DRAWS = 12
 def _joint_info_gain(
     prior: np.ndarray, emissions: list[np.ndarray], n_states: int
 ) -> float:
-    """Exact expected cell-entropy reduction from observing a SET of modalities."""
+    """Exact expected cell-entropy reduction from observing a SET of modalities.
+
+    The per-step call is on the frontier's hot path, so the observation
+    combination axis is built with broadcasting instead of a Python product
+    loop. The arithmetic is the same sequential likelihood product, joint
+    normalization, and expected entropy as the explicit-enumeration reference
+    in ``tests/test_efe_location_frontier.py``.
+    """
 
     base = _entropy(prior)
-    expected = 0.0
-    for combo in product(*[range(matrix.shape[0]) for matrix in emissions]):
-        likelihood = np.ones(n_states)
-        for emission, obs_index in zip(emissions, combo):
-            likelihood = likelihood * emission[obs_index, :]
-        joint = likelihood * prior
-        total = float(joint.sum())
-        if total > 0:
-            expected += total * _entropy(joint / total)
-    return base - expected
+    stacked = np.asarray(emissions[0], dtype=float)
+    for emission in emissions[1:]:
+        stacked = stacked[..., None, :] * np.asarray(emission, dtype=float)[None, :, :]
+    joint = stacked * prior
+    total = joint.sum(axis=-1)
+    informative = total > 0
+    posterior = np.divide(
+        joint,
+        total[..., None],
+        out=np.zeros_like(joint),
+        where=informative[..., None],
+    )
+    entropy = -np.sum(posterior * np.log(posterior + 1e-12), axis=-1)
+    return float(base - np.sum(total[informative] * entropy[informative]))
 
 
 def _frontier_pass(
