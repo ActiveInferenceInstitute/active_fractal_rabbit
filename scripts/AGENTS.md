@@ -14,6 +14,9 @@ Important entry points:
 - `20_run_aif_regime_search.py` runs the active-inference regime search.
 - `z_generate_manuscript_variables.py` regenerates manuscript-facing variables.
 - `06_build_release_manifest.py` builds release manifest evidence.
+- `check_docs_links.py`, `check_gnn_conformance.py`, and `gate_report.py` are
+  the gate arms behind `./run.sh docs`, `./run.sh gnn`, and `./run.sh bench`.
+  Keep the commands in `run.sh`; do not add a second copy to CI or docs.
 
 Artifact discipline:
 - Write study, regime, release, and manuscript-derived artifacts under

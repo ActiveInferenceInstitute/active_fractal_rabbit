@@ -8,8 +8,12 @@ Agent rules and marker policy are in [`AGENTS.md`](AGENTS.md).
 
 ```bash
 uv sync --extra dev
-uv run pytest tests/ --cov=src --cov-fail-under=90
+./run.sh test-full
 ```
+
+`./run.sh test` is the fast arm (no coverage, excludes the
+`requires_fractalrabbit` marker); `./run.sh lint`, `./run.sh docs`, and
+`./run.sh gnn` are the other arms. See [`../docs/RUN_GUIDE.md`](../docs/RUN_GUIDE.md).
 
 Focused runs are fine while developing, but the full gate above is the readiness
 check; do not weaken the coverage threshold or substitute a narrow subset for it.
@@ -29,6 +33,7 @@ tests/
 ```
 
 Tests that need the real simulator, JDK 21, or Maven carry the
-`requires_fractalrabbit` marker; fixture-first tests must stay runnable without the
-external cache. Keep fixtures small and deterministic, and do not commit secrets,
-caches, jars, or generated bulk data.
+`requires_fractalrabbit` marker; artifact-surface regeneration tests that run the
+full writer set carry the `slow` marker. Fixture-first tests must stay runnable
+without the external cache. Keep fixtures small and deterministic, and do not
+commit secrets, caches, jars, or generated bulk data.

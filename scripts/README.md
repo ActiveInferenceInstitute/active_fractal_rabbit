@@ -30,8 +30,16 @@ cover art, visual quality, claim audit, and visual-claim audit.
 ```bash
 uv run python scripts/00_preflight.py
 uv run python scripts/07_run_full_study.py --lane both
-uv run pytest tests/ --cov=src --cov-fail-under=90
+./run.sh test-full
 ```
+
+Gate scripts:
+
+| Script | Purpose |
+| --- | --- |
+| `check_docs_links.py` | Relative-link gate for every Markdown file (`./run.sh docs`). |
+| `check_gnn_conformance.py` | Pinned GNN strict validation and parser tests (`./run.sh gnn`). |
+| `gate_report.py` | Measures every arm and refreshes `docs/_generated/gate-timings.md` (`./run.sh bench`). |
 
 Outputs are written under `output/runs/` and `output/figures/`; treat `output/runs`
 as shared mutable state and run output-mutating jobs serially.
