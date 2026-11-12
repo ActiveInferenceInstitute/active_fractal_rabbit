@@ -23,6 +23,7 @@ dependencies = [
 dev = [
     "pytest>=8.0.0",
     "pytest-cov>=5.0.0",
+    "ruff==0.14.4",
 ]
 
 [tool.setuptools.packages.find]
@@ -36,6 +37,7 @@ python_functions = ["test_*"]
 addopts = "-v --tb=short --strict-markers"
 markers = [
     "requires_fractalrabbit: integration test requiring JDK 21, Maven, git, and network/cache access",
+    "slow: artifact-surface regeneration test that runs the full writer set; excluded from the fast arm and included in the full gate",
 ]
 
 [tool.coverage.run]

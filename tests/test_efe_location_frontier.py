@@ -12,6 +12,7 @@ import json
 
 from active_fractal_rabbit.config import load_config
 from active_fractal_rabbit.efe_location_frontier import (
+    _joint_info_gain,
     efe_location_frontier,
     run_and_write_efe_location_frontier,
 )
@@ -33,6 +34,39 @@ def _frontier():
     return efe_location_frontier(
         sequence, model, smoothing=config.inference.model.smoothing
     ), config
+
+
+def test_joint_info_gain_matches_explicit_enumeration() -> None:
+    """The broadcast implementation must equal the per-combination reference."""
+
+    from itertools import product
+
+    import numpy as np
+
+    rng = np.random.default_rng(0)
+    n_states = 5
+    emissions = []
+    for observations in (3, 2, 4):
+        matrix = rng.random((observations, n_states))
+        matrix[0, 0] = 0.0  # exercise combinations with zero total mass
+        emissions.append(matrix / matrix.sum(axis=0, keepdims=True))
+    prior = rng.random(n_states)
+    prior = prior / prior.sum()
+
+    base = -np.sum(prior * np.log(prior + 1e-12))
+    expected = 0.0
+    for combo in product(*[range(matrix.shape[0]) for matrix in emissions]):
+        likelihood = np.ones(n_states)
+        for matrix, obs_index in zip(emissions, combo):
+            likelihood = likelihood * matrix[obs_index, :]
+        joint = likelihood * prior
+        total = float(joint.sum())
+        if total > 0:
+            posterior = joint / total
+            expected += total * (-np.sum(posterior * np.log(posterior + 1e-12)))
+
+    observed = _joint_info_gain(prior, emissions, n_states)
+    assert abs(observed - (base - expected)) < 1e-12
 
 
 def test_location_dominates_the_information_gain_frontier() -> None:

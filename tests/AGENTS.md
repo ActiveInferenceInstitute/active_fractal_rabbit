@@ -3,8 +3,8 @@
 Tests protect package behavior, artifact contracts, and claim boundaries.
 
 Full gate:
-- Run `uv run pytest tests/ --cov=src --cov-fail-under=90` before claiming the
-  project is green.
+- Run `./run.sh test-full` before claiming the project is green; it is the same
+  command CI runs. `./run.sh test` is the fast arm without coverage.
 - Do not weaken coverage thresholds to pass a local patch.
 - Do not replace the full gate with a narrow subset in final readiness claims.
 
@@ -23,6 +23,13 @@ Artifact protection:
 - Do not make tests depend on stale local artifacts without checking freshness
   or provenance.
 - Preserve run IDs, manifest paths, and audit evidence expected by consumers.
+
+Markers:
+- `requires_fractalrabbit` marks tests requiring real FractalRabbit, JDK 21,
+  Maven, or external simulator execution.
+- `slow` marks artifact-surface regeneration tests that run the full writer
+  set. The fast arm (`./run.sh test`) excludes both markers; the full gate
+  (`./run.sh test-full`) runs everything.
 
 External simulator lane:
 - Tests requiring real FractalRabbit, JDK 21, Maven, or external simulator

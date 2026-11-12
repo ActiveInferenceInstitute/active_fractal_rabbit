@@ -262,13 +262,13 @@ def test_public_release_instructions_render_before_finalizing() -> None:
     for text in (readme, quickstart, status, supplement):
         assert "scripts/29_finalize_publication_package.py" in text
     for text in (readme, quickstart, supplement):
-        assert text.index("scripts/03_render_pdf.py") < text.index(
+        assert text.index("scripts/pipeline/stage_03_render.py") < text.index(
             "scripts/29_finalize_publication_package.py"
         )
         assert "scripts/29_finalize_publication_package.py --verify-only" in text
         assert "scripts/06_build_release_manifest.py" not in text
     for text in (readme, quickstart):
-        assert "cd ../projects/working/active_fractal_rabbit" in text
+        assert "cd projects/working/active_fractal_rabbit" in text
         assert "cd ../working/active_fractal_rabbit" not in text
 
 

@@ -18,11 +18,13 @@ uv run python scripts/12_check_claim_ledger_artifacts.py
 uv run python scripts/14_check_visual_quality.py
 uv run python scripts/15_check_claim_audit.py
 uv run python scripts/16_check_visual_claim_audit.py
-uv run pytest tests/ --cov=src --cov-fail-under=90
-cd ../../../template
+./run.sh test-full
+export TEMPLATE_REPO_ROOT=/path/to/template
+uv run python scripts/z_generate_manuscript_variables.py
+cd "$TEMPLATE_REPO_ROOT"
 uv run python -m infrastructure.orchestration link-projects
-uv run python scripts/03_render_pdf.py --project working/active_fractal_rabbit
-cd ../projects/working/active_fractal_rabbit
+uv run python scripts/pipeline/stage_03_render.py --project working/active_fractal_rabbit --skip-manuscript-hydration
+cd projects/working/active_fractal_rabbit
 uv run python scripts/29_finalize_publication_package.py
 uv run python scripts/29_finalize_publication_package.py --verify-only
 ```
@@ -136,12 +138,13 @@ uv run python scripts/02_run_pipeline.py --config configs/fractalrabbit_external
 Render through the sibling template checkout:
 
 ```bash
-# From this project root, the template repo is a sibling of the private
-# projects checkout (e.g. ../../../template); adjust to your clone location.
-cd ../../../template
+# Point $TEMPLATE_REPO_ROOT at the sibling template checkout.
+export TEMPLATE_REPO_ROOT=/path/to/template
+uv run python scripts/z_generate_manuscript_variables.py
+cd "$TEMPLATE_REPO_ROOT"
 uv run python -m infrastructure.orchestration link-projects
-uv run python scripts/03_render_pdf.py --project working/active_fractal_rabbit
-cd ../projects/working/active_fractal_rabbit
+uv run python scripts/pipeline/stage_03_render.py --project working/active_fractal_rabbit --skip-manuscript-hydration
+cd projects/working/active_fractal_rabbit
 uv run python scripts/29_finalize_publication_package.py
 uv run python scripts/29_finalize_publication_package.py --verify-only
 ```

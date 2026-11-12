@@ -88,19 +88,25 @@ regime-qualified AIF search into global SOTA language.
 
 ## Verification
 
-- Green project gate:
-  `uv run pytest tests/ --cov=src --cov-fail-under=90`
+- Green project gate: `./run.sh all`. Each arm is separately runnable
+  (`lint`, `test`, `test-full`, `docs`, `gnn`); CI calls the same arms. See
+  [`docs/RUN_GUIDE.md`](docs/RUN_GUIDE.md).
 - Required PR status on `main` is `gnn conformance (local)`. Follow the
   [local GNN run and publication instructions](README.md#required-local-gnn-check).
-  Use the parser checkout bound by [the GNN pin](.github/gnn-pin.json),
-  run strict validation and `tests/test_gnn_spec.py` offline on the clean PR
-  head, and retain the successful source-bound receipt and zero-skip report.
+  The gate is `./run.sh gnn`, which uses the parser checkout bound by
+  [the GNN pin](.github/gnn-pin.json), runs strict validation and
+  `tests/test_gnn_spec.py` offline on the clean PR head, and fails on a skipped
+  parser test. Retain the successful source-bound receipt and zero-skip report.
   Publish through the reviewed GitVault status plan using the mapped
   Institute identity. Recheck the live PR head before publishing and rerun
-  for a new head. The hosted `gnn conformance (pinned)` job is optional.
+  for a new head. The hosted `gnn conformance (pinned)` job is optional; its
+  pin, key, and display name are recorded in [`.github/GNN.md`](.github/GNN.md).
 - Render from the sibling `template` checkout (`$TEMPLATE_REPO_ROOT`):
 
 ```bash
+export TEMPLATE_REPO_ROOT=/path/to/template
+uv run python scripts/z_generate_manuscript_variables.py
+cd "$TEMPLATE_REPO_ROOT"
 uv run python -m infrastructure.orchestration link-projects
-uv run python scripts/03_render_pdf.py --project working/active_fractal_rabbit
+uv run python scripts/pipeline/stage_03_render.py --project working/active_fractal_rabbit --skip-manuscript-hydration
 ```

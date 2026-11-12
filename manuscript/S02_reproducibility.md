@@ -18,7 +18,7 @@ uv run python scripts/11_check_manuscript_variable_provenance.py
 uv run python scripts/15_check_claim_audit.py
 uv run python scripts/16_check_visual_claim_audit.py
 uv run python scripts/12_check_claim_ledger_artifacts.py
-uv run pytest tests/ --cov=src --cov-fail-under=90
+./run.sh test-full
 
 # or run both lanes end to end (external lane runs when JDK 21 + Maven resolve):
 uv run python scripts/07_run_full_study.py --lane both
@@ -27,10 +27,14 @@ uv run python scripts/07_run_full_study.py --lane both
 The render lane runs from the sibling template checkout:
 
 ```bash
+export TEMPLATE_REPO_ROOT=/path/to/template
+uv run python scripts/z_generate_manuscript_variables.py
+cd "$TEMPLATE_REPO_ROOT"
 uv run python -m infrastructure.orchestration link-projects
-uv run python scripts/03_render_pdf.py --project working/active_fractal_rabbit
+uv run python scripts/pipeline/stage_03_render.py --project working/active_fractal_rabbit --skip-manuscript-hydration
 
 # back in the project checkout, bind the rendered outputs to their exact inputs:
+cd "$OLDPWD"
 uv run python scripts/29_finalize_publication_package.py
 uv run python scripts/29_finalize_publication_package.py --verify-only
 ```

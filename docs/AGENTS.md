@@ -10,4 +10,11 @@ Read the project root `AGENTS.md` first.
   SOTA.
 - Use SOTA wording only for the exact cleared synthetic lane/contract and cite
   the generated gate or run artifact.
-- Keep render commands lifecycle-qualified as `working/active_fractal_rabbit`.
+- Keep render commands lifecycle-qualified as `working/active_fractal_rabbit`
+  and use the template's current entry point,
+  `scripts/pipeline/stage_03_render.py`. Hydrate first with
+  `scripts/z_generate_manuscript_variables.py` and pass
+  `--skip-manuscript-hydration`, because the template's hydration subprocess
+  rejects a symlinked project slot.
+- Keep gate commands in `./run.sh`; link [`RUN_GUIDE.md`](RUN_GUIDE.md) instead
+  of copying an arm command into prose.

@@ -52,15 +52,19 @@ def modality_info_gain(prior: np.ndarray, emission: np.ndarray) -> float:
     """
 
     prior = np.asarray(prior, dtype=float)
-    obs_marginal = emission @ prior  # P(o) = sum_s A[o,s] prior[s]
-    expected_posterior_entropy = 0.0
-    for obs_index in range(emission.shape[0]):
-        joint = emission[obs_index, :] * prior
-        total = float(obs_marginal[obs_index])
-        if total <= 0:
-            continue
-        posterior = joint / total
-        expected_posterior_entropy += total * _entropy(posterior)
+    joint = np.asarray(emission, dtype=float) * prior
+    obs_marginal = joint.sum(axis=1)  # P(o) = sum_s A[o,s] prior[s]
+    informative = obs_marginal > 0
+    posterior = np.divide(
+        joint,
+        obs_marginal[:, None],
+        out=np.zeros_like(joint),
+        where=informative[:, None],
+    )
+    posterior_entropy = -np.sum(posterior * np.log(posterior + 1e-12), axis=1)
+    expected_posterior_entropy = float(
+        np.sum(obs_marginal[informative] * posterior_entropy[informative])
+    )
     return _entropy(prior) - expected_posterior_entropy
 
 

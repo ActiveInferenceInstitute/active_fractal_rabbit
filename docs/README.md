@@ -1,4 +1,4 @@
-# Documentation Index Maps Evidence to Claim Boundaries
+# Documentation Hub Maps Evidence to Claim Boundaries
 
 This directory documents **Active FractalRabbit**, a synthetic-data methods study that
 builds an auditable benchmark and claim-discipline framework around sparse-waypoint
@@ -14,6 +14,8 @@ then follow the category that matches your task.
 
 | If you want to… | Read |
 | --- | --- |
+| Run one gate arm locally or in CI | [`RUN_GUIDE.md`](RUN_GUIDE.md) · measured times in [`_generated/gate-timings.md`](_generated/gate-timings.md) |
+| Find a documentation file by name | [`documentation-index.md`](documentation-index.md) |
 | Run the pipeline (fixture or external lane) | [`quickstart.md`](quickstart.md) |
 | Understand the system end-to-end | [`architecture.md`](architecture.md) |
 | Know what is proven vs. explicitly out of scope | [`validation.md`](validation.md) · [`claim_ledger.md`](claim_ledger.md) |
@@ -48,6 +50,7 @@ then follow the category that matches your task.
 | --- | --- |
 | [`config_schema.md`](config_schema.md) | Every supported config key, validation rule, and affected artifact group. |
 | [`external_lane.md`](external_lane.md) | The JDK 21 + Maven toolchain for the pinned external FractalRabbit build, with explicit skip reasons when absent. |
+| [`../.github/GNN.md`](../.github/GNN.md) | The GNN pin (`.github/gnn-pin.json`, schema `gnn-importer-pin/v1`), the hosted `gnn-conformance` job and its display name, and what the job parses. |
 
 ## Scholarship Stays Primary-Source Backed
 
@@ -69,6 +72,10 @@ from them.
 
 ## Process Documents Preserve Workflows
 
+- The flat file list is [`documentation-index.md`](documentation-index.md).
+- Measured gate numbers live only in the generated
+  [`_generated/gate-timings.md`](_generated/gate-timings.md); refresh them with
+  `./run.sh bench` and do not copy them into prose.
 - Near-term task tracking lives in [`../tasks.yaml`](../tasks.yaml); the
   top-level [`../TODO.md`](../TODO.md) routes only active or blocked work to the
   scoped briefs indexed in [`todo/README.md`](todo/README.md).

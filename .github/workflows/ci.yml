@@ -12,8 +12,14 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Every step below calls ./run.sh, the single gate entry point documented in
+# docs/RUN_GUIDE.md. The commands are not repeated here, so a local arm and its
+# CI step cannot drift apart. The gate job installs the locked environment once
+# and reuses it for every arm; the conformance job is separate because it
+# prepares the pinned parser in its own virtualenv.
 jobs:
-  tests:
+  gate:
+    name: gate (lint, tests, docs)
     runs-on: ubuntu-latest
     timeout-minutes: 300
     steps:
@@ -24,18 +30,30 @@ jobs:
           version: "0.13.7"
           python-version: "3.14"
 
-      - name: Run the documented gate
-        # Documented gate: uv run pytest tests/ --cov=src --cov-fail-under=90.
-        # --frozen keeps CI on the committed uv.lock and --extra dev installs
-        # the test dependencies. Tests that need the generated output surface
-        # or the sibling render toolchain skip with explicit reasons naming the
-        # missing artifact.
-        run: uv run --frozen --extra dev pytest tests/ --cov=src --cov-fail-under=90
+      - name: Install the locked environment once
+        run: uv sync --frozen --extra dev
+
+      - name: Lint
+        run: ./run.sh lint
+
+      - name: Fast tests
+        run: ./run.sh test
+
+      - name: Full tests with the coverage floor
+        # Documented gate: the full suite with --cov=src --cov-fail-under=90.
+        # Tests that need the generated output surface or the sibling render
+        # toolchain skip with explicit reasons naming the missing artifact.
+        run: ./run.sh test-full
+
+      - name: Documentation links and generated timing contract
+        run: ./run.sh docs
 
   gnn-conformance:
     name: gnn conformance (pinned)
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    env:
+      GNN_SCRATCH: ${{ runner.temp }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -44,49 +62,8 @@ jobs:
           version: "0.13.7"
           python-version: "3.14"
 
-      - name: Resolve and fetch the recorded GNN pin
-        id: gnn
-        env:
-          PIN_PATH: .github/gnn-pin.json
+      - name: Run the pinned GNN conformance gate
         # The pin is the gate, not a convenience input. A missing pin, a
-        # malformed pin, an unreachable repository, or a fetched revision that
-        # disagrees with the file is a job failure. Retries are bounded and
-        # are only for transient clone failures; after the last attempt the
-        # job still fails.
-        run: |
-          set -euo pipefail
-          REPOSITORY=$(uv run --frozen --extra dev python -c "import json; print(json.load(open('${PIN_PATH}'))['upstream_repository'])")
-          PIN=$(uv run --frozen --extra dev python -c "import json; print(json.load(open('${PIN_PATH}'))['revision'])")
-          TAG=$(uv run --frozen --extra dev python -c "import json; print(json.load(open('${PIN_PATH}'))['tag'])")
-          VERSION=$(uv run --frozen --extra dev python -c "import json; print(json.load(open('${PIN_PATH}'))['version'])")
-          echo "gnn-version=${VERSION}" >> "$GITHUB_STEP_SUMMARY"
-          echo "gnn-revision=${PIN}" >> "$GITHUB_STEP_SUMMARY"
-          for attempt in 1 2 3; do
-            rm -rf "$RUNNER_TEMP/gnn"
-            if git clone --quiet --depth 1 --branch "$TAG" \
-                "$REPOSITORY" "$RUNNER_TEMP/gnn"; then
-              ACTUAL=$(git -C "$RUNNER_TEMP/gnn" rev-parse HEAD)
-              if [ "$ACTUAL" = "$PIN" ]; then
-                echo "GNN_CHECKOUT=$RUNNER_TEMP/gnn" >> "$GITHUB_ENV"
-                exit 0
-              fi
-              echo "attempt ${attempt}: fetched ${ACTUAL}, expected ${PIN}"
-            else
-              echo "attempt ${attempt}: clone failed"
-            fi
-            sleep $((attempt * 5))
-          done
-          echo "::error::pinned GNN revision ${PIN} could not be resolved after 3 attempts"
-          exit 1
-
-      - name: Install the pinned GNN parser
-        run: |
-          set -euo pipefail
-          uv venv --python 3.14 "$GNN_CHECKOUT/.venv"
-          uv pip install --python "$GNN_CHECKOUT/.venv/bin/python" "$GNN_CHECKOUT"
-          "$GNN_CHECKOUT/.venv/bin/python" -c "import gnn; print(gnn.__version__)"
-
-      - name: Verify the GNN specifications against the pinned parser
-        env:
-          GNN_CHECKOUT: ${{ runner.temp }}/gnn
-        run: uv run --frozen --extra dev pytest tests/test_gnn_spec.py -q
+        # malformed pin, an unreachable repository, a fetched revision that
+        # disagrees with the file, or a skipped parser test fails the arm.
+        run: ./run.sh gnn

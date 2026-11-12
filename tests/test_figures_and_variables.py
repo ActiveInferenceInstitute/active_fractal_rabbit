@@ -6,6 +6,7 @@ from pathlib import Path
 
 import matplotlib.image as mpimg
 import numpy as np
+import pytest
 
 from active_fractal_rabbit.active_sensing import run_and_write_active_sensing
 from active_fractal_rabbit.adaptive_aif_ablation import (
@@ -229,6 +230,7 @@ def _ensure_aif_regime_artifacts(root: Path) -> None:
     )
 
 
+@pytest.mark.slow
 def test_figures_and_manuscript_variables_are_generated(repo_sandbox) -> None:
     # repo_sandbox chdirs into an isolated root: every relative-path writer
     # below (including the smoke-scale variance/fractal/upstream rows) lands

@@ -515,6 +515,18 @@ def _write_manifest_files(
     registry_payload = {
         "schema": "active-fractal-rabbit-figure-registry-v2",
         "entries": registry_rows,
+        # The sibling template render reads a label-keyed accessibility array
+        # from this same file. Manuscript labels are the hyphenated key with a
+        # fig: prefix, so the two surfaces stay bound to one registry.
+        "figures": [
+            {
+                "label": "fig:" + str(row["key"]).replace("_", "-"),
+                "filename": row["filename"],
+                "alt_text": row["alt_text"],
+                "long_description": row["caption"],
+            }
+            for row in registry_rows
+        ],
     }
     registry_path.write_text(
         json.dumps(registry_payload, indent=2, sort_keys=True) + "\n", encoding="utf-8"
