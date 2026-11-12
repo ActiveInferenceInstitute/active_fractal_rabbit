@@ -51,11 +51,14 @@ run_arm() {
         test) "${UV[@]}" pytest tests/ -m "not requires_fractalrabbit and not slow" --no-cov -q ;;
         test-full) "${UV[@]}" pytest tests/ --cov=src --cov-fail-under=90 ;;
         docs)
-            "${UV[@]}" python scripts/check_docs_links.py
+            # `all` calls run_arm in a `||` context, which disables errexit
+            # inside this function; return explicitly so a failed link check
+            # cannot be masked by the report check (or by a skipped check).
+            "${UV[@]}" python scripts/check_docs_links.py || return $?
             # bench writes the report it would otherwise check; skip the
             # self-check only for that measurement pass.
             if [[ -z "${GATE_REPORT_BENCH:-}" ]]; then
-                "${UV[@]}" python scripts/gate_report.py --check
+                "${UV[@]}" python scripts/gate_report.py --check || return $?
             fi
             ;;
         gnn) "${UV[@]}" python scripts/check_gnn_conformance.py "$@" ;;
