@@ -93,10 +93,15 @@ regime-qualified AIF search into global SOTA language.
   [`docs/RUN_GUIDE.md`](docs/RUN_GUIDE.md).
 - Required PR status on `main` is `gnn conformance (local)`. Follow the
   [local GNN run and publication instructions](README.md#required-local-gnn-check).
-  The gate is `./run.sh gnn`, which uses the parser checkout bound by
-  [the GNN pin](.github/gnn-pin.json), runs strict validation and
-  `tests/test_gnn_spec.py` offline on the clean PR head, and fails on a skipped
-  parser test. Retain the successful source-bound receipt and zero-skip report.
+  The gate is `./run.sh gnn`, which materializes the parser checkout bound by
+  [the GNN pin](.github/gnn-pin.json), runs the adopted shared reader
+  (`python -m gnn.importers check --repo . --require-pointer --workflow
+  .github/workflows/ci.yml --job gnn-conformance`) and `tests/test_gnn_spec.py`
+  offline on the clean PR head, and fails on a reader finding or a skipped
+  parser test. The pin is GNN v5.1.0
+  (`75c834bd8519dc7b5adc4d24f16bf393cfd1ecdf`), advanced from v5.0.3
+  (`8f293d9ba810e6eda5c09842d9c7ed9ffa5f92c1`). Retain the successful
+  source-bound receipt and zero-skip report.
   Publish through the reviewed GitVault status plan using the mapped
   Institute identity. Recheck the live PR head before publishing and rerun
   for a new head. The hosted `gnn conformance (pinned)` job is optional; its

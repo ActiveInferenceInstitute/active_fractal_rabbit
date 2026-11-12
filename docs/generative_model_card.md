@@ -32,7 +32,9 @@ builders, so the specs do not declare fitted constants. Each spec's
 `## InitialParameterization` block states the exact initialization defaults the
 builders start from (the smoothing floor plus the uniform or degenerate slices),
 and learning overrides them. The upstream revision the specs are validated
-against is pinned in `.github/gnn-pin.json` and `models/README.md`.
+against is pinned in `.github/gnn-pin.json` and `models/README.md`; the pin is
+GNN v5.1.0 (`75c834bd8519dc7b5adc4d24f16bf393cfd1ecdf`), advanced from v5.0.3
+(`8f293d9ba810e6eda5c09842d9c7ed9ffa5f92c1`) when the shared reader was adopted.
 
 ## `single_factor_reference` Defines the Baseline POMDP
 

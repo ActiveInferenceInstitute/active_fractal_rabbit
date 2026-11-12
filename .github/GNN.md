@@ -1,8 +1,10 @@
-# GNN conformance: pin, job, and what it parses
+# GNN conformance: adopted shared reader
 
 This repository consumes the upstream Generalized Notation Notation (GNN)
-parser as a pinned external tool. The pin is the gate; it is never a
-convenience input.
+parser as a pinned external tool. It has **adopted** the
+[GNN–FEP shared-reader contract](https://github.com/ActiveInferenceInstitute/Generalized_Notation_Notation/blob/main/docs/workflows/gnn-fep.md):
+the `./run.sh gnn` arm runs the reader the pin names, inside the pinned parser's
+environment. The pin is the gate; it is never a convenience input.
 
 ## Canonical pin
 
@@ -10,34 +12,41 @@ convenience input.
 - Schema: `gnn-importer-pin/v1`
 - Upstream repository:
   `https://github.com/ActiveInferenceInstitute/Generalized_Notation_Notation.git`
-- Tag: `v5.0.3`
-- Revision: `8f293d9ba810e6eda5c09842d9c7ed9ffa5f92c1` (the commit the tag
+- Tag: `v5.1.0`
+- Revision: `75c834bd8519dc7b5adc4d24f16bf393cfd1ecdf` (the commit the tag
   dereferences to)
-- Upstream version: `5.0.3`
-- Pinned on: `2026-11-01`; recorded in the current schema on `2026-11-12`
+- Upstream version: `5.1.0`
+- Pinned on: `2026-11-12`; recorded in the current schema on `2026-11-12`
 - Spec directory: `models/`
 - Claim boundary: `synthetic-only`
 
-`tests/test_gnn_spec.py` re-verifies the tag-to-revision binding and the
-in-repo declarations whenever the pinned checkout is available. The pin file is
-the only machine-readable copy; do not restate the revision in workflow YAML.
+The pin advanced from GNN v5.0.3
+(`8f293d9ba810e6eda5c09842d9c7ed9ffa5f92c1`) to v5.1.0
+(`75c834bd8519dc7b5adc4d24f16bf393cfd1ecdf`), the first release that ships
+`src/gnn/importers.py`. The old revision carried the local reader this change
+deletes; the new revision supplies the shared reader the arm calls.
 
-## What the conformance job parses
+## The shared reader
 
-The job validates exactly the files named in `spec_files`:
+After materializing the pinned revision, the arm runs:
 
-- `models/single_factor_reference.gnn.md`
-- `models/factorial_latent_mode.gnn.md`
+```bash
+python -m gnn.importers check --repo . --require-pointer \
+    --workflow .github/workflows/ci.yml --job gnn-conformance
+```
 
-It runs the upstream strict validator
-(`python -m gnn.cli validate <spec> --strict`) from the pinned checkout, then
-runs `tests/test_gnn_spec.py` with `GNN_CHECKOUT` bound to that checkout. The
-test module re-parses both files with the upstream
-`gnn.parsers.markdown_parser.MarkdownGNNParser` and compares the parsed factor,
-observation, and control cardinalities plus the `A`/`B` dependency edges against
-the in-code declarations in `src/active_fractal_rabbit/model_spec.py`. A
-nonempty suite with zero skips is required; a skipped parser test is an
-incomplete gate.
+The reader owns pin discovery and shape, the pointer check, and the syntax
+validation of every specification the pin names. It reports `pin-missing`,
+`pin-unreadable`, `pin-commit-shape`, `pin-commit-mismatch`,
+`pin-tag-mismatch`, `pin-repository-mismatch`, `pin-schema-unversioned`,
+`spec-missing`, `spec-invalid`, and the pointer codes. This repository does not
+carry a second pin reader.
+
+The reader does not check model-declaration semantics. The same arm runs
+`tests/test_gnn_spec.py` against the pinned checkout with a nonempty, zero-skip
+requirement; those tests hold the parsed factor, observation, and control
+cardinalities plus the `A`/`B` dependency edges equal to the in-code
+declarations.
 
 ## Hosted job
 
@@ -58,11 +67,12 @@ names are deliberately distinct.
 ./run.sh gnn
 ```
 
-The arm reads the pin, requires a checkout whose `HEAD` is the pinned revision
-and whose worktree is clean, installs that checkout into its own virtualenv,
-validates both specs, and runs the parser tests with zero skips. Set
-`GNN_CHECKOUT` to a prepared checkout at the pin to run offline; otherwise the
-arm clones the pinned tag into `GNN_SCRATCH` (or a temporary directory).
+The arm reads only the revision from the pin so it can materialize the pinned
+parser. It requires a checkout whose `HEAD` is the pinned revision and whose
+worktree is clean, installs that checkout into its own virtualenv, runs the
+shared reader, then runs the parser tests with zero skips. Set `GNN_CHECKOUT`
+to a prepared checkout at the pin to run offline; otherwise the arm clones the
+pinned revision into `GNN_SCRATCH` (or a temporary directory).
 
 ## CI setup action
 

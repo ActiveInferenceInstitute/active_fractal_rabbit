@@ -51,7 +51,7 @@ marked **generated** and are refreshed by their named script.
 | --- | --- |
 | [`config_schema.md`](config_schema.md) | Every supported config key, validation rule, and artifact group. |
 | [`external_lane.md`](external_lane.md) | JDK 21 + Maven toolchain for the pinned external simulator. |
-| [`../.github/GNN.md`](../.github/GNN.md) | GNN pin, hosted job key and display name, and what the job parses. |
+| [`../.github/GNN.md`](../.github/GNN.md) | Adopted GNN shared-reader contract: pin (GNN v5.1.0), hosted job key and display name, and what the job parses. |
 | [`../models/README.md`](../models/README.md) | GNN spec inventory, loader/drift guard, and upstream pin. |
 | [`../scripts/README.md`](../scripts/README.md) | Thin CLI entrypoints and gate scripts. |
 | [`../tests/README.md`](../tests/README.md) | Test suite layout, markers, and the full gate. |

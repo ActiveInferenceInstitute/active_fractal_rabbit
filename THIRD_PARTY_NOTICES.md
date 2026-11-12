@@ -27,7 +27,7 @@ license and upstream NOTICE material.
 
 ## pymdp
 
-- Package: `inferactively-pymdp==1.0.4`
+- Package: `inferactively-pymdp==1.0.5`
 - Upstream repository: https://github.com/infer-actively/pymdp
 - Repository status here: Python package dependency only; source not vendored
 - Upstream license: MIT License

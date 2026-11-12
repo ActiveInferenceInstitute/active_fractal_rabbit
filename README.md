@@ -142,15 +142,19 @@ Start in a clean checkout of the PR head. The gate is one arm:
 ./run.sh gnn
 ```
 
-The arm reads [`.github/gnn-pin.json`](.github/gnn-pin.json), requires a
-checkout whose `HEAD` is the recorded revision and whose worktree is clean,
-installs that checkout with its own pinned uv version and lock (`uv.toml` in
-the pinned GNN checkout records `==0.13.4`; Rabbit uses `0.13.7`), runs the
-strict validator on both spec files, and runs `tests/test_gnn_spec.py` with a
-nonempty, zero-skip requirement. Set `GNN_CHECKOUT` to an already prepared
-checkout at the pin to run offline; otherwise the arm clones the pinned tag
-into `GNN_SCRATCH` (or a temporary directory). The arm's exit status is the
-gate: a skipped parser test fails it. See [`.github/GNN.md`](.github/GNN.md)
+The arm reads [`.github/gnn-pin.json`](.github/gnn-pin.json) (now GNN
+v5.1.0, `75c834bd8519dc7b5adc4d24f16bf393cfd1ecdf`; previously v5.0.3,
+`8f293d9ba810e6eda5c09842d9c7ed9ffa5f92c1`), requires a checkout whose `HEAD`
+is the recorded revision and whose worktree is clean, and installs that
+checkout with its own uv version and lock. It then runs the shared reader
+(`python -m gnn.importers check --repo . --require-pointer --workflow
+.github/workflows/ci.yml --job gnn-conformance`), which owns pin and pointer
+validation and spec syntax, followed by `tests/test_gnn_spec.py` with a
+nonempty, zero-skip requirement for the model-declaration semantics the reader
+does not check. Set `GNN_CHECKOUT` to an already prepared checkout at the pin
+to run offline; otherwise the arm clones the pinned revision into `GNN_SCRATCH`
+(or a temporary directory). The arm's exit status is the gate: a reader
+finding or a skipped parser test fails it. See [`.github/GNN.md`](.github/GNN.md)
 for the pin, the hosted job key and display name, and what the job parses.
 
 In GitVault, run this arm through `execute --classification test` as described

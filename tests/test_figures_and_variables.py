@@ -644,7 +644,7 @@ def test_figures_and_manuscript_variables_are_generated(repo_sandbox) -> None:
         "Policy entropy is summarized" in variables["SENSITIVITY_POLICY_ENTROPY_NOTE"]
     )
     stored = json.loads(variables_path.read_text(encoding="utf-8"))
-    assert stored["PYMDP_VERSION"] == "1.0.4"
+    assert stored["PYMDP_VERSION"] == "1.0.5"
     assert variables["NEGATIVE_CONTROL_COUNT"] == "4"
     assert variables["NEGATIVE_CONTROL_PASSED_COUNT"] == "4"
     assert "| control | probe |" in variables["NEGATIVE_CONTROL_TABLE"]
