@@ -102,10 +102,12 @@ regime-qualified AIF search into global SOTA language.
   (`75c834bd8519dc7b5adc4d24f16bf393cfd1ecdf`), advanced from v5.0.3
   (`8f293d9ba810e6eda5c09842d9c7ed9ffa5f92c1`). Retain the successful
   source-bound receipt and zero-skip report.
-  Publish through the reviewed GitVault status plan using the mapped
-  Institute identity. Recheck the live PR head before publishing and rerun
-  for a new head. The hosted `gnn conformance (pinned)` job is optional; its
-  pin, key, and display name are recorded in [`.github/GNN.md`](.github/GNN.md).
+  Plan and apply `github-status` through GitVault using the mapped
+  Institute identity. Verify `gnn conformance (local)` is green in the PR's
+  required checks and that the head still matches the receipt. Rerun the gate
+  for a new head. The hosted `gnn conformance (pinned)` job is optional. See
+  [the publication workflow](README.md#publish-the-local-gnn-result) and
+  [the hosted job record](.github/GNN.md).
 - Render from the sibling `template` checkout (`$TEMPLATE_REPO_ROOT`):
 
 ```bash
