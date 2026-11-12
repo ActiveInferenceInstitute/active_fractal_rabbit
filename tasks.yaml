@@ -856,3 +856,53 @@ tasks:
     gates. The two manuscript tests that regenerate default output artifacts were
     bounded out after repeated stalls inside the real pymdp/JAX preparation path;
     rerun them with a larger timeout when refreshing full study outputs.
+- id: afr-44
+  title: GNN-FEP shared-reader cutover at GNN v5.1.0 with the pymdp 1.0.5 pin
+  status: done
+  start: '2026-11-12'
+  end: '2026-11-12'
+  progress: 100
+  milestone: false
+  tags:
+  - external
+  - gnn
+  - dependencies
+  notes: >-
+    Landed in PR #24 (merge 3803a29). .github/gnn-pin.json now records GNN
+    v5.1.0 at 75c834bd8519dc7b5adc4d24f16bf393cfd1ecdf - the commit the v5.1.0
+    tag dereferences to, confirmed with git ls-remote against
+    Generalized_Notation_Notation - in schema gnn-importer-pin/v1, advanced
+    from v5.0.3 (8f293d9ba810e6eda5c09842d9c7ed9ffa5f92c1).
+    scripts/check_gnn_conformance.py now runs the upstream shared reader
+    (python -m gnn.importers check) instead of a local pin/pointer reader, and
+    scripts/gnn_importer_variables.py carries the reader boundary. The same PR
+    pinned inferactively-pymdp==1.0.5 in pyproject.toml, locked 1.0.5 in
+    uv.lock, and refreshed the manuscript-variable provenance fixtures. The
+    ./run.sh gnn arm is the documented gate and its success evidence is the
+    source-bound local run recorded in docs/_generated/gate-timings.md; the
+    live ruleset still requires the hosted context instead, which afr-45
+    tracks separately.
+- id: afr-45
+  title: Required GNN status context does not match the live ruleset
+  status: blocked
+  start: '2026-11-12'
+  end: '2026-11-12'
+  progress: 0
+  milestone: false
+  tags:
+  - ci
+  - governance
+  - gnn
+  notes: >-
+    README.md ("Required local GNN check") and .github/GNN.md ("Hosted job")
+    both state the required main status is the commit status
+    "gnn conformance (local)" and that the hosted "gnn conformance (pinned)"
+    job is an optional signal. The active ruleset require-pr-check (id
+    26570052) instead requires the status context "gnn conformance (pinned)",
+    a hosted Actions job: run 43280673571 for merge commit 3803a29 concluded
+    failure with no jobs created, and commits/main/status reports zero
+    statuses. The enforced check cannot turn green while Actions is
+    billing-locked, and the documented one is not enforced. Blocked on
+    Institute GitHub organization administration, which alone can edit the
+    ruleset; PR authors cannot. See
+    docs/todo/required-gnn-status-context-alignment.md.
