@@ -136,9 +136,19 @@ gate runs offline when `GNN_CHECKOUT` names a prepared checkout at the pin;
 otherwise it clones the pinned tag. Publishing the result uses GitHub's
 commit-status API without starting an Actions job.
 
-Start in a clean checkout of the PR head. The gate is one arm:
+Start in a clean detached validation checkout of the live PR head. In
+GitVault, prepare the checkout under its repository admission rules. With
+`GNN_CHECKOUT` pointing to the prepared parser checkout, run the gate locally.
 
-```bash
+```sh
+set -eu
+repo=ActiveInferenceInstitute/active_fractal_rabbit
+: "${PR_NUMBER:?Set PR_NUMBER}"
+pr_head=$(gh pr view "$PR_NUMBER" --repo "$repo" --json headRefOid --jq .headRefOid </dev/null)
+test "$(git rev-parse HEAD </dev/null)" = "$pr_head"
+test -z "$(git status --porcelain=v1 --untracked-files=all </dev/null)"
+: "${GNN_CHECKOUT:?Set GNN_CHECKOUT to the prepared pinned parser}"
+export GNN_CHECKOUT
 ./run.sh gnn
 ```
 
@@ -169,45 +179,51 @@ parser test means the required check is incomplete even if pytest exits zero.
 
 ### Publish the local GNN result
 
-Use the GitVault CLI with its `state` write class enabled and its mapped
-Institute identity. Set `PR_NUMBER` to the pull request number, `VAULT` to the
-launcher path, and `GNN_EXIT_RECEIPT` to the successful governed run's
-`exit.json`. Review that receipt and the
-zero-skip report, then re-read the PR head. Plan a success only if the live
-head is the commit tested. A new head needs a fresh run.
+An authorized maintainer uses the configured GitVault launcher with the
+mapped Institute identity and the `state` write class enabled. Set `VAULT`
+to that launcher's absolute path, `PR_NUMBER` to the pull request number, and
+`GNN_EXIT_RECEIPT` to the governed run's `exit.json`. Review the passing
+gate output and its nonempty, zero-skip test report before planning success.
 
-```bash
-set -euo pipefail
+```sh
+set -eu
 repo=ActiveInferenceInstitute/active_fractal_rabbit
+context='gnn conformance (local)'
+: "${VAULT:?Set VAULT}" "${PR_NUMBER:?Set PR_NUMBER}" "${GNN_EXIT_RECEIPT:?Set GNN_EXIT_RECEIPT}"
 tested_head=$(jq -er --arg repo "$repo" '
   .payload | select(.classification == "test" and .outcome == "SUCCEEDED"
     and .returncode == 0 and .source_unchanged == true and .binding.source == $repo
     and .descendants.sample_errors == 0 and .descendants.remaining == [])
   | .binding.revision | select(test("^[0-9a-f]{40}$"))
 ' "$GNN_EXIT_RECEIPT")
-test "$(gh pr view "$PR_NUMBER" --repo "$repo" --json headRefOid --jq .headRefOid)" = "$tested_head"
+test "$(gh pr view "$PR_NUMBER" --repo "$repo" --json headRefOid --jq .headRefOid </dev/null)" = "$tested_head"
 
 digest=$(shasum -a 256 "$GNN_EXIT_RECEIPT")
-request=$(jq -cn --arg repo "$repo" --arg head "$tested_head" --arg digest "${digest%% *}" '{
-  method:"plan", arguments:{action:"github-status", parameters:{
-    repository:$repo, expected_commit:$head, context:"gnn conformance (local)",
-    state:"success", description:("Local pinned GNN checks passed. Receipt SHA-256 " + $digest[:16])
-  }}
-}')
-plan=$("$VAULT" api --json "$request" | jq -er 'select(.ok == true) | .result.github')
-"$VAULT" github-apply --plan "$plan"
+status_parameters=$(jq -nc --arg repo "$repo" --arg head "$tested_head" --arg context "$context" \
+  --arg digest "${digest%% *}" '{
+    repository:$repo, expected_commit:$head, context:$context, state:"success",
+    description:("Local pinned GNN checks passed. Receipt SHA-256 " + $digest[:16])
+  }')
+plan=$("$VAULT" plan github-status --parameters "$status_parameters" </dev/null)
+plan_id=$(printf '%s\n' "$plan" | jq -er .github)
+confirmation=$(printf '%s\n' "$plan" | jq -er .confirmation)
+"$VAULT" github-apply --plan "$plan_id" </dev/null
 ```
 
-After reviewing the exact repository, commit, and context, apply and verify
-that specific status on GitHub.
+Review the repository, commit, context, and exact confirmation phrase in the
+plan. In the same shell, recheck the live PR head before applying. Confirm
+that GitHub reports the local context as a passing required check. A new head
+needs a fresh run and publication.
 
-```bash
-set -euo pipefail
-test "$(gh pr view "$PR_NUMBER" --repo "$repo" --json headRefOid --jq .headRefOid)" = "$tested_head"
-"$VAULT" github-apply --plan "$plan" --apply --confirm 'REPORT 1 COMMIT STATUS'
-gh api --method GET "repos/$repo/commits/$tested_head/status" |
-  jq -e --arg head "$tested_head" '.sha == $head and
-    (.statuses | any(.context == "gnn conformance (local)" and .state == "success"))'
+```sh
+test "$(gh pr view "$PR_NUMBER" --repo "$repo" --json headRefOid --jq .headRefOid </dev/null)" = "$tested_head"
+"$VAULT" github-apply --plan "$plan_id" --apply --confirm "$confirmation" </dev/null
+gh api "repos/$repo/commits/$tested_head/status" </dev/null |
+  jq -e --arg head "$tested_head" --arg context "$context" '
+    .sha == $head and any(.statuses[]; .context == $context and .state == "success")'
+test "$(gh pr view "$PR_NUMBER" --repo "$repo" --json headRefOid --jq .headRefOid </dev/null)" = "$tested_head"
+gh pr checks "$PR_NUMBER" --repo "$repo" --required --json name,bucket </dev/null |
+  jq -e --arg context "$context" 'any(.[]; .name == $context and .bucket == "pass")'
 ```
 
 ## Repository Layout Assigns Artifact Ownership
