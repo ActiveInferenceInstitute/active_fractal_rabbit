@@ -27,9 +27,11 @@ observation, and control cardinalities plus the `A`/`B` dependency edges and the
 conditional-independence flag against the in-code declarations; it skips with an
 explicit reason when the checkout or its virtualenv is absent.
 
-The `A`/`B`/`D` *values* are not declared in the GNN files: they are learned from
-declared training rows by the model builders, so the specs carry no
-`## InitialParameterization` block. The upstream revision the specs are validated
+The `A`/`B`/`D` *values* are learned from declared training rows by the model
+builders, so the specs do not declare fitted constants. Each spec's
+`## InitialParameterization` block states the exact initialization defaults the
+builders start from (the smoothing floor plus the uniform or degenerate slices),
+and learning overrides them. The upstream revision the specs are validated
 against is pinned in `.github/gnn-pin.json` and `models/README.md`.
 
 ## `single_factor_reference` Defines the Baseline POMDP
