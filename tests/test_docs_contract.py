@@ -157,6 +157,7 @@ ACTIVE_TASK_TODO_SNIPPETS = {
     "afr-39": "Learned hierarchical/factorial dynamics",
     "afr-40": "Synthetic SOTA progress cannot unlock",
     "afr-41": "Empirical transfer study (blocked)",
+    "afr-45": "GNN status context mismatch",
 }
 
 ACTIVE_TASK_TODO_BRIEFS = {
@@ -170,6 +171,7 @@ ACTIVE_TASK_TODO_BRIEFS = {
     "afr-39": "docs/todo/learned-active-inference-candidate-models.md",
     "afr-40": "docs/todo/sota-promotion-claim-lock.md",
     "afr-41": "docs/todo/consented-empirical-benchmark-execution-blocked.md",
+    "afr-45": "docs/todo/required-gnn-status-context-alignment.md",
 }
 
 

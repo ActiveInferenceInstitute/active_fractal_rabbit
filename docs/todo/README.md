@@ -23,6 +23,7 @@ history rather than in these briefs.
 | `afr-39` | in_progress | [Learned hierarchical/factorial dynamics](learned-active-inference-candidate-models.md) |
 | `afr-40` | in_progress | [Synthetic SOTA progress cannot unlock](sota-promotion-claim-lock.md) |
 | `afr-41` | blocked | [Empirical transfer study (blocked)](consented-empirical-benchmark-execution-blocked.md) |
+| `afr-45` | blocked | [GNN status context mismatch](required-gnn-status-context-alignment.md) |
 
 ## Brief Contract
 

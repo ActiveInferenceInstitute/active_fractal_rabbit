@@ -29,6 +29,7 @@ completed history.
 | `afr-39` | in_progress | Learned hierarchical/factorial dynamics | [`docs/todo/learned-active-inference-candidate-models.md`](docs/todo/learned-active-inference-candidate-models.md) |
 | `afr-40` | in_progress | Synthetic SOTA progress cannot unlock | [`docs/todo/sota-promotion-claim-lock.md`](docs/todo/sota-promotion-claim-lock.md) |
 | `afr-41` | blocked | Empirical transfer study (blocked) | [`docs/todo/consented-empirical-benchmark-execution-blocked.md`](docs/todo/consented-empirical-benchmark-execution-blocked.md) |
+| `afr-45` | blocked | GNN status context mismatch | [`docs/todo/required-gnn-status-context-alignment.md`](docs/todo/required-gnn-status-context-alignment.md) |
 
 ## Standing Claim Locks
 
