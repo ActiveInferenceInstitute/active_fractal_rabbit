@@ -1,5 +1,14 @@
 # Validation: Tests, Claim Gates, and Render QA Preserve the Boundary {#sec:validation}
 
+## The Gate Has Separate Arms
+
+`./run.sh` is the single gate entry point: `lint`, `test`, `test-full`, `docs`,
+and `gnn` are separately runnable, and CI calls the same arms. `test-full` is
+the documented readiness gate described below (full suite, 90% coverage floor).
+The arm list, fast/full split, and measured wall times are in
+[`RUN_GUIDE.md`](RUN_GUIDE.md) and
+[`_generated/gate-timings.md`](_generated/gate-timings.md).
+
 ## Core Tests Protect Scaffold Interfaces
 
 The core tests cover:
