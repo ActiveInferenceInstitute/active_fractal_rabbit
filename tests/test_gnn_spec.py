@@ -10,8 +10,10 @@ When the pinned upstream GNN checkout is available (sibling
 re-parses each spec with the upstream
 ``gnn.parsers.markdown_parser.MarkdownGNNParser``, runs the upstream
 ``gnn.cli validate --strict`` gate, and re-verifies that the recorded pin still
-matches the checkout. Those checks skip with an explicit reason when the
-checkout or its virtualenv is absent.
+matches the checkout. When ``GNN_CHECKOUT`` is explicitly set the checkout is
+expected: a missing, unreadable, moved, or unimportable pinned checkout fails
+those checks instead of skipping them. When it is not set the checks skip with
+an explicit reason if the sibling checkout or its virtualenv is absent.
 """
 
 from __future__ import annotations
@@ -50,6 +52,25 @@ DEFAULT_SIZES = dict(
 )
 
 
+def _checkout_expected() -> bool:
+    """Whether an explicitly selected upstream checkout must be usable.
+
+    ``GNN_CHECKOUT`` is set by the hosted gate and by the local fail-closed
+    gate. GNN's downstream-adoption guide §6 requires a pinned-parser test to
+    fail, never skip, when the checkout is expected.
+    """
+
+    return "GNN_CHECKOUT" in os.environ
+
+
+def _unavailable_or_skip(reason: str) -> None:
+    """Fail when the checkout is expected, otherwise skip with the reason."""
+
+    if _checkout_expected():
+        pytest.fail(reason)
+    pytest.skip(reason)
+
+
 def _gnn_checkout() -> Path | None:
     """Locate the pinned upstream GNN checkout, if present locally."""
 
@@ -61,12 +82,26 @@ def _gnn_checkout() -> Path | None:
     return candidate if candidate.is_dir() else None
 
 
+def _require_checkout() -> Path:
+    """Return the pinned checkout, failing when it is expected but absent."""
+
+    checkout = _gnn_checkout()
+    if checkout is None:
+        _unavailable_or_skip(
+            "upstream GNN checkout not found at sibling "
+            "'Generalized_Notation_Notation' and GNN_CHECKOUT is not a usable "
+            "directory"
+        )
+    assert checkout is not None
+    return checkout
+
+
 def _gnn_python(checkout: Path) -> Path:
-    """Return the upstream virtualenv interpreter, or skip with a reason."""
+    """Return the upstream virtualenv interpreter, or fail/skip with a reason."""
 
     python = checkout / ".venv" / "bin" / "python"
     if not python.exists():
-        pytest.skip(f"upstream GNN virtualenv not found at {python}")
+        _unavailable_or_skip(f"upstream GNN virtualenv not found at {python}")
     probe = subprocess.run(
         [str(python), "-c", "import gnn"],
         cwd=str(checkout),
@@ -75,7 +110,7 @@ def _gnn_python(checkout: Path) -> Path:
         timeout=180,
     )
     if probe.returncode != 0:
-        pytest.skip(
+        _unavailable_or_skip(
             "upstream GNN package not importable: " + probe.stderr.strip()[:200]
         )
     return python
@@ -345,18 +380,13 @@ def test_pinned_revision_and_parser_source_when_checkout_available() -> None:
     conformance tests import.
     """
 
-    checkout = _gnn_checkout()
-    if checkout is None:
-        pytest.skip(
-            "upstream GNN checkout not found at sibling "
-            "'Generalized_Notation_Notation' and $GNN_CHECKOUT is unset"
-        )
+    checkout = _require_checkout()
     if not (checkout / ".git").exists():
-        pytest.skip(f"upstream checkout at {checkout} is not a git repository")
+        _unavailable_or_skip(f"upstream checkout at {checkout} is not a git repository")
     pin = json.loads(PIN_PATH.read_text(encoding="utf-8"))
     tag = _git(checkout, "rev-parse", f"{pin['tag']}^{{commit}}")
     if tag.returncode != 0:
-        pytest.skip(
+        _unavailable_or_skip(
             f"upstream checkout does not carry tag {pin['tag']!r}; the pin "
             "cannot be re-verified against it"
         )
@@ -371,7 +401,7 @@ def test_pinned_revision_and_parser_source_when_checkout_available() -> None:
     head = _git(checkout, "rev-parse", "HEAD")
     head_revision = head.stdout.strip() if head.returncode == 0 else ""
     if head_revision != pin["revision"]:
-        pytest.skip(
+        _unavailable_or_skip(
             f"upstream checkout HEAD is {head_revision or 'unreadable'}, not the "
             f"pinned {pin['revision']}; the pin itself is verified above, but a "
             "moved checkout cannot prove that the working-tree parser is the "
@@ -380,7 +410,7 @@ def test_pinned_revision_and_parser_source_when_checkout_available() -> None:
     for relative in _PINNED_PARSER_FILES:
         pinned_blob = _git(checkout, "show", f"{pin['revision']}:{relative}")
         if pinned_blob.returncode != 0:
-            pytest.skip(f"cannot read {relative} at the pinned revision")
+            _unavailable_or_skip(f"cannot read {relative} at the pinned revision")
         working = (checkout / relative).read_text(encoding="utf-8")
         assert working == pinned_blob.stdout, (
             f"{relative} in {checkout} differs from the pinned revision "
@@ -398,12 +428,7 @@ def test_models_readme_restates_the_pin() -> None:
 
 
 def test_specs_pass_upstream_gnn_validator_when_available() -> None:
-    checkout = _gnn_checkout()
-    if checkout is None:
-        pytest.skip(
-            "upstream GNN checkout not found at sibling "
-            "'Generalized_Notation_Notation' and $GNN_CHECKOUT is unset"
-        )
+    checkout = _require_checkout()
     python = _gnn_python(checkout)
     for name in spec_names():
         result = subprocess.run(
@@ -436,12 +461,7 @@ def test_upstream_parser_structure_matches_in_repo_declarations(
     ``gnn_spec`` loader, so a drifted GNN file or a drifted declaration fails.
     """
 
-    checkout = _gnn_checkout()
-    if checkout is None:
-        pytest.skip(
-            "upstream GNN checkout not found at sibling "
-            "'Generalized_Notation_Notation' and $GNN_CHECKOUT is unset"
-        )
+    checkout = _require_checkout()
     python = _gnn_python(checkout)
     bridge = tmp_path / "upstream_parse_bridge.py"
     bridge.write_text(_UPSTREAM_PARSE_BRIDGE, encoding="utf-8")

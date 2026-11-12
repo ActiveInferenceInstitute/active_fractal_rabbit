@@ -89,4 +89,26 @@ jobs:
       - name: Verify the GNN specifications against the pinned parser
         env:
           GNN_CHECKOUT: ${{ runner.temp }}/gnn
-        run: uv run --frozen --extra dev pytest tests/test_gnn_spec.py -q
+        # GNN_CHECKOUT is set, so the module's pinned-parser checks fail rather
+        # than skip when the checkout or its virtualenv is unusable. The next
+        # step additionally asserts that none of them skipped.
+        run: >-
+          uv run --frozen --extra dev pytest tests/test_gnn_spec.py -q
+          --junitxml="$RUNNER_TEMP/gnn-pytest.xml"
+
+      - name: Assert the pinned GNN suite ran without skips
+        run: |
+          set -euo pipefail
+          uv run --frozen --extra dev python - "$RUNNER_TEMP/gnn-pytest.xml" <<'PY'
+          import sys
+          from xml.etree import ElementTree
+
+          report = ElementTree.parse(sys.argv[1])
+          if not report.findall(".//testcase") or any(
+              report.findall(f".//{tag}") for tag in ("skipped", "failure", "error")
+          ):
+              raise SystemExit(
+                  "The hosted GNN conformance suite requires a nonempty suite "
+                  "with zero skips or failures."
+              )
+          PY
