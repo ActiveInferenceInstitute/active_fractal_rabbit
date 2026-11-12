@@ -18,10 +18,10 @@ across modalities.
 
 This file is the source of truth for model *structure* only. The A/B/D tensors
 are learned from declared training rows by
-`src/active_fractal_rabbit/pomdp.py`; they are deliberately not fixed numeric
-constants, so no `## InitialParameterization` block is declared. The default
-4x4 fixture surface is 16 spatial cells, 4 time bins, 4 speed categories, and
-2 burst categories.
+`src/active_fractal_rabbit/pomdp.py`; the values in `## InitialParameterization`
+are the initialization defaults that learning overrides, not fitted numeric
+constants. The default 4x4 fixture surface is 16 spatial cells, 4 time bins,
+4 speed categories, and 2 burst categories.
 
 Spec estimation contract: A/B/D estimated from declared training rows only; smoothing is explicit; evaluation-holdout rows do not update tensors
 Spec tuning contract: precision/return selected after inner-train transition fitting; online adaptation selected in a second predeclared inner-validation stage
@@ -92,6 +92,26 @@ C_speed-o_speed
 C_report_burst-o_report_burst
 G>π_cell
 π_cell>u_cell
+
+## InitialParameterization
+# Initialization defaults, not fitted constants. `src/active_fractal_rabbit/pomdp.py`
+# (`build_pomdp`) puts every A/B/D entry on one smoothing floor and adds unit
+# counts from the declared training rows; learning overrides these defaults.
+Every A/B/D entry starts on the smoothing floor 0.05 plus unit training-row counts.
+
+# A_m[o, s] = (0.05 + count_m[o, s]) / sum_o' (0.05 + count_m[o', s])
+# Before any training row every column is uniform at 1/obs_size:
+#   A_location 1/16 = 0.0625, A_time_of_day 1/4 = 0.25,
+#   A_speed 1/4 = 0.25, A_report_burst 1/2 = 0.5.
+
+# B_cell[s', s, a] = (0.05 + count[s', s, a]) / column sum, per control slice:
+#   control 0 empirical_continuation: unit counts from included consecutive pairs
+#   control 1 high_entropy_exploration: uniform 1/16 = 0.0625 per column
+
+# C_location = C_time_of_day = C_speed = C_report_burst = 0.0 (uniform preferences).
+
+# D_cell[s] = (0.05 + [s is the first included cell]) / 1.8
+#   -> 1.05/1.8 ~= 0.583333 for that cell, 0.05/1.8 ~= 0.027778 elsewhere.
 
 ## Equations
 # Conditional-independence likelihood:

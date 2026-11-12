@@ -17,17 +17,18 @@ cardinalities, and whether the conditional-independence approximation applies.
 Both files describe the default 4x4 fixture surface (16 spatial cells, 4 time
 bins, 4 speed categories, 2 burst categories).
 
-## Tensors are learned, not declared
+## Tensors are learned from declared initialization defaults
 
 The `A`/`B`/`D` tensors are estimated from declared training rows by the
 in-repo model builders (`src/active_fractal_rabbit/pomdp.py` and
 `src/active_fractal_rabbit/factorial_pymdp.py`). They are not fixed numeric
-constants, so these specs intentionally carry **no** `## InitialParameterization`
-block. Where a normalization contract must be stated, the declaration uses a
-`default=` hint (for example `D_cell[16,type=float,default=uniform]`). The
-`## ModelAnnotation` section records the estimation and tuning contracts, and
-the `## ModelParameters` section records `model_id` and
-`conditional_independence`.
+constants; the `## InitialParameterization` section declares the exact
+initialization defaults the builders start from (the smoothing floor and the
+uniform/degenerate slices), and learning overrides them. The `default=` hint on
+a `D_*` declaration (for example `D_cell[16,type=float,default=uniform]`) names
+the same floor at the declaration site. The `## ModelAnnotation` section records
+the estimation and tuning contracts, and the `## ModelParameters` section
+records `model_id` and `conditional_independence`.
 
 ## Loader and drift guard
 

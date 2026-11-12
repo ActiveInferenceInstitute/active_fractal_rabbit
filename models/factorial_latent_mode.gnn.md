@@ -19,10 +19,10 @@ its gap.
 
 This file is the source of truth for model *structure* only. The A/B/D tensors
 are learned from declared included rows by
-`src/active_fractal_rabbit/factorial_pymdp.py`; they are deliberately not fixed
-numeric constants, so no `## InitialParameterization` block is declared. The
-default 4x4 fixture surface is 16 spatial cells with three-state movement and
-cognitive-proxy modes.
+`src/active_fractal_rabbit/factorial_pymdp.py`; the values in
+`## InitialParameterization` are the initialization defaults that learning
+overrides, not fitted numeric constants. The default 4x4 fixture surface is 16
+spatial cells with three-state movement and cognitive-proxy modes.
 
 Spec estimation contract: factorial A/B/D tensors estimated from declared included rows; the current factorial surface is diagnostic, not a locked predictive candidate
 Spec tuning contract: no predictive hyperparameter promotion; tensor and mean-field diagnostics only
@@ -131,6 +131,34 @@ G>π_movement_mode
 π_movement_mode>u_movement_mode
 G>π_cognitive_proxy_mode
 π_cognitive_proxy_mode>u_cognitive_proxy_mode
+
+## InitialParameterization
+# Initialization defaults, not fitted constants.
+# `src/active_fractal_rabbit/factorial_pymdp.py` (`build_factorial_pomdp`) puts
+# every A/B/D entry on one smoothing floor and adds unit counts from the
+# declared included rows; learning overrides these defaults.
+Every A/B/D entry starts on the smoothing floor 0.05 plus unit included-row counts.
+
+# A_m[o, factor set] = (0.05 + count) / column sum over the observation axis.
+# Before any included row every conditioning slice is uniform at 1/obs_size:
+#   A_location 1/16 = 0.0625, A_time_of_day 1/4 = 0.25, A_speed 1/4 = 0.25,
+#   A_report_burst 1/2 = 0.5, A_cell_delta 1/2 = 0.5, A_return_flag 1/2 = 0.5.
+
+# B_cell uses the cell controls (empirical_continuation, high_entropy_exploration):
+#   control 0: (0.05 + count[s', movement, cell]) / column sum
+#   control 1: uniform 1/16 = 0.0625 per column
+
+# B_movement_mode and B_cognitive_proxy_mode use the factor controls
+# (mode_persistence, mode_reset):
+#   control 0: identity on the target axis over the 0.05 floor
+#     -> diagonal 1.05/1.15 ~= 0.913043, off-diagonal 0.05/1.15 ~= 0.043478
+#   control 1: uniform 1/3 ~= 0.333333 per column
+
+# C_location = C_time_of_day = C_speed = C_report_burst = 0.0,
+# C_cell_delta = C_return_flag = 0.0 (uniform preferences).
+
+# D_f[s] = (0.05 + count_f[s]) / sum_s' (0.05 + count_f[s'])
+#   over the included rows, per factor (cell 16 states, movement 3, proxy 3).
 
 ## Equations
 # Coupled likelihood: each A_m is column-stochastic over its observation axis

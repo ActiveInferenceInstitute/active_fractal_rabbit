@@ -310,13 +310,17 @@ def test_missing_factor_declaration_raises_typed_error(tmp_path: Path) -> None:
 
 
 def test_unparseable_connection_raises_typed_error(tmp_path: Path) -> None:
-    broken = _break_spec(
-        "single_factor_reference",
-        tmp_path,
-        lambda text: text.replace(
-            "## Equations", "this is not a connection\n\n## Equations", 1
-        ),
-    )
+    """A non-edge line inside Connections is a typed parse error."""
+
+    def append_bogus_edge(text: str) -> str:
+        header = "## Connections"
+        start = text.index(header) + len(header)
+        next_header = re.search(r"^## ", text[start:], re.MULTILINE)
+        assert next_header is not None
+        cut = start + next_header.start()
+        return text[:cut] + "this is not a connection\n\n" + text[cut:]
+
+    broken = _break_spec("single_factor_reference", tmp_path, append_bogus_edge)
     with pytest.raises(GNNSpecError):
         parse_spec_file(broken)
 
