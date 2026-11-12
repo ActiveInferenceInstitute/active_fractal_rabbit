@@ -95,6 +95,24 @@ def test_figure_registry_metadata_is_complete(figure_registry: dict) -> None:
     assert not offenders, f"incomplete figure metadata: {offenders}"
 
 
+def test_registry_exposes_template_accessibility_records(figure_registry: dict) -> None:
+    """The sibling template reads a label-keyed ``figures`` array from this file."""
+
+    entries = figure_registry["entries"]
+    figures = figure_registry.get("figures")
+    assert isinstance(figures, list) and len(figures) == len(entries)
+
+    by_label = {record.get("label"): record for record in figures}
+    assert len(by_label) == len(figures)
+    assert all(isinstance(label, str) and label.startswith("fig:") for label in by_label)
+
+    for entry in entries:
+        label = "fig:" + entry["key"].replace("_", "-")
+        record = by_label[label]
+        assert record["filename"] == entry["filename"]
+        assert record["alt_text"] == entry["alt_text"]
+
+
 def test_default_registry_entries_have_source_and_boundary_contracts() -> None:
     context: dict[str, object] = {
         "n_observations": 2400,
