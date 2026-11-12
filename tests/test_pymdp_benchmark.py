@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import importlib.metadata as metadata
 import json
 from pathlib import Path
 
@@ -66,7 +67,7 @@ def test_pymdp_benchmark_matrix_reports_no_sota_performance_claim(tmp_path) -> N
     assert payload["state_of_art_performance_status"] == "not_demonstrated"
     assert payload["interpretability_status"] == "diagnostic_gain_demonstrated"
     assert payload["pymdp_minus_reference_predictive_loss"] == pytest.approx(0.4)
-    assert payload["inferactively_pymdp_version"] == "1.0.5"
+    assert payload["inferactively_pymdp_version"] == metadata.version("inferactively-pymdp")
     assert payload["pymdp_agent_module"].endswith(str(Path("pymdp") / "agent.py"))
     assert payload["pymdp_package_path"].endswith(str(Path("pymdp") / "__init__.py"))
     assert payload["source_observation_rows"] == 2400.0
