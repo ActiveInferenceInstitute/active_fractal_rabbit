@@ -54,9 +54,9 @@ coverage floor; it is the arm to run before landing.
 `./run.sh docs` runs two checks:
 
 1. `scripts/check_docs_links.py` resolves every relative Markdown link in the
-   checkout. Links into the generated `output/` tree are skipped because that
-   tree is produced by the pipeline; links that leave the checkout are
-   external. The repository has no mkdocs or markdown-link-check
+   checkout. Links into the generated `output/` tree and `docs/_generated/` are
+   skipped because their producers own those files; links that leave the
+   checkout are external. The repository has no mkdocs or markdown-link-check
    configuration, so this script is the link gate.
 2. `scripts/gate_report.py --check` verifies that
    [`_generated/gate-timings.md`](_generated/gate-timings.md) still lists every
@@ -115,6 +115,14 @@ hand-edit either array.
 ```bash
 ./run.sh bench
 ```
+
+`bench` uses the already-synced `.venv/bin/python` interpreter, so the arms'
+`uv run` calls do not nest inside another `uv run` and deadlock on the uv cache
+lock. Run `uv sync --frozen --extra dev` first.
+
+`./run.sh bench --arms test-full` re-measures only the named arms and merges
+those rows into the existing report, so one slow arm can be refreshed without
+re-running every arm.
 
 This runs every arm once on the current host and rewrites
 [`_generated/gate-timings.md`](_generated/gate-timings.md) with the commit,

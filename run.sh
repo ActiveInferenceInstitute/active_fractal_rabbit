@@ -59,7 +59,16 @@ run_arm() {
             fi
             ;;
         gnn) "${UV[@]}" python scripts/check_gnn_conformance.py "$@" ;;
-        bench) "${UV[@]}" python scripts/gate_report.py "$@" ;;
+        bench)
+            # The reporter invokes the other arms, which use `uv run`; running
+            # it under `uv run` too would nest uv and deadlock on its cache
+            # lock. Use the already-synced project interpreter instead.
+            if [[ ! -x .venv/bin/python ]]; then
+                echo "bench requires a synced .venv; run uv sync --frozen --extra dev first" >&2
+                return 2
+            fi
+            .venv/bin/python scripts/gate_report.py "$@"
+            ;;
         *)
             echo "unknown arm: $arm" >&2
             usage >&2
