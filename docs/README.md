@@ -50,7 +50,7 @@ then follow the category that matches your task.
 | --- | --- |
 | [`config_schema.md`](config_schema.md) | Every supported config key, validation rule, and affected artifact group. |
 | [`external_lane.md`](external_lane.md) | The JDK 21 + Maven toolchain for the pinned external FractalRabbit build, with explicit skip reasons when absent. |
-| [`../.github/GNN.md`](../.github/GNN.md) | The GNN pin (`.github/gnn-pin.json`, schema `gnn-importer-pin/v1`), the hosted `gnn-conformance` job and its display name, and what the job parses. |
+| [`../.github/GNN.md`](../.github/GNN.md) | The adopted GNN shared-reader contract: the pin (`.github/gnn-pin.json`, schema `gnn-importer-pin/v1`, GNN v5.1.0), the hosted `gnn-conformance` job and its display name, and what the job parses. |
 
 ## Scholarship Stays Primary-Source Backed
 

@@ -1,4 +1,11 @@
-"""Generate manuscript variables and resolved markdown for template rendering."""
+"""Generate manuscript variables and resolved markdown for template rendering.
+
+GNN-derived ``gnn_*`` variables come from the shared reader's
+``importer_variables`` map, never from a second read of the pin JSON. The
+project environment does not install the pinned GNN distribution, so set
+``GNN_RUNTIME_PYTHON`` to the pinned interpreter to include those keys; without
+it they are omitted and the manuscript's own tokens are unaffected.
+"""
 
 from pathlib import Path
 import os

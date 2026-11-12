@@ -8,10 +8,11 @@ side without the other fails loudly.
 When the pinned upstream GNN checkout is available (sibling
 ``Generalized_Notation_Notation``, or ``$GNN_CHECKOUT``), the suite additionally
 re-parses each spec with the upstream
-``gnn.parsers.markdown_parser.MarkdownGNNParser``, runs the upstream
-``gnn.cli validate --strict`` gate, and re-verifies that the recorded pin still
-matches the checkout. Those checks skip with an explicit reason when the
-checkout or its virtualenv is absent.
+``gnn.parsers.markdown_parser.MarkdownGNNParser`` and runs the upstream
+``gnn.cli validate --strict`` gate. Those checks skip with an explicit reason
+when the checkout or its virtualenv is absent. Pin discovery, pin shape, and the
+``.github/GNN.md`` pointer are the shared ``gnn.importers`` reader's concern; the
+``./run.sh gnn`` arm runs that reader before this suite.
 """
 
 from __future__ import annotations
@@ -41,7 +42,6 @@ from active_fractal_rabbit.model_spec import (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-PIN_PATH = ROOT / ".github" / "gnn-pin.json"
 DEFAULT_SIZES = dict(
     num_spatial_states=16,
     num_time_bins=4,
@@ -80,22 +80,6 @@ def _gnn_python(checkout: Path) -> Path:
         )
     return python
 
-
-def _git(checkout: Path, *args: str) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        ["git", "-C", str(checkout), *args],
-        capture_output=True,
-        text=True,
-        timeout=120,
-    )
-
-
-#: Parser sources the upstream virtualenv imports from the checkout's ``src/``
-#: tree (editable install); they must match the pinned revision.
-_PINNED_PARSER_FILES = (
-    "src/gnn/parsers/markdown_parser.py",
-    "src/gnn/parsers/common.py",
-)
 
 #: Runs under the upstream virtualenv: parse each spec with the real upstream
 #: parser and dump a JSON structural summary for comparison in this suite.
@@ -328,77 +312,6 @@ def test_unparseable_connection_raises_typed_error(tmp_path: Path) -> None:
 def test_unknown_spec_name_raises_typed_error() -> None:
     with pytest.raises(GNNSpecError):
         load_spec("no_such_model")
-
-
-def test_pin_file_records_upstream_revision() -> None:
-    pin = json.loads(PIN_PATH.read_text(encoding="utf-8"))
-    assert pin["upstream_repository"].endswith(
-        "ActiveInferenceInstitute/Generalized_Notation_Notation.git"
-    )
-    assert re.fullmatch(r"[0-9a-f]{40}", pin["revision"])
-    assert pin["tag"] == f"v{pin['version']}"
-    assert pin["version"]
-    assert re.fullmatch(r"\d{4}-\d{2}-\d{2}", pin["pinned_on"])
-
-
-def test_pinned_revision_and_parser_source_when_checkout_available() -> None:
-    """The pin is the tag target, and the parser in use is the pinned source.
-
-    The upstream virtualenv installs ``gnn`` editable from the checkout's
-    ``src/`` tree, so the working-tree parser files are the parser the
-    conformance tests import.
-    """
-
-    checkout = _gnn_checkout()
-    if checkout is None:
-        pytest.skip(
-            "upstream GNN checkout not found at sibling "
-            "'Generalized_Notation_Notation' and $GNN_CHECKOUT is unset"
-        )
-    if not (checkout / ".git").exists():
-        pytest.skip(f"upstream checkout at {checkout} is not a git repository")
-    pin = json.loads(PIN_PATH.read_text(encoding="utf-8"))
-    tag = _git(checkout, "rev-parse", f"{pin['tag']}^{{commit}}")
-    if tag.returncode != 0:
-        pytest.skip(
-            f"upstream checkout does not carry tag {pin['tag']!r}; the pin "
-            "cannot be re-verified against it"
-        )
-    assert tag.stdout.strip() == pin["revision"], (
-        f"pin file records {pin['revision']} but tag {pin['tag']} dereferences "
-        f"to {tag.stdout.strip()}"
-    )
-    present = _git(checkout, "cat-file", "-e", f"{pin['revision']}^{{commit}}")
-    assert present.returncode == 0, (
-        f"pinned revision {pin['revision']} is not present in {checkout}"
-    )
-    head = _git(checkout, "rev-parse", "HEAD")
-    head_revision = head.stdout.strip() if head.returncode == 0 else ""
-    if head_revision != pin["revision"]:
-        pytest.skip(
-            f"upstream checkout HEAD is {head_revision or 'unreadable'}, not the "
-            f"pinned {pin['revision']}; the pin itself is verified above, but a "
-            "moved checkout cannot prove that the working-tree parser is the "
-            "pinned parser"
-        )
-    for relative in _PINNED_PARSER_FILES:
-        pinned_blob = _git(checkout, "show", f"{pin['revision']}:{relative}")
-        if pinned_blob.returncode != 0:
-            pytest.skip(f"cannot read {relative} at the pinned revision")
-        working = (checkout / relative).read_text(encoding="utf-8")
-        assert working == pinned_blob.stdout, (
-            f"{relative} in {checkout} differs from the pinned revision "
-            f"{pin['revision']}; the parser in use is not the pinned parser "
-            "(re-pin the checkout or restore the file)"
-        )
-
-
-def test_models_readme_restates_the_pin() -> None:
-    readme = (models_dir() / "README.md").read_text(encoding="utf-8")
-    pin = json.loads(PIN_PATH.read_text(encoding="utf-8"))
-    assert pin["upstream_repository"] in readme
-    assert pin["revision"] in readme
-    assert pin["version"] in readme
 
 
 def test_specs_pass_upstream_gnn_validator_when_available() -> None:

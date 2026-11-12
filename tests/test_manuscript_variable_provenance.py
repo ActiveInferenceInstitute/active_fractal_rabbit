@@ -480,3 +480,28 @@ def test_single_realization_variance_band_renders_unavailable(tmp_path) -> None:
     assert variables["VARIANCE_REALIZATION_COUNT"] == "1"
     assert variables["VARIANCE_GAP_FILL_LOW"] == "unavailable"
     assert variables["VARIANCE_GAP_FILL_HIGH"] == "unavailable"
+
+
+def test_gnn_variables_come_from_the_shared_reader_runtime(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The producer asks the pinned reader for the gnn_* keys, not the pin JSON."""
+
+    runtime = tmp_path / "python"
+    runtime.write_text(
+        "#!/bin/sh\n"
+        "printf '%s' '{\"gnn_pin_path\": \".github/gnn-pin.json\", "
+        "\"gnn_commit\": \"75c834bd8519dc7b5adc4d24f16bf393cfd1ecdf\"}'\n",
+        encoding="utf-8",
+    )
+    runtime.chmod(0o755)
+    monkeypatch.setenv("GNN_RUNTIME_PYTHON", str(runtime))
+
+    from active_fractal_rabbit.manuscript_variables import _gnn_variables
+
+    variables = _gnn_variables(Path(__file__).resolve().parents[1])
+
+    assert variables == {
+        "gnn_pin_path": ".github/gnn-pin.json",
+        "gnn_commit": "75c834bd8519dc7b5adc4d24f16bf393cfd1ecdf",
+    }

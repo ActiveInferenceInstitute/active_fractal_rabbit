@@ -6,6 +6,8 @@ import json
 from pathlib import Path
 import csv
 import math
+import os
+import subprocess
 
 from .config import load_config
 from .sota_program_harness import canonical_run_parameter_violations
@@ -15,6 +17,50 @@ PAPER_TITLE = (
     "Active FractalRabbit: A Synthetic Benchmark for Belief Filtering Under "
     "Sparse Waypoint Observations"
 )
+
+
+def _gnn_variables(root: Path) -> dict[str, str]:
+    """Return GNN-derived variables when the pinned runtime is available.
+
+    The shared ``gnn.importers`` reader is the only source of the pin facts, so
+    the manuscript producer never re-reads ``.github/gnn-pin.json``. The project
+    environment does not install the pinned GNN distribution, so the operator
+    supplies its interpreter in ``GNN_RUNTIME_PYTHON``. When that is absent the
+    keys are omitted; the manuscript does not currently consume them.
+    """
+
+    runtime = os.environ.get("GNN_RUNTIME_PYTHON")
+    if not runtime:
+        return {}
+    helper = root / "scripts" / "gnn_importer_variables.py"
+    if not helper.is_file():
+        return {}
+    completed = subprocess.run(
+        [
+            runtime,
+            str(helper),
+            "--repo",
+            str(root),
+            "--job",
+            "gnn-conformance",
+            "--job-name",
+            "gnn conformance (pinned)",
+        ],
+        cwd=str(root),
+        stdin=subprocess.DEVNULL,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if completed.returncode != 0:
+        return {}
+    try:
+        payload = json.loads(completed.stdout)
+    except json.JSONDecodeError:
+        return {}
+    if not isinstance(payload, dict):
+        return {}
+    return {key: value for key, value in payload.items() if key.startswith("gnn_")}
 
 
 def compute_variables(project_root: str | Path | None = None) -> dict[str, str]:
@@ -302,7 +348,7 @@ def compute_variables(project_root: str | Path | None = None) -> dict[str, str]:
     control_count = len(config.inference.model.controls)
     mean_policy_entropy = float(metrics.get("mean_policy_entropy", 0.0))
     max_policy_entropy = math.log(control_count) if control_count > 0 else 0.0
-    return {
+    variables = {
         "PROJECT_TITLE": PAPER_TITLE,
         "FRACTALRABBIT_COMMIT": "9933449c4f4fe1b26b6ac7bfdeeac76583085df5",
         "PYMDP_VERSION": "1.0.4",
@@ -1457,6 +1503,8 @@ def compute_variables(project_root: str | Path | None = None) -> dict[str, str]:
         ),
         "FIG_CAPTION_DATAFLOW": _caption(entries, "dataflow"),
     }
+    variables.update(_gnn_variables(root))
+    return variables
 
 
 def write_variables(project_root: str | Path | None = None) -> Path:

@@ -1,22 +1,35 @@
-"""Run the pinned GNN conformance gate.
+"""Run the pinned GNN conformance check with the shared reader.
 
 The gate is the one recorded in ``.github/gnn-pin.json``:
 
-1. resolve a checkout whose ``HEAD`` is exactly the recorded revision,
-2. install that checkout into its own virtualenv,
-3. run the upstream strict validator on every spec named in the pin,
-4. run ``tests/test_gnn_spec.py`` against that checkout and require a nonempty
-   suite with zero skips, failures, or errors.
+1. materialize a checkout whose ``HEAD`` is exactly the recorded revision,
+2. install that checkout's parser into its own virtualenv,
+3. run the shared reader from that environment::
 
-A missing checkout, a revision mismatch, an unimportable parser, or a skipped
-parser test is a gate failure, never a silent pass. Set ``GNN_CHECKOUT`` to a
-prepared checkout at the pinned revision to run offline; otherwise the gate
-clones the pinned tag into ``GNN_SCRATCH`` (or a temporary directory).
+       python -m gnn.importers check --repo . --require-pointer \\
+           --workflow .github/workflows/ci.yml --job gnn-conformance
+
+   The reader owns pin discovery and shape, the ``.github/GNN.md`` pointer,
+   and the syntax validation of every ``*.gnn.md`` specification the pin
+   names.
+4. run ``tests/test_gnn_spec.py`` against that checkout and require a
+   nonempty suite with zero skips, failures, or errors. Those tests check the
+   model-declaration semantics the reader does not.
+
+Only the revision key is read from the pin here: the pinned parser has to be
+materialized before the reader that validates the pin can run. Every other
+pin question belongs to ``gnn.importers``. A missing checkout, a revision
+mismatch, an unimportable parser, a reader finding, or a skipped parser test
+is a gate failure, never a silent pass.
+
+Set ``GNN_CHECKOUT`` to a prepared checkout at the pinned revision to run
+offline; otherwise the gate clones the pinned revision into ``GNN_SCRATCH``
+(or a temporary directory).
 
 Exit codes:
-    0: every pinned check passed
+    0: the shared reader and the parser tests passed
     1: the gate ran and failed
-    2: the pin file itself is missing or malformed
+    2: the pin file is missing or unreadable
 """
 
 from __future__ import annotations
@@ -36,15 +49,9 @@ from xml.etree import ElementTree
 
 ROOT = Path(__file__).resolve().parents[1]
 PIN_PATH = ROOT / ".github" / "gnn-pin.json"
-PIN_SCHEMA = "gnn-importer-pin/v1"
-REQUIRED_KEYS = (
-    "schema",
-    "upstream_repository",
-    "tag",
-    "revision",
-    "version",
-    "spec_files",
-)
+UPSTREAM = "https://github.com/ActiveInferenceInstitute/Generalized_Notation_Notation.git"
+WORKFLOW = ".github/workflows/ci.yml"
+JOB = "gnn-conformance"
 CLONE_ATTEMPTS = 3
 
 
@@ -52,31 +59,28 @@ class PinError(RuntimeError):
     """The recorded pin cannot be used as a gate."""
 
 
-def load_pin(path: Path = PIN_PATH) -> dict[str, object]:
-    """Load and validate the recorded pin."""
+def read_revision(path: Path = PIN_PATH) -> str:
+    """Return the revision the environment must materialize.
+
+    This is the environment's input, not a second reader: the installed parser
+    cannot validate a pin before it exists, so one key is taken from the file
+    and the shared reader judges everything else about it afterwards.
+    """
 
     try:
-        pin = json.loads(path.read_text(encoding="utf-8"))
+        payload = json.loads(path.read_text(encoding="utf-8"))
     except FileNotFoundError as error:
         raise PinError(f"pin file not found: {path}") from error
     except json.JSONDecodeError as error:
         raise PinError(f"pin file is not valid JSON: {path}: {error}") from error
-    if not isinstance(pin, dict):
+    if not isinstance(payload, dict):
         raise PinError(f"pin file must contain a JSON object: {path}")
-    missing = [key for key in REQUIRED_KEYS if key not in pin]
-    if missing:
-        raise PinError(f"pin file is missing keys {missing}: {path}")
-    if pin["schema"] != PIN_SCHEMA:
-        raise PinError(f"pin schema is {pin['schema']!r}, expected {PIN_SCHEMA!r}")
-    if not re.fullmatch(r"[0-9a-f]{40}", str(pin["revision"])):
-        raise PinError(f"pin revision is not a 40-character commit id: {pin['revision']!r}")
-    specs = pin["spec_files"]
-    if not isinstance(specs, list) or not specs:
-        raise PinError("pin spec_files must be a nonempty list")
-    for spec in specs:
-        if not isinstance(spec, str) or not (ROOT / spec).is_file():
-            raise PinError(f"pinned spec file is missing: {spec}")
-    return pin
+    revision = payload.get("commit") or payload.get("revision")
+    if not isinstance(revision, str) or not re.fullmatch(r"[0-9a-f]{40}", revision):
+        raise PinError(
+            f"pin records no 40-character commit/revision: {revision!r}"
+        )
+    return revision
 
 
 def _git(checkout: Path, *args: str) -> subprocess.CompletedProcess[str]:
@@ -96,10 +100,9 @@ def _head(checkout: Path) -> str:
     return result.stdout.strip()
 
 
-def verify_checkout(checkout: Path, pin: dict[str, object]) -> None:
+def verify_checkout(checkout: Path, revision: str) -> None:
     """Require the checkout to stand exactly at the pinned revision."""
 
-    revision = str(pin["revision"])
     head = _head(checkout)
     if head != revision:
         raise PinError(
@@ -113,26 +116,21 @@ def verify_checkout(checkout: Path, pin: dict[str, object]) -> None:
         raise PinError(f"checkout {checkout} has local changes; the gate requires a clean pin")
 
 
-def clone_pin(pin: dict[str, object], scratch: Path) -> Path:
-    """Clone the pinned tag into *scratch* and verify the revision."""
+def clone_pin(revision: str, scratch: Path) -> Path:
+    """Clone the pinned revision into *scratch* and verify the checkout."""
 
     checkout = scratch / "gnn"
-    revision = str(pin["revision"])
-    tag = str(pin["tag"])
-    upstream = str(pin["upstream_repository"])
     for attempt in range(1, CLONE_ATTEMPTS + 1):
         shutil.rmtree(checkout, ignore_errors=True)
-        result = subprocess.run(
+        clone = subprocess.run(
             [
                 "git",
                 "clone",
                 "--quiet",
-                "--depth",
-                "1",
-                "--branch",
-                tag,
+                "--filter=blob:none",
+                "--no-checkout",
                 "--",
-                upstream,
+                UPSTREAM,
                 str(checkout),
             ],
             stdin=subprocess.DEVNULL,
@@ -140,25 +138,27 @@ def clone_pin(pin: dict[str, object], scratch: Path) -> Path:
             text=True,
             timeout=600,
         )
-        if result.returncode == 0 and (checkout / ".git").exists():
-            if _head(checkout) == revision:
-                tag_target = _git(checkout, "rev-parse", f"refs/tags/{tag}^{{commit}}")
-                if tag_target.returncode == 0 and tag_target.stdout.strip() == revision:
-                    return checkout
+        fetched = False
+        if clone.returncode == 0 and (checkout / ".git").exists():
+            fetch = _git(checkout, "fetch", "--quiet", "--depth", "1", "origin", revision)
+            if fetch.returncode == 0:
+                result = _git(checkout, "checkout", "--quiet", revision)
+                fetched = result.returncode == 0 and _head(checkout) == revision
+        if fetched:
+            return checkout
         print(
-            f"attempt {attempt}: pinned tag {tag} did not resolve to {revision}",
+            f"attempt {attempt}: pinned GNN revision {revision} could not be materialized",
             file=sys.stderr,
         )
         time.sleep(attempt * 5)
-    raise PinError(f"pinned GNN revision {revision} could not be resolved after {CLONE_ATTEMPTS} attempts")
-
-
-def _venv_python(checkout: Path) -> Path:
-    return checkout / ".venv" / "bin" / "python"
+    raise PinError(
+        f"pinned GNN revision {revision} could not be resolved after "
+        f"{CLONE_ATTEMPTS} attempts"
+    )
 
 
 def _required_uv(checkout: Path) -> str | None:
-    """Return the uv version the pinned checkout pins for itself, if any."""
+    """Return the uv version constraint the pinned checkout records, if any."""
 
     for path, keys in (
         (checkout / "uv.toml", ("required-version",)),
@@ -177,7 +177,7 @@ def _required_uv(checkout: Path) -> str | None:
                 break
             value = value[key]
         if isinstance(value, str):
-            return value.removeprefix("==")
+            return value
     return None
 
 
@@ -185,7 +185,11 @@ def _sync_command(checkout: Path) -> list[str]:
     """Build the frozen sync command for the checkout's own environment."""
 
     required = _required_uv(checkout)
-    prefix = ["uvx", "--from", f"uv=={required}", "uv"] if required else ["uv"]
+    # An exact pin needs its own uv; a range is satisfied by the host's uv.
+    if required and required.startswith("=="):
+        prefix = ["uvx", "--from", f"uv=={required[2:]}", "uv"]
+    else:
+        prefix = ["uv"]
     return [
         *prefix,
         "sync",
@@ -198,10 +202,10 @@ def _sync_command(checkout: Path) -> list[str]:
     ]
 
 
-def ensure_parser(checkout: Path, pin: dict[str, object]) -> Path:
+def ensure_parser(checkout: Path) -> Path:
     """Return the checkout's interpreter, installing the parser when needed."""
 
-    python = _venv_python(checkout)
+    python = checkout / ".venv" / "bin" / "python"
 
     def probe() -> subprocess.CompletedProcess[str] | None:
         if not python.exists():
@@ -234,32 +238,82 @@ def ensure_parser(checkout: Path, pin: dict[str, object]) -> Path:
     if result is None or result.returncode != 0:
         stderr = "" if result is None else result.stderr.strip()[-2000:]
         raise PinError(f"pinned parser is not importable: {stderr}")
-    observed = result.stdout.strip()
-    expected = str(pin["version"])
-    if observed != expected:
-        raise PinError(f"parser version is {observed!r}, expected pinned {expected!r}")
     return python
 
 
-def validate_specs(checkout: Path, python: Path, pin: dict[str, object]) -> list[str]:
-    """Run the upstream strict validator on every pinned spec."""
+def run_reader(python: Path) -> tuple[list[str], int]:
+    """Run the shared reader and return its failure messages and spec count."""
+
+    command = [
+        str(python),
+        "-B",
+        "-m",
+        "gnn.importers",
+        "check",
+        "--repo",
+        ".",
+        "--require-pointer",
+        "--workflow",
+        WORKFLOW,
+        "--job",
+        JOB,
+        "--json",
+    ]
+    result = subprocess.run(
+        command,
+        cwd=str(ROOT),
+        stdin=subprocess.DEVNULL,
+        capture_output=True,
+        text=True,
+        timeout=600,
+    )
+    try:
+        report = json.loads(result.stdout)
+    except json.JSONDecodeError:
+        report = None
+    if not isinstance(report, dict):
+        output = (result.stdout + result.stderr).strip()
+        return [f"the shared reader produced no JSON report: {output[-2000:]}"], 0
+
+    pin = report.get("pin") or {}
+    specs = report.get("specs") or {}
+    count = int(specs.get("count", 0) or 0)
+    pointer = report.get("pointer") or {}
+    print(f"importer: {report.get('repo')}")
+    if pin:
+        party = f" [{pin['party']}]" if pin.get("party") else ""
+        print(
+            f"  pin: {pin.get('path')}{party} -> {pin.get('tag') or '(no tag)'} "
+            f"@ {str(pin.get('commit', ''))[:10]} "
+            f"(schema {pin.get('schema') or 'unversioned'})"
+        )
+    else:
+        print("  pin: none")
+    print(f"  specs: {specs.get('count', 0)}")
+    if pointer:
+        print(
+            f"  pointer: {pointer.get('path')} -> "
+            f"{'ok' if pointer.get('ok') else 'FAILED'}"
+        )
+    for finding in report.get("findings", []):
+        print(
+            f"  [{finding.get('level')}] {finding.get('code')}: "
+            f"{finding.get('message')}"
+        )
+    print(f"  verdict: {'ok' if report.get('ok') else 'FAILED'}")
 
     failures: list[str] = []
-    for spec in pin["spec_files"]:
-        spec_path = (ROOT / str(spec)).resolve()
-        result = subprocess.run(
-            [str(python), "-B", "-m", "gnn.cli", "validate", str(spec_path), "--strict"],
-            cwd=str(checkout),
-            stdin=subprocess.DEVNULL,
-            capture_output=True,
-            text=True,
-            timeout=600,
-        )
-        output = (result.stdout + result.stderr).strip()
-        print(output)
-        if result.returncode != 0:
-            failures.append(f"{spec}: strict validation exited {result.returncode}")
-    return failures
+    if result.returncode != 0 or not report.get("ok"):
+        errors = [
+            finding for finding in report.get("findings", []) if finding.get("level") == "error"
+        ]
+        if errors:
+            failures.extend(
+                f"{finding.get('code')}: {finding.get('message')}" for finding in errors
+            )
+        else:
+            failures.append("the shared reader reported a failure")
+    return failures, count
 
 
 def run_parser_tests(checkout: Path, evidence: Path) -> list[str]:
@@ -319,7 +373,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     try:
-        pin = load_pin()
+        revision = read_revision()
     except PinError as error:
         print(f"gnn conformance: {error}", file=sys.stderr)
         return 2
@@ -336,11 +390,11 @@ def main(argv: list[str] | None = None) -> int:
             checkout = Path(override).expanduser().resolve()
             if not checkout.is_dir():
                 raise PinError(f"GNN_CHECKOUT is not a directory: {checkout}")
-            verify_checkout(checkout, pin)
+            verify_checkout(checkout, revision)
         else:
-            checkout = clone_pin(pin, scratch)
-        python = ensure_parser(checkout, pin)
-        failures = validate_specs(checkout, python, pin)
+            checkout = clone_pin(revision, scratch)
+        python = ensure_parser(checkout)
+        failures, spec_count = run_reader(python)
         if not failures:
             failures = run_parser_tests(checkout, scratch)
     except (PinError, OSError, subprocess.SubprocessError) as error:
@@ -355,8 +409,8 @@ def main(argv: list[str] | None = None) -> int:
             print(f"gnn conformance: {failure}", file=sys.stderr)
         return 1
     print(
-        f"gnn conformance: {pin['version']} at {pin['revision']} "
-        f"validated {len(pin['spec_files'])} spec(s) with zero skips"
+        f"gnn conformance: {revision[:12]} validated {spec_count} spec(s) "
+        "with zero pointer findings and zero skips"
     )
     return 0
 

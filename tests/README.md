@@ -27,6 +27,7 @@ tests/
 ├── test_docs_contract.py       # documentation contract (fixtures, figure counts,
 │                               #   TODO routing, scholarship ledger, claim wording)
 ├── test_gnn_spec.py            # GNN spec parsing/model-declaration tests
+│                               #   (pin/pointer shape is the shared reader's)
 ├── test_fractalrabbit_external.py, test_java_resolution.py
 │                               # external-lane tests (use the requires_fractalrabbit mark)
 └── test_release_manifest.py, test_render_freshness.py, test_manuscript_integrity.py

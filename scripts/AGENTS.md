@@ -13,9 +13,15 @@ Important entry points:
 - `07_run_full_study.py` runs the full study lanes and writes canonical outputs.
 - `20_run_aif_regime_search.py` runs the active-inference regime search.
 - `z_generate_manuscript_variables.py` regenerates manuscript-facing variables.
+  `gnn_importer_variables.py` supplies the `gnn_*` keys from the shared reader;
+  set `GNN_RUNTIME_PYTHON` to the pinned GNN interpreter when running the
+  producer so those keys are included.
 - `06_build_release_manifest.py` builds release manifest evidence.
 - `check_docs_links.py`, `check_gnn_conformance.py`, and `gate_report.py` are
   the gate arms behind `./run.sh docs`, `./run.sh gnn`, and `./run.sh bench`.
+  `check_gnn_conformance.py` is a launch shim: it materializes the pinned
+  parser and calls the shared `python -m gnn.importers` reader; it does not read
+  the pin itself beyond the revision needed to materialize the environment.
   Keep the commands in `run.sh`; do not add a second copy to CI or docs.
 
 Artifact discipline:

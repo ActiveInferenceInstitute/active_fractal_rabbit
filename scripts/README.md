@@ -38,7 +38,8 @@ Gate scripts:
 | Script | Purpose |
 | --- | --- |
 | `check_docs_links.py` | Relative-link gate for every Markdown file (`./run.sh docs`). |
-| `check_gnn_conformance.py` | Pinned GNN strict validation and parser tests (`./run.sh gnn`). |
+| `check_gnn_conformance.py` | Launch shim for the adopted GNN shared reader plus parser tests (`./run.sh gnn`). |
+| `gnn_importer_variables.py` | Prints the `gnn_*` manuscript variables from `gnn.importers.importer_variables`; run it with the pinned GNN interpreter. |
 | `gate_report.py` | Measures every arm and refreshes `docs/_generated/gate-timings.md` (`./run.sh bench`). |
 
 Outputs are written under `output/runs/` and `output/figures/`; treat `output/runs`

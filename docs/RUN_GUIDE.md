@@ -14,7 +14,7 @@ into prose.
 | `test` | `./run.sh test` | Fast suite: `pytest tests/ -m "not requires_fractalrabbit and not slow" --no-cov -q` | `gate` → Fast tests |
 | `test-full` | `./run.sh test-full` | Documented gate: `pytest tests/ --cov=src --cov-fail-under=90` | `gate` → Full tests with the coverage floor |
 | `docs` | `./run.sh docs` | Relative-link check plus the generated-timings contract | `gate` → Documentation links and generated timing contract |
-| `gnn` | `./run.sh gnn` | Pinned GNN strict validation and parser tests, zero skips | `gnn-conformance` → Run the pinned GNN conformance gate |
+| `gnn` | `./run.sh gnn` | Shared GNN reader check, then parser tests with zero skips | `gnn-conformance` → Run the pinned GNN conformance gate |
 | `all` | `./run.sh all` | `lint`, `test`, `test-full`, `docs`, `gnn` in order | — |
 | `bench` | `./run.sh bench` | Re-measures every arm and rewrites the generated timing document | — |
 
@@ -69,10 +69,16 @@ the report it would otherwise check.
 ## GNN conformance arm
 
 `./run.sh gnn` reads `.github/gnn-pin.json`, requires a checkout at the pinned
-revision, installs it into its own virtualenv, validates both spec files with
-the upstream strict validator, and runs `tests/test_gnn_spec.py` with zero
-skips. See [`.github/GNN.md`](../.github/GNN.md) for the pin, the hosted job
-key and display name, and the difference between the hosted
+revision, installs it into its own virtualenv, and runs the adopted shared
+reader (`python -m gnn.importers check --repo . --require-pointer --workflow
+.github/workflows/ci.yml --job gnn-conformance`). The reader owns pin discovery
+and shape, the `.github/GNN.md` pointer, and spec syntax. The same arm then
+runs `tests/test_gnn_spec.py` with zero skips for the model-declaration
+semantics the reader does not check. The pin advanced from GNN v5.0.3
+(`8f293d9ba810e6eda5c09842d9c7ed9ffa5f92c1`) to v5.1.0
+(`75c834bd8519dc7b5adc4d24f16bf393cfd1ecdf`). See
+[`.github/GNN.md`](../.github/GNN.md) for the pin, the hosted job key and
+display name, and the difference between the hosted
 `gnn conformance (pinned)` job and the required `gnn conformance (local)`
 commit status.
 

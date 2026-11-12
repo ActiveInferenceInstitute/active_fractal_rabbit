@@ -48,19 +48,20 @@ its virtualenv is absent.
 
 - Upstream repository:
   `https://github.com/ActiveInferenceInstitute/Generalized_Notation_Notation.git`
-- Pinned tag: `v5.0.3`
-- Pinned revision: `8f293d9ba810e6eda5c09842d9c7ed9ffa5f92c1` (the commit the
-  `v5.0.3` tag dereferences to)
-- Upstream version: `5.0.3`
-- Pinned on: `2026-11-01`
+- Pinned tag: `v5.1.0`
+- Pinned revision: `75c834bd8519dc7b5adc4d24f16bf393cfd1ecdf` (the commit the
+  `v5.1.0` tag dereferences to)
+- Upstream version: `5.1.0`
+- Pinned on: `2026-11-12`
+- Previous pin: GNN v5.0.3 (`8f293d9ba810e6eda5c09842d9c7ed9ffa5f92c1`)
 
-The machine-readable copy of this pin is `.github/gnn-pin.json`; when the
-checkout is present, `tests/test_gnn_spec.py` re-verifies that the recorded tag
-still dereferences to the recorded revision and that the revision is present.
-When the checkout stands at that revision it also compares the parser source in
-use against the pinned source byte for byte; a checkout parked on another
-revision skips that comparison with a reason naming the observed `HEAD`, since a
-moved checkout cannot prove which parser its virtualenv imports. The syntax
+The machine-readable copy of this pin is `.github/gnn-pin.json`. The adopted
+shared reader (`python -m gnn.importers check --repo . --require-pointer
+--workflow .github/workflows/ci.yml --job gnn-conformance`) owns pin discovery,
+pin and pointer validation, and spec syntax. The `./run.sh gnn` arm runs it
+after materializing the pinned revision. When the checkout is present,
+`tests/test_gnn_spec.py` also runs the upstream validator against these files
+and compares the parsed structure with the in-code declarations. The syntax
 authority is `docs/gnn/gnn_syntax.md` in that checkout. Re-validation runs the upstream validator against these files:
 
 ```bash
