@@ -351,7 +351,7 @@ def compute_variables(project_root: str | Path | None = None) -> dict[str, str]:
     variables = {
         "PROJECT_TITLE": PAPER_TITLE,
         "FRACTALRABBIT_COMMIT": "9933449c4f4fe1b26b6ac7bfdeeac76583085df5",
-        "PYMDP_VERSION": "1.0.4",
+        "PYMDP_VERSION": "1.0.5",
         "FRACTALRABBIT_PARAMETER_COUNT": "7",
         "FRACTALRABBIT_OUTPUT_COLUMNS": "`ID`, `Days`, `x(km)`, `y(km)`",
         "OBSERVATION_COUNT": _fmt(metrics.get("n_observations", 0)),
