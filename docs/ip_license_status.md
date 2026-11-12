@@ -29,7 +29,7 @@ states that portions of the software are public domain under U.S. copyright law.
 Any distribution that includes upstream source, jars, or derivative simulator
 code must carry the applicable Apache-2.0 license and upstream NOTICE material.
 
-`inferactively-pymdp==1.0.2` is consumed as an installed package dependency
+`inferactively-pymdp==1.0.4` is consumed as an installed package dependency
 under the MIT License. The project does not vendor `pymdp` source.
 
 Runtime and development dependencies such as `defusedxml`, `matplotlib`,
