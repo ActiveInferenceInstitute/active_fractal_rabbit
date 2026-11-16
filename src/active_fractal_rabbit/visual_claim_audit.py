@@ -621,7 +621,9 @@ def _source_conditioned_visual_violations(
             and isinstance(row.get("clustered_ci_high"), int | float)
             and float(row["clustered_ci_low"]) <= 0.0 <= float(row["clustered_ci_high"])
         ]
-        if any(name and name.lower() not in lower_caption for name in negative + unresolved):
+        if any(
+            name and name.lower() not in lower_caption for name in negative + unresolved
+        ):
             violations.append("caption omits a source phase-segment status")
         if unresolved and (
             "all three" in lower_caption and "excluding zero" in lower_caption
@@ -630,15 +632,21 @@ def _source_conditioned_visual_violations(
                 "caption claims all phase intervals exclude zero although a source interval crosses zero"
             )
         if unresolved and "unresolved" not in lower_caption:
-            violations.append("caption omits unresolved wording for a zero-crossing phase interval")
+            violations.append(
+                "caption omits unresolved wording for a zero-crossing phase interval"
+            )
         uniform = payload.get("uniform_disadvantage")
         if uniform is False and "uniform disadvantage: false" not in lower_caption:
-            violations.append("caption contradicts or omits the non-uniform source verdict")
+            violations.append(
+                "caption contradicts or omits the non-uniform source verdict"
+            )
         ratio = payload.get("worst_to_best_magnitude_ratio")
         if ratio is None and not any(
             term in lower_caption for term in ("ratio: n/a", "ratio unavailable")
         ):
-            violations.append("caption implies a worst-to-best ratio although source ratio is null")
+            violations.append(
+                "caption implies a worst-to-best ratio although source ratio is null"
+            )
         return violations
     if key == "privacy_utility_repeats":
         if payload.get("can_claim_graceful_repeated_tradeoff") is False:

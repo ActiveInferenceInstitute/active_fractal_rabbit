@@ -104,7 +104,9 @@ def test_registry_exposes_template_accessibility_records(figure_registry: dict) 
 
     by_label = {record.get("label"): record for record in figures}
     assert len(by_label) == len(figures)
-    assert all(isinstance(label, str) and label.startswith("fig:") for label in by_label)
+    assert all(
+        isinstance(label, str) and label.startswith("fig:") for label in by_label
+    )
 
     for entry in entries:
         label = "fig:" + entry["key"].replace("_", "-")

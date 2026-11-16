@@ -205,7 +205,9 @@ def test_claim_audit_rejects_upstream_attribution_for_fixture_headline(
     root = Path(__file__).resolve().parents[1]
     shutil.copytree(root / "manuscript", tmp_path / "manuscript")
     (tmp_path / "docs").mkdir()
-    shutil.copy2(root / "docs" / "claim_ledger.md", tmp_path / "docs" / "claim_ledger.md")
+    shutil.copy2(
+        root / "docs" / "claim_ledger.md", tmp_path / "docs" / "claim_ledger.md"
+    )
     abstract = tmp_path / "manuscript" / "00_abstract.md"
     abstract.write_text(
         abstract.read_text(encoding="utf-8")
@@ -229,7 +231,9 @@ def test_claim_audit_rejects_upstream_attribution_for_fixture_headline(
     payload = audit_claims(tmp_path)
 
     assert payload["status"] == "fail"
-    assert any("upstream FractalRabbit simulator" in item for item in payload["violations"])
+    assert any(
+        "upstream FractalRabbit simulator" in item for item in payload["violations"]
+    )
 
 
 def test_claim_audit_ledger_path_check_allows_test_function_anchors(

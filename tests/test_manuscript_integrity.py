@@ -682,9 +682,7 @@ def test_abstract_is_problem_framed_not_environment_framed() -> None:
 
 
 def test_conclusion_all_positive_claim_excludes_clean_zero_noise_level() -> None:
-    conclusion = (ROOT / "manuscript" / "08_conclusion.md").read_text(
-        encoding="utf-8"
-    )
+    conclusion = (ROOT / "manuscript" / "08_conclusion.md").read_text(encoding="utf-8")
     assert "positive at every nonzero noise level" in conclusion
     assert "per-level resamplings positive" not in conclusion
 
@@ -745,7 +743,9 @@ def test_discussion_model_map_states_where_models_work_and_why() -> None:
         assert regime in discussion
     assert "there is no global winner" in discussion.lower()
     abstract = (ROOT / "manuscript" / "00_abstract.md").read_text(encoding="utf-8")
-    introduction = (ROOT / "manuscript" / "01_introduction.md").read_text(encoding="utf-8")
+    introduction = (ROOT / "manuscript" / "01_introduction.md").read_text(
+        encoding="utf-8"
+    )
     results = (ROOT / "manuscript" / "03_results.md").read_text(encoding="utf-8")
     conclusion = (ROOT / "manuscript" / "08_conclusion.md").read_text(encoding="utf-8")
     assert "lowest-loss implemented predictor" in abstract

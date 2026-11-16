@@ -8,6 +8,7 @@ from active_fractal_rabbit.model_gates import (
     run_and_write_model_gates,
 )
 
+
 def test_model_gate_matrix_reports_lane_rows_and_unavailable_without_zeroes() -> None:
     payload = build_model_gate_matrix(
         {

@@ -420,9 +420,7 @@ def _release_semantic_failures(root: Path) -> list[str]:
         failures.append(f"live release audit failed: {exc}")
     provenance = root / "output/data/manuscript_variable_provenance.json"
     try:
-        verify_token_provenance(
-            provenance, expected_specs=DEFAULT_TOKEN_PROVENANCE
-        )
+        verify_token_provenance(provenance, expected_specs=DEFAULT_TOKEN_PROVENANCE)
     except (OSError, json.JSONDecodeError, KeyError, ProvenanceError) as exc:
         failures.append(f"manuscript variable provenance failed: {exc}")
     return failures

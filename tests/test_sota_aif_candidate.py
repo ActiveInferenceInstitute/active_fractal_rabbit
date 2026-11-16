@@ -192,9 +192,7 @@ def test_fit_returns_grid_argmin_and_includes_soft_fallback() -> None:
     ds = _dataset(n_travellers=24, eps=0.3)
     fit = fit_aif_candidate(ds)
     # the grid always contains the plain soft filter (1.0, 0.0)
-    grid_points = {
-        (g["gamma"], g["boost"], g["adaptation"]) for g in fit.train_grid
-    }
+    grid_points = {(g["gamma"], g["boost"], g["adaptation"]) for g in fit.train_grid}
     assert (1.0, 0.0, 0.0) in grid_points
     # the selected pair is the train-internal argmin over the recorded grid
     best_loss = min(g["train_val_loss"] for g in fit.train_grid)
@@ -204,7 +202,8 @@ def test_fit_returns_grid_argmin_and_includes_soft_fallback() -> None:
             next(
                 g["train_val_loss"]
                 for g in fit.train_grid
-                if g["gamma"] == fit.gamma and g["boost"] == fit.boost
+                if g["gamma"] == fit.gamma
+                and g["boost"] == fit.boost
                 and g["adaptation"] == fit.adaptation
             )
             - fit.train_val_loss

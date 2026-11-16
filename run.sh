@@ -5,7 +5,7 @@
 # repeating the command strings. Arms are independent, so a fast local loop can
 # run one arm without paying for the others.
 #
-#   ./run.sh lint       ruff static checks
+#   ./run.sh lint       ruff static and formatting checks
 #   ./run.sh test       fast suite (excludes the requires_fractalrabbit and slow markers)
 #   ./run.sh test-full  documented gate: full suite with the 90% coverage floor
 #   ./run.sh docs       relative-link check plus generated-timings contract
@@ -29,7 +29,7 @@ usage() {
     cat <<'EOF'
 Single gate entry point for Active FractalRabbit.
 
-  ./run.sh lint       ruff static checks
+  ./run.sh lint       ruff static and formatting checks
   ./run.sh test       fast suite (excludes the requires_fractalrabbit and slow markers)
   ./run.sh test-full  documented gate: full suite with the 90% coverage floor
   ./run.sh docs       relative-link check plus generated-timings contract
@@ -47,7 +47,9 @@ run_arm() {
     local arm="$1"
     shift
     case "$arm" in
-        lint) "${UV[@]}" ruff check . ;;
+        lint)
+            "${UV[@]}" ruff check . && "${UV[@]}" ruff format --check src tests
+            ;;
         test) "${UV[@]}" pytest tests/ -m "not requires_fractalrabbit and not slow" --no-cov -q ;;
         test-full) "${UV[@]}" pytest tests/ --cov=src --cov-fail-under=90 ;;
         docs)

@@ -176,9 +176,7 @@ def build_model_comparison(
         else "Its marginal loss interval overlaps the next belief-marginalizing method's interval"
     )
     if paired_ci_low is None or paired_ci_high is None:
-        paired_description = (
-            "No matched paired interval against the strongest non-AIF method is available"
-        )
+        paired_description = "No matched paired interval against the strongest non-AIF method is available"
     elif aif_beats_strongest_non_aif_ci_separated:
         paired_description = (
             "The canonical paired traveller-clustered interval against the strongest "

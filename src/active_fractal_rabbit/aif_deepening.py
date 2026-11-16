@@ -25,7 +25,9 @@ def aif_deepening_candidates(project_root: str | Path) -> dict[str, Any]:
         _multiscale_row(regime_gate, sota_gate),
         _online_adaptation_row(robustness, adaptive),
     ]
-    scored = sum(row["protocol_status"] == "scored_predictive_candidate" for row in rows)
+    scored = sum(
+        row["protocol_status"] == "scored_predictive_candidate" for row in rows
+    )
     return {
         "schema": AIF_DEEPENING_SCHEMA,
         "status": (

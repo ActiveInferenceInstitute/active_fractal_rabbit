@@ -83,7 +83,7 @@ def _gnn_python(checkout: Path) -> Path:
 
 #: Runs under the upstream virtualenv: parse each spec with the real upstream
 #: parser and dump a JSON structural summary for comparison in this suite.
-_UPSTREAM_PARSE_BRIDGE = '''
+_UPSTREAM_PARSE_BRIDGE = """
 import json
 import sys
 
@@ -120,7 +120,7 @@ for path in sys.argv[2:]:
 payload = {"parser_module": markdown_parser.__file__, "models": models}
 with open(summary_path, "w", encoding="utf-8") as handle:
     json.dump(payload, handle, indent=2, sort_keys=True)
-'''
+"""
 
 
 def _upstream_structure(parsed: dict) -> dict[str, object]:
@@ -284,9 +284,7 @@ def test_missing_factor_declaration_raises_typed_error(tmp_path: Path) -> None:
         "single_factor_reference",
         tmp_path,
         lambda text: "\n".join(
-            line
-            for line in text.splitlines()
-            if not line.strip().startswith("s_cell[")
+            line for line in text.splitlines() if not line.strip().startswith("s_cell[")
         ),
     )
     with pytest.raises(GNNSpecError):

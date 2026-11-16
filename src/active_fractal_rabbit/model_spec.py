@@ -72,7 +72,9 @@ def single_factor_spec(
         n_controls,
     )
     if any(value < 1 for value in cardinalities):
-        raise ValueError("all state, observation, and control cardinalities must be positive")
+        raise ValueError(
+            "all state, observation, and control cardinalities must be positive"
+        )
 
     sizes = {
         "location": num_spatial_states,
@@ -128,7 +130,9 @@ def factorial_spec(
         n_mode_controls,
     )
     if any(value < 1 for value in cardinalities):
-        raise ValueError("all state, observation, and control cardinalities must be positive")
+        raise ValueError(
+            "all state, observation, and control cardinalities must be positive"
+        )
 
     return GenerativeModelSpec(
         name="factorial_latent_mode",
@@ -376,9 +380,11 @@ def check_conformance(
                     )
                 )
                 continue
-            expected = (spec.factor_sizes[idx],) + tuple(
-                spec.factor_sizes[d] for d in deps
-            ) + (spec.control_sizes[idx],)
+            expected = (
+                (spec.factor_sizes[idx],)
+                + tuple(spec.factor_sizes[d] for d in deps)
+                + (spec.control_sizes[idx],)
+            )
             checks.append(
                 _check(
                     f"B[{idx}]_shape",
@@ -405,9 +411,7 @@ def check_conformance(
                 )
             )
         for idx, preference in enumerate(
-            model.C[
-                : min(len(spec.observation_names), len(spec.observation_sizes))
-            ]
+            model.C[: min(len(spec.observation_names), len(spec.observation_sizes))]
         ):
             checks.append(
                 _check(
@@ -479,8 +483,7 @@ def check_conformance(
         controls_ok = bool(
             b_array.ndim == 3
             and all(
-                _columns_stochastic(b_array[:, :, c])
-                for c in range(b_array.shape[2])
+                _columns_stochastic(b_array[:, :, c]) for c in range(b_array.shape[2])
             )
         )
         checks.append(
@@ -494,9 +497,7 @@ def check_conformance(
             )
         )
         for idx, preference in enumerate(
-            model.C[
-                : min(len(spec.observation_names), len(spec.observation_sizes))
-            ]
+            model.C[: min(len(spec.observation_names), len(spec.observation_sizes))]
         ):
             checks.append(
                 _check(

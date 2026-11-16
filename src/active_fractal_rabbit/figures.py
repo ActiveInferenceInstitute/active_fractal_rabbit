@@ -6305,9 +6305,7 @@ def _aif_deepening_candidates(
         protocol = str(row.get("protocol_status", "unknown"))
         scored = protocol == "scored_predictive_candidate"
         accent = (
-            palette.get("blue", "#0072B2")
-            if scored
-            else palette.get("gray", "#777777")
+            palette.get("blue", "#0072B2") if scored else palette.get("gray", "#777777")
         )
         ax.add_patch(
             patches.FancyBboxPatch(

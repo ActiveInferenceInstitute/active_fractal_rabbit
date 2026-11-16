@@ -180,7 +180,9 @@ def _publication_fingerprint_check(root: Path) -> dict[str, Any]:
             elif not row["contains_expected"]:
                 row["reason"] = "embedded render fingerprint is missing or stale"
         outputs[relative_path] = row
-    status = "pass" if all(row["contains_expected"] for row in outputs.values()) else "fail"
+    status = (
+        "pass" if all(row["contains_expected"] for row in outputs.values()) else "fail"
+    )
     return {"status": status, "expected": expected, "outputs": outputs}
 
 
@@ -277,9 +279,7 @@ def build_render_freshness(project_root: str | Path) -> dict[str, Any]:
     root = Path(project_root).resolve()
     input_paths = _render_input_paths(root)
     inputs = {path: _file_record(root, path) for path in input_paths}
-    outputs = {
-        path: _file_record(root, path) for path in RENDER_OUTPUT_PATHS
-    }
+    outputs = {path: _file_record(root, path) for path in RENDER_OUTPUT_PATHS}
     missing_inputs = [path for path, record in inputs.items() if not record["exists"]]
     missing_outputs = [path for path, record in outputs.items() if not record["exists"]]
     existing_input_mtimes = [
@@ -367,11 +367,17 @@ def verify_render_freshness(manifest_path: str | Path) -> dict[str, list[str]]:
                 current["cover_embedding"].get("reason", "cover freshness failed")
             )
         if current["publication_fingerprint"].get("status") != "pass":
-            for output_path, row in current["publication_fingerprint"]["outputs"].items():
+            for output_path, row in current["publication_fingerprint"][
+                "outputs"
+            ].items():
                 if not row.get("contains_expected"):
                     failed_checks.append(
                         f"{output_path}: {row.get('reason', 'render fingerprint failed')}"
                     )
         if not failed_checks:
             failed_checks.append("render freshness failed")
-    return {"missing": [], "mismatched": sorted(set(mismatched)), "failed_checks": failed_checks}
+    return {
+        "missing": [],
+        "mismatched": sorted(set(mismatched)),
+        "failed_checks": failed_checks,
+    }

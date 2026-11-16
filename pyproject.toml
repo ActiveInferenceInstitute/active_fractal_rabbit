@@ -40,6 +40,13 @@ markers = [
     "slow: artifact-surface regeneration test that runs the full writer set; excluded from the fast arm and included in the full gate",
 ]
 
+[tool.ruff]
+target-version = "py311"
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F"]
+
 [tool.coverage.run]
 source = ["src"]
 branch = true

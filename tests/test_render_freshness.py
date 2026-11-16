@@ -118,7 +118,10 @@ def test_touching_outputs_cannot_certify_unrendered_manuscript_change(
     monkeypatch.setattr(
         freshness,
         "_rendered_output_text",
-        lambda path: (f"{freshness.RENDER_FINGERPRINT_PREFIX} {initial_fingerprint}", None),
+        lambda path: (
+            f"{freshness.RENDER_FINGERPRINT_PREFIX} {initial_fingerprint}",
+            None,
+        ),
     )
     assert freshness._publication_fingerprint_check(tmp_path)["status"] == "pass"
 

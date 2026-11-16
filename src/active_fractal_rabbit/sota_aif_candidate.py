@@ -275,9 +275,13 @@ def fit_aif_candidate(
     actually rewards it.
     """
 
-    if not gamma_grid or not all(np.isfinite(value) and value > 0 for value in gamma_grid):
+    if not gamma_grid or not all(
+        np.isfinite(value) and value > 0 for value in gamma_grid
+    ):
         raise ValueError("gamma_grid must contain finite positive values")
-    if not boost_grid or not all(np.isfinite(value) and value >= 0 for value in boost_grid):
+    if not boost_grid or not all(
+        np.isfinite(value) and value >= 0 for value in boost_grid
+    ):
         raise ValueError("boost_grid must contain finite nonnegative values")
     if not adaptation_grid or not all(
         np.isfinite(value) and 0.0 <= value <= 1.0 for value in adaptation_grid
