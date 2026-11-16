@@ -11,7 +11,6 @@ from typing import Any
 import matplotlib.image as mpimg
 import numpy as np
 
-
 VISUAL_QUALITY_SCHEMA = "active-fractal-rabbit-visual-quality-audit-v1"
 CONTACT_SHEET_PATH = "output/figures/figure_contact_sheet.png"
 LAYOUT_CRITICAL_FIGURE_REASONS = {

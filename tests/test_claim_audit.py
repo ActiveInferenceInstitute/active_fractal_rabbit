@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-import active_fractal_rabbit.claim_audit as claim_audit
+from active_fractal_rabbit import claim_audit
 from active_fractal_rabbit.claim_audit import CLAIM_AUDIT_SCHEMA, audit_claims
 
 

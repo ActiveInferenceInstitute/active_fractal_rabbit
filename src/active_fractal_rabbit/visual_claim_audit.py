@@ -8,7 +8,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-
 VISUAL_CLAIM_AUDIT_SCHEMA = "active-fractal-rabbit-visual-claim-audit-v1"
 
 
@@ -737,11 +736,12 @@ def _source_conditioned_visual_violations(
                 "caption missing non-monotone wording for failed graceful-degradation gate"
             )
     min_collection = payload.get("min_collection_operating_point", {})
-    if isinstance(min_collection, dict) and min_collection.get("found") is False:
-        if "no minimum-collection operating point" not in lower_caption:
-            violations.append(
-                "caption missing no minimum-collection operating-point null"
-            )
+    if (
+        isinstance(min_collection, dict)
+        and min_collection.get("found") is False
+        and "no minimum-collection operating point" not in lower_caption
+    ):
+        violations.append("caption missing no minimum-collection operating-point null")
     if isinstance(min_collection, dict) and min_collection.get("found") is True:
         if "no minimum-collection operating point" in lower_caption:
             violations.append(

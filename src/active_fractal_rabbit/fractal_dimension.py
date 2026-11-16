@@ -9,9 +9,9 @@ move. It does not estimate a fractal dimension from real trajectories.
 from __future__ import annotations
 
 import json
+from collections.abc import Callable, Iterable
 from dataclasses import replace
 from pathlib import Path
-from typing import Callable, Iterable
 
 from .robustness import empirical_interval
 

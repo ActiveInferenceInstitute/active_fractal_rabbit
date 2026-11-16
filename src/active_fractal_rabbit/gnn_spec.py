@@ -20,23 +20,23 @@ import) is resolved lazily inside the parse entry points.
 
 from __future__ import annotations
 
-from pathlib import Path
 import re
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:  # pragma: no cover - typing only, never imported at runtime
     from .model_spec import GenerativeModelSpec
 
 __all__ = [
-    "GNNSpecError",
     "GNN_SPEC_FILES",
     "REQUIRED_SECTIONS",
-    "models_dir",
-    "spec_path",
-    "spec_names",
-    "parse_spec_file",
+    "GNNSpecError",
     "load_spec",
     "load_specs",
+    "models_dir",
+    "parse_spec_file",
+    "spec_names",
+    "spec_path",
 ]
 
 

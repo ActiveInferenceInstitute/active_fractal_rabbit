@@ -4,6 +4,8 @@ import json
 from dataclasses import replace
 from pathlib import Path
 
+import numpy as np
+
 from active_fractal_rabbit.config import load_config
 from active_fractal_rabbit.partial_observability import (
     cross_realization_noisy_emission_advantage,
@@ -12,8 +14,6 @@ from active_fractal_rabbit.partial_observability import (
     run_and_write_partial_observability,
 )
 from active_fractal_rabbit.power_analysis import generate_synthetic_sequence
-
-import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
 

@@ -69,8 +69,8 @@ def test_candidates_implement_the_protocol_and_score() -> None:
         assert scored.n_scored_steps > 0
         assert np.isfinite(scored.pooled_mean_loss)
         # scored travellers are exactly holdout travellers
-        holdout = set(int(t) for t in ds.travellers[ds.is_holdout])
-        assert set(int(t) for t in scored.step_travellers).issubset(holdout)
+        holdout = {int(t) for t in ds.travellers[ds.is_holdout]}
+        assert {int(t) for t in scored.step_travellers}.issubset(holdout)
 
 
 def test_classical_candidates_returns_both_named_candidates() -> None:
@@ -173,7 +173,7 @@ def test_particle_filter_matches_exact_filter_predictive_on_a_single_stream() ->
     ds = _dataset(n_travellers=16)
     transition, emission, n = ds.transition, ds.emission, ds.n_states
     travs, holdout, observed = ds.travellers, ds.is_holdout, ds.observed
-    tid = sorted(set(int(t) for t in travs[holdout]))[0]
+    tid = sorted({int(t) for t in travs[holdout]})[0]
     stream = observed[travs == tid]
 
     # exact soft-filter predictive at each step
@@ -215,7 +215,7 @@ def test_particle_filter_incremental_matches_full_rebuild() -> None:
     ds = _dataset(n_travellers=16)
     transition, emission, n = ds.transition, ds.emission, ds.n_states
     travs, holdout, observed = ds.travellers, ds.is_holdout, ds.observed
-    tid = sorted(set(int(t) for t in travs[holdout]))[0]
+    tid = sorted({int(t) for t in travs[holdout]})[0]
     stream = observed[travs == tid]
 
     incremental = ParticleFilterCandidate(n_particles=512)

@@ -32,8 +32,8 @@ from __future__ import annotations
 
 import json
 import math
-from pathlib import Path
 from collections.abc import Mapping, Sequence
+from pathlib import Path
 
 import numpy as np
 
@@ -364,14 +364,14 @@ def fair_sota_robustness(
         seen_holdout_sets.add(ho_travellers)
 
         # precision self-improvement, paired on the identical split
-        common = dict(
-            smoothing=smoothing,
-            modalities=("location",),
-            online_adapt=True,
-            return_boost=1.0,
-            holdout_fraction=holdout_fraction,
-            seed=seed,
-        )
+        common = {
+            "smoothing": smoothing,
+            "modalities": ("location",),
+            "online_adapt": True,
+            "return_boost": 1.0,
+            "holdout_fraction": holdout_fraction,
+            "seed": seed,
+        }
         base = score_pomdp_on_locked_split(sequence, precision=1.0, **common)
         sharp = score_pomdp_on_locked_split(sequence, precision=precision, **common)
         gain_loss_wins += int(
@@ -492,8 +492,8 @@ def fair_realization_summary(
     return {
         "status": "completed",
         "label": label,
-        "n_observations": int(len(sequence.observations)),
-        "n_travellers": int(len({row.traveller_id for row in sequence.observations})),
+        "n_observations": len(sequence.observations),
+        "n_travellers": len({row.traveller_id for row in sequence.observations}),
         "n_cells": int(sequence.num_spatial_states),
         "losses": losses,
         "decomposition_nats": ladder["decomposition_nats"],

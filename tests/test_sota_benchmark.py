@@ -59,8 +59,8 @@ def test_locked_split_is_traveller_disjoint() -> None:
 
     travellers = np.asarray([row.traveller_id for row in sequence.observations])
     is_holdout = split["is_holdout"]
-    holdout_ids = set(int(t) for t in travellers[is_holdout])
-    train_ids = set(int(t) for t in travellers[~is_holdout])
+    holdout_ids = {int(t) for t in travellers[is_holdout]}
+    train_ids = {int(t) for t in travellers[~is_holdout]}
     assert holdout_ids.isdisjoint(train_ids)  # no traveller identity crosses the split
     assert split["n_holdout_travellers"] >= 1
     assert split["n_train_steps"] >= 1 and split["n_holdout_steps"] >= 1
@@ -130,13 +130,13 @@ def _clearing_kwargs(sequence, smoothing):
         "ece": 0.0,
         "runtime_seconds": 0.1,
     }
-    return dict(
-        external_available=True,
-        minimization_ok=True,
-        integrity_ok=True,
-        injected_candidate=candidate,
-        injected_locked_rows=_full_family_rows(),
-    )
+    return {
+        "external_available": True,
+        "minimization_ok": True,
+        "integrity_ok": True,
+        "injected_candidate": candidate,
+        "injected_locked_rows": _full_family_rows(),
+    }
 
 
 def test_fixture_only_win_is_blocked() -> None:
@@ -237,14 +237,14 @@ def test_ci_separation_guard_blocks_overlapping_win() -> None:
             "leakage": False,
         }
     ]
-    common = dict(
-        strongest_baseline_loss=1.0,
-        strongest_baseline_ci_low=0.9,
-        baseline_rows=baseline_rows,
-        external_available=True,
-        minimization_ok=True,
-        integrity_ok=True,
-    )
+    common = {
+        "strongest_baseline_loss": 1.0,
+        "strongest_baseline_ci_low": 0.9,
+        "baseline_rows": baseline_rows,
+        "external_available": True,
+        "minimization_ok": True,
+        "integrity_ok": True,
+    }
     overlapping = {
         "model": "c",
         "mean_predictive_loss": 0.95,

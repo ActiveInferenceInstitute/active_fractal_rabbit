@@ -221,7 +221,7 @@ def score_pomdp_on_locked_split(
         "loss_ci_high": hi,
         "brier_score": float(np.mean(brier)),
         "ece": _ece(np.asarray(conf), np.asarray(hit), 10),
-        "n_scored_steps": int(len(losses)),
+        "n_scored_steps": len(losses),
         "config": {
             "smoothing": float(smoothing),
             "emission_smoothing": float(emis_sm),

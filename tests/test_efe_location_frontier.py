@@ -102,7 +102,7 @@ def test_time_to_confident_localization_collapses_without_location() -> None:
 
 
 def test_frontier_artifact_writes(tmp_path) -> None:
-    _, config = _frontier()
+    _, _config = _frontier()
     out = run_and_write_efe_location_frontier(CONFIG, tmp_path / "frontier.json")
     payload = json.loads(out.read_text(encoding="utf-8"))
     assert payload["schema"] == "active-fractal-rabbit-efe-location-frontier-v1"

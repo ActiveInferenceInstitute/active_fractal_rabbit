@@ -34,14 +34,15 @@ evidence does not clear the gate.
 
 from __future__ import annotations
 
+import time
+from collections.abc import Mapping
 from dataclasses import dataclass, replace
 from pathlib import Path
-import time
-from typing import Mapping
 
 import numpy as np
 
 from .config import load_config
+from .power_analysis import traveller_clustered_bootstrap_ci
 from .sota_aif_candidate import fit_aif_candidate
 from .sota_baselines import transparent_baseline_ladder
 from .sota_classical import classical_candidates
@@ -60,8 +61,8 @@ from .sota_program import (
     score_candidate,
 )
 from .sota_stressors import (
-    DIAGNOSTIC_STRESSOR_LANES,
     ADVERSARIAL_REPEAT_SEED,
+    DIAGNOSTIC_STRESSOR_LANES,
     REGIME_STRESSOR_SECOND_REPEAT_SEED,
     REPORTING_GAP_REPEAT_SEED,
     all_lane_definitions,
@@ -72,7 +73,6 @@ from .sota_stressors import (
     lane_definitions,
 )
 from .types import InferenceConfig
-from .power_analysis import traveller_clustered_bootstrap_ci
 
 SOTA_PROGRAM_HARNESS_SCHEMA = "active-fractal-rabbit-sota-program-harness-v2"
 SOTA_PROGRAM_ROBUSTNESS_DIAGNOSTICS_SCHEMA = (
@@ -1026,35 +1026,35 @@ def run_and_write(
 
 # Re-export the emission helper so callers wiring custom lanes have a single import surface.
 __all__ = [
-    "SOTA_PROGRAM_HARNESS_SCHEMA",
     "AIF_CANDIDATE_NAME",
     "AIF_FAMILY_NAMES",
-    "LEAKAGE_FLOOR_NATS",
-    "DEFAULT_N_TRAVELLERS",
-    "DEFAULT_EPS",
-    "DEFAULT_SPATIAL_BINS",
-    "DEFAULT_N_BOOT",
-    "DEFAULT_BOOT_SEED",
     "CANONICAL_LANES",
+    "DEFAULT_BOOT_SEED",
+    "DEFAULT_EPS",
+    "DEFAULT_N_BOOT",
+    "DEFAULT_N_TRAVELLERS",
+    "DEFAULT_SPATIAL_BINS",
     "DIAGNOSTIC_STRESSOR_LANES",
+    "LEAKAGE_FLOOR_NATS",
+    "SOTA_PROGRAM_HARNESS_SCHEMA",
     "SOTA_PROGRAM_LEADERBOARD_HEADER",
     "SOTA_PROGRAM_ROBUSTNESS_DIAGNOSTICS_SCHEMA",
-    "LaneResult",
     "GateResult",
+    "LaneResult",
+    "build_diagnostic_lanes",
     "build_inference_config",
     "build_lanes",
-    "build_diagnostic_lanes",
-    "score_lane",
-    "evaluate_gate",
-    "run_program",
-    "run_diagnostic_robustness_suite",
     "canonical_run_parameter_violations",
-    "leaderboard_rows",
-    "write_leaderboard_csv",
-    "gate_payload",
-    "write_gate_json",
-    "robustness_diagnostic_payload",
-    "write_robustness_diagnostics",
-    "run_and_write",
     "emission_matrix",
+    "evaluate_gate",
+    "gate_payload",
+    "leaderboard_rows",
+    "robustness_diagnostic_payload",
+    "run_and_write",
+    "run_diagnostic_robustness_suite",
+    "run_program",
+    "score_lane",
+    "write_gate_json",
+    "write_leaderboard_csv",
+    "write_robustness_diagnostics",
 ]

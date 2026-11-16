@@ -19,9 +19,9 @@ from pathlib import Path
 import numpy as np
 
 from .config import load_config
+from .fractalrabbit import parse_waypoint_csv
 from .pipeline import run_pipeline
 from .types import PipelineResult, ProjectConfig, WaypointObservation
-from .fractalrabbit import parse_waypoint_csv
 
 NEGATIVE_CONTROL_SCHEMA = "active-fractal-rabbit-negative-controls-v1"
 DEGENERATE_BOUNDS = (-1_000_000.0, 1_000_000.0, -1_000_000.0, 1_000_000.0)

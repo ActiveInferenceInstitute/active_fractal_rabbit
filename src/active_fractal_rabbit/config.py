@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import replace
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any
 
 import yaml
 

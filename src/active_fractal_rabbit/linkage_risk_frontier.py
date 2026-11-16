@@ -102,7 +102,7 @@ def _per_traveller_linkage(
 ) -> dict[int, float]:
     travellers = sorted(set(traveller_ids.tolist()))
     vocab = {
-        value: index for index, value in enumerate(sorted(set(int(v) for v in values)))
+        value: index for index, value in enumerate(sorted({int(v) for v in values}))
     }
     correct = {t: 0 for t in travellers}
     total = {t: 0 for t in travellers}

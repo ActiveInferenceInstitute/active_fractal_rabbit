@@ -8,6 +8,7 @@ observation noise at scale. No mocks; real deterministic synthetic sequences.
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 import numpy as np
 
@@ -20,8 +21,6 @@ from active_fractal_rabbit.power_analysis import (
     traveller_clustered_bootstrap_ci,
     traveller_clustered_bootstrap_stats,
 )
-
-from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 # reduced grid keeps the test fast while still spanning the regime corners

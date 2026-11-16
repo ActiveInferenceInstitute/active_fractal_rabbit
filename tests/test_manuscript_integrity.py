@@ -19,6 +19,7 @@ from active_fractal_rabbit.manuscript_variables import compute_variables
 from active_fractal_rabbit.model_gates import run_and_write_model_gates
 from active_fractal_rabbit.model_spec import run_and_write_model_conformance
 from active_fractal_rabbit.negative_controls import run_negative_controls
+from active_fractal_rabbit.pipeline import run_pipeline_from_path
 from active_fractal_rabbit.privacy_frontier import run_and_write_privacy_frontier
 from active_fractal_rabbit.pymdp_benchmark import write_pymdp_benchmark_matrix
 from active_fractal_rabbit.return_structure import run_and_write_return_structure
@@ -27,7 +28,6 @@ from active_fractal_rabbit.robustness import (
     write_variance_bands,
 )
 from active_fractal_rabbit.sparsity import run_sparsity_analysis
-from active_fractal_rabbit.pipeline import run_pipeline_from_path
 from active_fractal_rabbit.sweeps import run_replicated_sensitivity
 
 ROOT = Path(__file__).resolve().parents[1]

@@ -82,7 +82,7 @@ def run_missingness_model_analysis(
     )[mask]
     unique_travellers = {
         traveller: idx
-        for idx, traveller in enumerate(sorted(set(int(t) for t in traveller_ids)))
+        for idx, traveller in enumerate(sorted({int(t) for t in traveller_ids}))
     }
     travellers = np.asarray(
         [unique_travellers[int(t)] for t in traveller_ids], dtype=int
@@ -122,7 +122,7 @@ def run_missingness_model_analysis(
     return {
         "schema": MISSINGNESS_MODEL_SCHEMA,
         "verdict": verdict,
-        "n_intervals": int(len(labels)),
+        "n_intervals": len(labels),
         "n_phases": n_phases,
         "n_travellers": n_travellers,
         "short_gap_threshold_days": threshold,

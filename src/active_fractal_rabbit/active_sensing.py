@@ -380,7 +380,7 @@ def run_and_write_active_sensing(
             )
         return {
             "label": label,
-            "n_steps": int(len(sequence.spatial_states)),
+            "n_steps": len(sequence.spatial_states),
             "budgets": budgets,
         }
 

@@ -33,6 +33,7 @@ prequential scoring; no mocks, stubs, or synthetic shortcuts.
 
 from __future__ import annotations
 
+import itertools
 import math
 
 import numpy as np
@@ -119,7 +120,7 @@ def advantage_vs_population_size(
     and measure the individual structure-matched model's advantage over it, on one target traveller."""
 
     cells, first, travellers, n = _arrays(sequence)
-    uniq = sorted(set(int(t) for t in travellers.tolist()))
+    uniq = sorted({int(t) for t in travellers.tolist()})
     if len(uniq) < 2:
         raise ValueError("need >=2 travellers to vary the population size")
     if target is None:
@@ -151,7 +152,7 @@ def advantage_vs_population_size(
         )
     advs = [r["individual_advantage_nats"] for r in rows]
     monotone = all(
-        a >= b - 1e-9 for a, b in zip(advs, advs[1:])
+        a >= b - 1e-9 for a, b in itertools.pairwise(advs)
     )  # advantage decreasing with k
     return {
         "schema": INDIVIDUAL_VS_POPULATION_SCHEMA,

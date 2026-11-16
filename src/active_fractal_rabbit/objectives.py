@@ -26,6 +26,7 @@ predictive loss. All numbers are software measurements on synthetic data.
 
 from __future__ import annotations
 
+import itertools
 import json
 from pathlib import Path
 
@@ -267,7 +268,7 @@ def expected_calibration_error(
     ece = 0.0
     if total == 0:
         return 0.0, bins
-    for i, (low, high) in enumerate(zip(edges[:-1], edges[1:])):
+    for i, (low, high) in enumerate(itertools.pairwise(edges)):
         if edge_convention == ECE_EDGE_LAST_CLOSED:
             is_last = i == len(edges) - 2
             in_bin = (confidences >= low) & (

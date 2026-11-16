@@ -15,8 +15,8 @@ filter computes analytically.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 import os
+from dataclasses import dataclass
 
 import numpy as np
 
@@ -90,7 +90,7 @@ def run_pymdp_inference(
     if validation_indices is None:
         selected_indices = tuple(range(source_rows))
     else:
-        selected_indices = tuple(sorted(set(int(item) for item in validation_indices)))
+        selected_indices = tuple(sorted({int(item) for item in validation_indices}))
         if not selected_indices:
             raise ValueError("validation_indices must select at least one row")
         if selected_indices[0] < 0 or selected_indices[-1] >= source_rows:

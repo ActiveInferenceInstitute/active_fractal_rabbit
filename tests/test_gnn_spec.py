@@ -42,12 +42,12 @@ from active_fractal_rabbit.model_spec import (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_SIZES = dict(
-    num_spatial_states=16,
-    num_time_bins=4,
-    num_speed_categories=4,
-    num_burst_categories=2,
-)
+DEFAULT_SIZES = {
+    "num_spatial_states": 16,
+    "num_time_bins": 4,
+    "num_speed_categories": 4,
+    "num_burst_categories": 2,
+}
 
 
 def _gnn_checkout() -> Path | None:

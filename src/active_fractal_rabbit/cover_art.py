@@ -8,9 +8,9 @@ from pathlib import Path
 from typing import Any
 
 import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib import patches
 from matplotlib.colors import LinearSegmentedColormap
-import numpy as np
 
 from .figure_style import (
     ANNOTATION_FONT_SIZE,

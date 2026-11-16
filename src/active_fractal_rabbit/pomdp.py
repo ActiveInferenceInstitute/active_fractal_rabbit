@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import itertools
+
 import numpy as np
 
 from .types import ObservationSequence, PomdpModel
@@ -201,7 +203,7 @@ def _transition_tensor(
     for control_idx, control in enumerate(controls):
         if control == "empirical_continuation":
             for idx, (previous, current) in enumerate(
-                zip(hidden_states, hidden_states[1:])
+                itertools.pairwise(hidden_states)
             ):
                 if include[idx] and include[idx + 1] and not first_observation[idx + 1]:
                     tensor[int(current), int(previous), control_idx] += 1.0

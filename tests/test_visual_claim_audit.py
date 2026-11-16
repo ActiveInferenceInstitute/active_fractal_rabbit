@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-import active_fractal_rabbit.visual_claim_audit as visual_claim_audit
+from active_fractal_rabbit import visual_claim_audit
 from active_fractal_rabbit.visual_claim_audit import (
     VISUAL_CLAIM_AUDIT_SCHEMA,
     VisualExpectation,

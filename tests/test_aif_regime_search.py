@@ -45,8 +45,8 @@ def test_ambiguous_regime_is_deterministic_locked_and_strictly_positive() -> Non
     assert np.array_equal(first.observed, second.observed)
     assert np.array_equal(first.is_holdout, second.is_holdout)
     assert np.min(first.emission) > 0.0
-    holdout = set(int(t) for t in first.travellers[first.is_holdout])
-    train = set(int(t) for t in first.travellers[~first.is_holdout])
+    holdout = {int(t) for t in first.travellers[first.is_holdout]}
+    train = {int(t) for t in first.travellers[~first.is_holdout]}
     assert holdout and train and holdout.isdisjoint(train)
 
 

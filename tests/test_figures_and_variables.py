@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-import importlib.metadata as metadata
 import json
 import textwrap
+from importlib import metadata
 from pathlib import Path
 
 import matplotlib.image as mpimg
@@ -13,6 +13,8 @@ from active_fractal_rabbit.active_sensing import run_and_write_active_sensing
 from active_fractal_rabbit.adaptive_aif_ablation import (
     run_and_write_adaptive_aif_ablation,
 )
+from active_fractal_rabbit.aif_deepening import run_and_write_aif_deepening_candidates
+from active_fractal_rabbit.aif_regime_search import run_and_write_aif_regime_search
 from active_fractal_rabbit.aif_sweep import run_and_write_aif_sweep
 from active_fractal_rabbit.anomaly import run_and_write_anomaly
 from active_fractal_rabbit.anticipatory import run_and_write_anticipatory
@@ -21,13 +23,11 @@ from active_fractal_rabbit.config import FRACTALRABBIT_PINNED_COMMIT
 from active_fractal_rabbit.confound_taxonomy import run_and_write_confound_taxonomy
 from active_fractal_rabbit.fair_inference import run_and_write_fair_inference
 from active_fractal_rabbit.figures import _rolling_mean, generate_figures
-from active_fractal_rabbit.aif_deepening import run_and_write_aif_deepening_candidates
-from active_fractal_rabbit.aif_regime_search import run_and_write_aif_regime_search
 from active_fractal_rabbit.forward_gates import run_and_write_forward_gates
-from active_fractal_rabbit.frontier import run_and_write_frontier
 from active_fractal_rabbit.fractal_dimension import (
     run_and_write_fractal_dimension_sweep,
 )
+from active_fractal_rabbit.frontier import run_and_write_frontier
 from active_fractal_rabbit.hardened_anomaly import run_and_write_hardened_anomaly
 from active_fractal_rabbit.manuscript_variables import (
     compute_variables,
@@ -37,21 +37,12 @@ from active_fractal_rabbit.mission_collection import run_and_write_mission_colle
 from active_fractal_rabbit.model_comparison import run_and_write_model_comparison
 from active_fractal_rabbit.model_gates import run_and_write_model_gates
 from active_fractal_rabbit.model_spec import run_and_write_model_conformance
-from active_fractal_rabbit.power_analysis import run_and_write_power_analysis
-from active_fractal_rabbit.regime_mechanism_synthesis import (
-    run_and_write_regime_mechanism_synthesis,
-)
-from active_fractal_rabbit.regime_switch_phase_diagnostic import (
-    run_and_write_regime_switch_phase_diagnostic,
-)
-from active_fractal_rabbit.sota_program_harness import (
-    DEFAULT_N_TRAVELLERS,
-    run_and_write as run_and_write_sota_program,
-)
 from active_fractal_rabbit.negative_controls import run_negative_controls
 from active_fractal_rabbit.partial_observability import (
     run_and_write_partial_observability,
 )
+from active_fractal_rabbit.pipeline import run_pipeline_from_path
+from active_fractal_rabbit.power_analysis import run_and_write_power_analysis
 from active_fractal_rabbit.privacy_frontier import run_and_write_privacy_frontier
 from active_fractal_rabbit.privacy_utility_frontier import (
     run_and_write_privacy_utility_frontier,
@@ -60,23 +51,34 @@ from active_fractal_rabbit.privacy_utility_repeats import (
     run_and_write_privacy_utility_repeats,
 )
 from active_fractal_rabbit.pymdp_benchmark import write_pymdp_benchmark_matrix
+from active_fractal_rabbit.regime_mechanism_synthesis import (
+    run_and_write_regime_mechanism_synthesis,
+)
+from active_fractal_rabbit.regime_switch_phase_diagnostic import (
+    run_and_write_regime_switch_phase_diagnostic,
+)
 from active_fractal_rabbit.return_structure import run_and_write_return_structure
 from active_fractal_rabbit.robustness import (
     run_and_write_upstream_sensitivity,
     write_variance_bands,
 )
 from active_fractal_rabbit.sota_benchmark import run_and_write_sota_benchmark
+from active_fractal_rabbit.sota_program_harness import (
+    DEFAULT_N_TRAVELLERS,
+)
+from active_fractal_rabbit.sota_program_harness import (
+    run_and_write as run_and_write_sota_program,
+)
 from active_fractal_rabbit.sparsity import run_sparsity_analysis
 from active_fractal_rabbit.spatial_resolution_frontier import (
     run_and_write_larger_sample_confirmation,
     run_and_write_spatial_resolution_frontier,
 )
-from active_fractal_rabbit.pipeline import run_pipeline_from_path
 from active_fractal_rabbit.structure_recovery import run_and_write_structure_recovery
+from active_fractal_rabbit.sweeps import run_replicated_sensitivity
 from active_fractal_rabbit.synthetic_task_utility_privacy import (
     run_and_write_synthetic_task_utility_privacy,
 )
-from active_fractal_rabbit.sweeps import run_replicated_sensitivity
 from active_fractal_rabbit.visual_quality import write_visual_quality_audit
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]

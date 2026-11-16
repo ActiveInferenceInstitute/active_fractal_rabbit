@@ -9,13 +9,12 @@ from __future__ import annotations
 
 import json
 
+from active_fractal_rabbit.config import load_config
 from active_fractal_rabbit.cross_generator import (
     generate_prctrw_csv,
     run_cross_generator_transfer,
 )
 from active_fractal_rabbit.fractalrabbit import parse_waypoint_csv
-from active_fractal_rabbit.config import load_config
-from active_fractal_rabbit.observations import discretize_observations
 from active_fractal_rabbit.heldout_reporting_process import (
     run_and_write_heldout_reporting_process,
 )
@@ -25,6 +24,7 @@ from active_fractal_rabbit.neural_baseline import (
     _gate_and_interpretability_note,
     run_and_write_neural_baseline,
 )
+from active_fractal_rabbit.observations import discretize_observations
 
 CONFIG = "configs/default.yaml"
 

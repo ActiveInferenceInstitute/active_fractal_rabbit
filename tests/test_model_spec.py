@@ -35,12 +35,12 @@ def _sequence():
 
 
 def _sizes(sequence):
-    return dict(
-        num_spatial_states=sequence.num_spatial_states,
-        num_time_bins=sequence.num_time_bins,
-        num_speed_categories=sequence.num_speed_categories,
-        num_burst_categories=sequence.num_burst_categories,
-    )
+    return {
+        "num_spatial_states": sequence.num_spatial_states,
+        "num_time_bins": sequence.num_time_bins,
+        "num_speed_categories": sequence.num_speed_categories,
+        "num_burst_categories": sequence.num_burst_categories,
+    }
 
 
 def test_single_and_factorial_models_conform_to_spec() -> None:
@@ -122,7 +122,7 @@ def test_conformance_catches_a_wrong_dependency() -> None:
 
 
 def test_model_card_and_artifact_render(tmp_path: Path) -> None:
-    sequence, config = _sequence()
+    sequence, _config = _sequence()
     sizes = _sizes(sequence)
     single_card = model_card_markdown(single_factor_spec(**sizes))
     factorial_card = model_card_markdown(factorial_spec(**sizes))

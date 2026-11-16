@@ -9,9 +9,8 @@ import numpy as np
 
 from .aif_regime_search import build_regime_dataset
 from .sota_aif_candidate import fit_aif_candidate
-from .sota_program import score_candidate
-from .sota_program import paired_loss_difference_ci
 from .sota_baselines import OnlineBaseRateCandidate
+from .sota_program import paired_loss_difference_ci, score_candidate
 from .sota_program_harness import build_inference_config
 
 ADAPTIVE_AIF_ABLATION_SCHEMA = "active-fractal-rabbit-adaptive-aif-ablation-v2"

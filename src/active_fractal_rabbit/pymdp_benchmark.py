@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-import json
-import importlib.metadata as metadata
 import inspect
+import json
+from importlib import metadata
 from pathlib import Path
 
 PYMDP_BENCHMARK_SCHEMA = "active-fractal-rabbit-pymdp-benchmark-matrix-v1"

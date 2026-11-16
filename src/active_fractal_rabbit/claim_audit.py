@@ -460,7 +460,7 @@ def _extract_manuscript_claims(root: Path) -> list[dict[str, Any]]:
             if stripped.startswith("#"):
                 section = stripped.lstrip("#").split("{#", 1)[0].strip()
                 continue
-            if stripped.startswith("|") or stripped.startswith(": "):
+            if stripped.startswith(("|", ": ")):
                 continue
             if not _is_claim_like(stripped):
                 continue

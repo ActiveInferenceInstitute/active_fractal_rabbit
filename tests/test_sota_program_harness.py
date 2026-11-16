@@ -20,6 +20,7 @@ from active_fractal_rabbit.sota_program import (
 from active_fractal_rabbit.sota_program_harness import (
     AIF_CANDIDATE_NAME,
     AIF_FAMILY_NAMES,
+    CANONICAL_LANES,
     DEFAULT_BOOT_SEED,
     DEFAULT_EPS,
     DEFAULT_N_BOOT,
@@ -27,13 +28,13 @@ from active_fractal_rabbit.sota_program_harness import (
     DEFAULT_SPATIAL_BINS,
     DIAGNOSTIC_STRESSOR_LANES,
     LEAKAGE_FLOOR_NATS,
-    CANONICAL_LANES,
-    SOTA_PROGRAM_ROBUSTNESS_DIAGNOSTICS_SCHEMA,
     SOTA_PROGRAM_LEADERBOARD_HEADER,
+    SOTA_PROGRAM_ROBUSTNESS_DIAGNOSTICS_SCHEMA,
     GateResult,
     LaneResult,
-    build_inference_config,
+    _is_canonical_run,
     build_diagnostic_lanes,
+    build_inference_config,
     build_lanes,
     evaluate_gate,
     gate_payload,
@@ -45,7 +46,6 @@ from active_fractal_rabbit.sota_program_harness import (
     score_lane,
     write_gate_json,
     write_leaderboard_csv,
-    _is_canonical_run,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -83,8 +83,8 @@ def test_build_lanes_four_distinct_synthetic_lanes_same_contract() -> None:
         assert ds.n_states == 36
         assert ds.observed.shape == ds.latent.shape == ds.travellers.shape
         # locked split keyed on traveller identity: disjoint train/holdout
-        holdout = set(int(t) for t in ds.travellers[ds.is_holdout])
-        train = set(int(t) for t in ds.travellers[~ds.is_holdout])
+        holdout = {int(t) for t in ds.travellers[ds.is_holdout]}
+        train = {int(t) for t in ds.travellers[~ds.is_holdout]}
         assert holdout and train and holdout.isdisjoint(train)
     # the two lanes are genuinely different processes: their latent streams differ
     assert not np.array_equal(fr.latent, gv.latent)
@@ -95,8 +95,8 @@ def test_build_diagnostic_lanes_are_scored_stressor_variants() -> None:
     assert tuple(lanes) == DIAGNOSTIC_STRESSOR_LANES
     for ds in lanes.values():
         assert isinstance(ds, PartialObservabilityDataset)
-        holdout = set(int(t) for t in ds.travellers[ds.is_holdout])
-        train = set(int(t) for t in ds.travellers[~ds.is_holdout])
+        holdout = {int(t) for t in ds.travellers[ds.is_holdout]}
+        train = {int(t) for t in ds.travellers[~ds.is_holdout]}
         assert holdout and train and holdout.isdisjoint(train)
 
 

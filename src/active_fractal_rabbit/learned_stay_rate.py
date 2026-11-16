@@ -127,7 +127,7 @@ def _super_cell_hierarchy_loss(sequence: ObservationSequence, *, alpha: float) -
     cells = np.asarray(sequence.spatial_states, dtype=int)
     first = np.asarray(sequence.is_first_observation, dtype=bool)
     n_states = int(sequence.num_spatial_states)
-    side = int(round(n_states**0.5)) or 1
+    side = round(n_states**0.5) or 1
     n_super_cols = (side + 1) // 2
     super_of = np.array(
         [

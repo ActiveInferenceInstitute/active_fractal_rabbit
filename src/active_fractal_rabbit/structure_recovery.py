@@ -176,7 +176,7 @@ def cross_generator_structure_robustness(
         [1.0 if row["deep_beats_dynamics_only"] else 0.0 for row in draw_rows]
     )
     return {
-        "n_draws": int(len(generator_seeds)),
+        "n_draws": len(generator_seeds),
         "n_travellers": int(n_travellers),
         "top_k": int(top_k),
         "draw_rows": draw_rows,

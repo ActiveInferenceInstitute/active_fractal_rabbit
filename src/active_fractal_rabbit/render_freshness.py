@@ -21,7 +21,6 @@ from typing import Any
 import matplotlib.image as mpimg
 import numpy as np
 
-
 RENDER_FRESHNESS_SCHEMA = "active-fractal-rabbit-render-freshness-v3"
 RENDER_FINGERPRINT_PREFIX = "Render input fingerprint:"
 RENDER_FINGERPRINT_PATTERN = re.compile(

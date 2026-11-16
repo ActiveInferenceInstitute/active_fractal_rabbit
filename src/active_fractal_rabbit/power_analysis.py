@@ -27,6 +27,7 @@ it measures one, per regime cell.
 
 from __future__ import annotations
 
+import itertools
 import json
 import math
 from pathlib import Path
@@ -64,7 +65,7 @@ def generate_synthetic_waypoints(
     if n_travellers < 2:
         raise ValueError("need at least 2 travellers")
     rng = np.random.default_rng(seed)
-    g = int(math.ceil(math.sqrt(n_travellers)))
+    g = math.ceil(math.sqrt(n_travellers))
     span = 180.0 / max(g - 1, 1)
     anchors = [
         (10.0 + (i % g) * span, 10.0 + (i // g) * span) for i in range(n_travellers)
@@ -238,7 +239,7 @@ def aif_vs_soft_clustered(
         "clustered_ci_high": hi,
         "aif_wins_clustered": bool(lo > 0.0),
         "soft_wins_clustered": bool(hi < 0.0),
-        "n_holdout_travellers": int(len(set(step_travellers))),
+        "n_holdout_travellers": len(set(step_travellers)),
     }
 
 
@@ -334,7 +335,7 @@ def fair_power_regime_map(
         cell(n_large, sm)["mean_advantage_nats"] for sm in smoothing_levels
     ]
     noise_gradient_monotone = all(
-        b >= a - 1e-9 for a, b in zip(large_by_noise, large_by_noise[1:])
+        b >= a - 1e-9 for a, b in itertools.pairwise(large_by_noise)
     )
     noise_restores = (
         vanishes_at_scale_clean

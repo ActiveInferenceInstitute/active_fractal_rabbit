@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import itertools
 from dataclasses import replace
 from pathlib import Path
 
@@ -7,6 +8,7 @@ import numpy as np
 
 from active_fractal_rabbit.config import load_config
 from active_fractal_rabbit.power_analysis import generate_synthetic_waypoints
+from active_fractal_rabbit.sota_baselines import RecencyAttentionCandidate
 from active_fractal_rabbit.sota_program import score_candidate
 from active_fractal_rabbit.sota_stressors import (
     DEFAULT_REPORTING_GAP_MIN_KEEP,
@@ -23,7 +25,6 @@ from active_fractal_rabbit.sota_stressors import (
     thin_adversarial_missingness_waypoints,
     thin_reporting_gap_waypoints,
 )
-from active_fractal_rabbit.sota_baselines import RecencyAttentionCandidate
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -76,7 +77,7 @@ def test_regime_stressor_generator_is_deterministic_with_reporting_gaps() -> Non
     assert first.x_km == 100.98903062593669
     assert first.y_km == 110.67502761265608
     intervals_by_traveller: dict[int, list[float]] = {}
-    for previous, current in zip(a, a[1:]):
+    for previous, current in itertools.pairwise(a):
         if previous.traveller_id == current.traveller_id:
             intervals_by_traveller.setdefault(current.traveller_id, []).append(
                 current.days - previous.days
@@ -109,8 +110,8 @@ def test_reporting_gap_and_regime_datasets_keep_locked_split_contract() -> None:
         assert ds.observed.shape == ds.latent.shape == ds.travellers.shape
         assert ds.transition.shape == (36, 36)
         assert np.allclose(ds.transition.sum(axis=0), 1.0)
-        holdout = set(int(t) for t in ds.travellers[ds.is_holdout])
-        train = set(int(t) for t in ds.travellers[~ds.is_holdout])
+        holdout = {int(t) for t in ds.travellers[ds.is_holdout]}
+        train = {int(t) for t in ds.travellers[~ds.is_holdout]}
         assert holdout and train and holdout.isdisjoint(train)
         scored = score_candidate(ds, RecencyAttentionCandidate())
         assert scored.n_scored_steps > 0
