@@ -59,9 +59,9 @@ def test_upstream_sensitivity_completed_artifact_from_first_success(tmp_path) ->
         current_commit="current",
         candidate_limit=3,
         candidate_provider=lambda limit: ["bad", "good", "ignored"][:limit],
-        runner=lambda sha: None
-        if sha == "bad"
-        else {"predictive_loss_abs_delta": 0.25},
+        runner=lambda sha: (
+            None if sha == "bad" else {"predictive_loss_abs_delta": 0.25}
+        ),
     )
     payload = json.loads(Path(out).read_text(encoding="utf-8"))
 

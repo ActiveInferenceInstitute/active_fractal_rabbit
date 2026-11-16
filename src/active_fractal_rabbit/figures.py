@@ -6278,8 +6278,9 @@ def _aif_deepening_candidates(
 
     rows = sorted(
         rows,
-        key=lambda row: str(row.get("protocol_status"))
-        != "scored_predictive_candidate",
+        key=lambda row: (
+            str(row.get("protocol_status")) != "scored_predictive_candidate"
+        ),
     )
     ax.set_xlim(0, 1)
     ax.set_ylim(0, 1)
