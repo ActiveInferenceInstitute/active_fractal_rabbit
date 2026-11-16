@@ -197,7 +197,7 @@ def _prepare_default_outputs(root: Path) -> None:
         project_root=root,
         fixture_config="configs/default.yaml",
         external_config="configs/fractalrabbit_external.yaml",
-        external_ready=False,
+        external_observations=None,
     )
     generate_figures(result.output_dir)
 

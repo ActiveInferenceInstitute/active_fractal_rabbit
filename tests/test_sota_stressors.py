@@ -12,13 +12,10 @@ from active_fractal_rabbit.sota_baselines import RecencyAttentionCandidate
 from active_fractal_rabbit.sota_program import score_candidate
 from active_fractal_rabbit.sota_stressors import (
     DEFAULT_REPORTING_GAP_MIN_KEEP,
-    DIAGNOSTIC_STRESSOR_LANES,
-    all_lane_definitions,
     build_adversarial_missingness_partial_observability_dataset,
     build_regime_stressor_partial_observability_dataset,
     build_regime_stressor_repeat_partial_observability_dataset,
     build_reporting_gap_partial_observability_dataset,
-    diagnostic_lane_definitions,
     generate_regime_stressor_waypoints,
     lane_definitions,
     phase_segment_for_phase,
@@ -131,15 +128,3 @@ def test_lane_definitions_are_current_for_all_canonical_robustness_lanes() -> No
     assert definitions["regime_stressor"]["status"] == "scored"
     assert "regime" in str(definitions["regime_stressor"]["robustness_role"])
     assert DEFAULT_REPORTING_GAP_MIN_KEEP >= 24
-
-    diagnostic = diagnostic_lane_definitions()
-    assert tuple(diagnostic) == DIAGNOSTIC_STRESSOR_LANES
-    assert set(diagnostic) == {
-        "reporting_gap_adversarial",
-        "reporting_gap_repeat",
-        "high_motion_adversarial_repeat",
-        "regime_stressor_repeat",
-        "regime_stressor_repeat_2",
-    }
-    assert all(row["status"] == "scored_diagnostic" for row in diagnostic.values())
-    assert set(all_lane_definitions()) == set(definitions) | set(diagnostic)

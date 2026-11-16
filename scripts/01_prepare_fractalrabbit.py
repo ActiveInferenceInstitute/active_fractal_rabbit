@@ -33,11 +33,11 @@ def main() -> int:
         print("fixture execution selected; external FractalRabbit cache build skipped")
         return 0
     try:
-        jar = FractalRabbitRunner(config.fractalrabbit).prepare()
+        build = FractalRabbitRunner(config.fractalrabbit).prepare()
     except FractalRabbitUnavailable as exc:
         print(f"FractalRabbit unavailable: {exc}", file=sys.stderr)
         return 2
-    print(f"prepared {jar}")
+    print(f"prepared {build.jar_path} commit={build.commit} tree={build.tree} sha256={build.jar_sha256}")
     return 0
 
 

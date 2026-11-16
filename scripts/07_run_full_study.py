@@ -78,7 +78,7 @@ from active_fractal_rabbit.synthetic_task_utility_privacy import (
     run_and_write_synthetic_task_utility_privacy,
 )
 from active_fractal_rabbit.fractalrabbit import FractalRabbitRunner
-from active_fractal_rabbit.config import load_config
+from active_fractal_rabbit.config import derived_run, load_config
 from active_fractal_rabbit.eval_contract import run_contract
 from active_fractal_rabbit.manuscript_variables import write_variables
 from active_fractal_rabbit.negative_controls import run_negative_controls
@@ -99,6 +99,7 @@ from active_fractal_rabbit.spatial_resolution_frontier import (
     run_and_write_spatial_resolution_frontier,
 )
 from active_fractal_rabbit.sweeps import run_replicated_sensitivity
+from active_fractal_rabbit.types import PipelineResult
 from active_fractal_rabbit.variable_provenance import verify_token_provenance
 from active_fractal_rabbit.visual_claim_audit import write_visual_claim_audit
 from active_fractal_rabbit.visual_quality import write_visual_quality_audit
@@ -134,6 +135,7 @@ def main() -> int:
 
     stage("preflight", print_preflight)
     external_ready_this_run = False
+    external_result: PipelineResult | None = None
     external_observation_paths: dict[str, Path] = {}
 
     if args.lane in {"external", "both"}:
@@ -150,10 +152,6 @@ def main() -> int:
                 return exit_code
             print("continuing with fixture lane only")
         else:
-            stage(
-                "external:prepare",
-                lambda: FractalRabbitRunner(external_config.fractalrabbit).prepare(),
-            )
             external_pipeline_config = replace(
                 external_config,
                 inference=replace(
@@ -248,7 +246,7 @@ def main() -> int:
                 / "observations.csv",
             ),
         )
-        _ext_obs = _external_observations_path(external_ready_this_run)
+        _ext_obs = _external_observations_path(external_result)
         stage(
             "fixture:anticipatory",
             lambda: run_and_write_anticipatory(
@@ -376,9 +374,9 @@ def main() -> int:
         upstream_runner = (
             make_upstream_candidate_runner(
                 ROOT / args.external_config,
-                ROOT / "output" / "runs" / "fractalrabbit_external" / "metrics.json",
+                external_result.artifacts["metrics"],
             )
-            if external_ready_this_run
+            if external_result is not None
             else None
         )
         stage(
@@ -425,7 +423,11 @@ def main() -> int:
                 project_root=ROOT,
                 fixture_config=args.fixture_config,
                 external_config=args.external_config,
-                external_ready=external_ready_this_run,
+                external_observations=(
+                    external_result.observations_path
+                    if external_result is not None
+                    else None
+                ),
             ),
         )
         stage(
@@ -449,10 +451,6 @@ def main() -> int:
         stage(
             "fixture:adaptive_aif_ablation",
             lambda: run_and_write_adaptive_aif_ablation(ROOT),
-        )
-        stage(
-            "fixture:aif_deepening",
-            lambda: run_and_write_aif_deepening_candidates(ROOT),
         )
         stage(
             "fixture:aif_sweep",
@@ -489,6 +487,10 @@ def main() -> int:
         stage(
             "fixture:multiplicity_ledger",
             lambda: run_and_write_multiplicity_ledger(ROOT),
+        )
+        stage(
+            "fixture:aif_deepening",
+            lambda: run_and_write_aif_deepening_candidates(ROOT),
         )
         stage(
             "fixture:confound_taxonomy", lambda: run_and_write_confound_taxonomy(ROOT)
@@ -576,9 +578,9 @@ def _external_unavailable_exit_code(
     return None
 
 
-def _external_observations_path(external_ready_this_run: bool) -> Path:
-    if external_ready_this_run:
-        return ROOT / "output" / "runs" / "fractalrabbit_external" / "observations.csv"
+def _external_observations_path(external_result: PipelineResult | None) -> Path:
+    if external_result is not None:
+        return external_result.observations_path
     return (
         ROOT
         / "output"
@@ -622,10 +624,9 @@ def _run_external_realization_repeats(
         fractalrabbit = replace(
             external_config.fractalrabbit, params=params, output_prefix=run_id
         )
-        config = replace(
+        config = derived_run(
             external_config,
-            run_id=run_id,
-            output_dir=ROOT / "output" / "runs" / run_id,
+            run_id,
             seed=external_config.seed + len(paths) + 1,
             fractalrabbit=fractalrabbit,
             inference=replace(

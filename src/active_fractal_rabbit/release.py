@@ -73,6 +73,7 @@ MANIFEST_GLOBS: tuple[tuple[str, str], ...] = (
     ("sota_program", "output/runs/sota_program_robustness_grid.json"),
     ("sota_program", "output/runs/sota_program_robustness_grid.csv"),
     ("aif_regime_search", "output/runs/aif_regime_search.csv"),
+    ("aif_regime_search", "output/runs/aif_regime_diagnostic_repetitions.csv"),
     ("aif_regime_search", "output/runs/aif_regime_search.json"),
     ("aif_regime_search", "output/runs/aif_regime_sota_gate.json"),
     ("aif_sweep", "output/runs/aif_sweep.json"),
@@ -182,6 +183,7 @@ REQUIRED_ANALYSIS_PATHS: tuple[str, ...] = (
     "output/runs/sota_program_robustness_grid.json",
     "output/runs/sota_program_robustness_grid.csv",
     "output/runs/aif_regime_search.csv",
+    "output/runs/aif_regime_diagnostic_repetitions.csv",
     "output/runs/aif_regime_search.json",
     "output/runs/aif_regime_sota_gate.json",
     "output/runs/aif_sweep.json",
@@ -367,6 +369,26 @@ def verify_release_manifest(
     omitted_entries = sorted(expected_entry_paths - entry_paths)
     if validate_semantics is None:
         validate_semantics = tuple(expected_required) == REQUIRED_RELEASE_PATHS
+    if "output/runs/aif_regime_diagnostic_repetitions.csv" in expected_required:
+        from .multiplicity_ledger import (
+            MultiplicityLedgerError,
+            diagnostic_family_evidence,
+            read_comparison_artifact,
+        )
+
+        runs = root / "output" / "runs"
+        try:
+            ledger = read_comparison_artifact(runs / "multiplicity_ledger.json")
+            family = diagnostic_family_evidence(runs, ledger)
+            if not family["current"]:
+                failed_checks.append(
+                    "diagnostic comparison family is unavailable or stale: "
+                    + family.get("reason", "membership or source bindings differ")
+                )
+        except MultiplicityLedgerError as exc:
+            failed_checks.append(
+                f"diagnostic comparison family is unavailable or stale: {exc}"
+            )
     if validate_semantics:
         failed_checks.extend(_release_semantic_failures(root))
     return {

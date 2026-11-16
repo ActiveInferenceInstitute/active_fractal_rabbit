@@ -434,7 +434,7 @@ def test_resolved_observations_external_lane_is_fail_loud(tmp_path) -> None:
         encoding="utf-8",
     )
     config = load_config(config_path)
-    with pytest.raises(FileNotFoundError, match="external observations"):
+    with pytest.raises(FileNotFoundError):
         F._resolved_existing_observations(config, config_path)
 
 

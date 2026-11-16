@@ -18,12 +18,42 @@ from .poisoning_robustness import run_and_write_poisoning_robustness
 FORWARD_GATES_SCHEMA = "active-fractal-rabbit-forward-gates-v1"
 
 
+def run_bounded_diagnostic_analyses(dataset, inference_config) -> dict[str, object]:
+    """Use existing M10 waypoint protocols, not the SOTA noisy-latent holdout.
+
+    No canonical files are written and no joint-family p-values are invented.
+    """
+    from .heldout_reporting_process import run_heldout_reporting_process
+    from .latent_regime_hmm import run_latent_regime_hmm_analysis
+    from .learned_stay_rate import run_learned_stay_rate_analysis
+    from .neural_baseline import neural_baseline_report
+
+    sequence = dataset.sequence
+    seed = int(dataset.split["lane_metadata"]["generator_seed"])
+    return {
+        "protocol": "existing_M10_waypoint_protocols_not_SOTA_noisy_latent_holdout",
+        "seed": seed,
+        "smoothing": inference_config.smoothing,
+        "source_rows": len(sequence.observations),
+        "latent_regime_hmm": run_latent_regime_hmm_analysis(
+            sequence, smoothing=inference_config.smoothing, seed=seed
+        ),
+        "neural_baseline": neural_baseline_report(
+            sequence, smoothing=inference_config.smoothing
+        ),
+        "learned_stay_rate": run_learned_stay_rate_analysis(sequence, seed=seed),
+        "heldout_reporting_process": run_heldout_reporting_process(
+            sequence, smoothing=inference_config.smoothing, seed=seed
+        ),
+    }
+
+
 def run_and_write_forward_gates(
     project_root: str | Path,
     *,
     fixture_config: str | Path = "configs/default.yaml",
     external_config: str | Path = "configs/fractalrabbit_external.yaml",
-    external_ready: bool = False,
+    external_observations: str | Path | None = None,
 ) -> Path:
     """Run and summarize the promoted forward-gate artifact family."""
 
@@ -31,9 +61,8 @@ def run_and_write_forward_gates(
     runs = root / "output" / "runs"
     fixture_cfg = root / fixture_config
     external_cfg = root / external_config
-    external_observations = (
-        root / "output" / "runs" / "fractalrabbit_external" / "observations.csv"
-    )
+    if external_observations is not None:
+        external_observations = root / external_observations
 
     fixture_specs: tuple[tuple[str, str, Any], ...] = (
         (
@@ -120,7 +149,7 @@ def run_and_write_forward_gates(
             run_and_write_linkage_risk_frontier,
         ),
     )
-    if external_ready:
+    if external_observations is not None:
         for gate, filename, writer in external_specs:
             if gate == "cross_generator_transfer":
                 output = writer(

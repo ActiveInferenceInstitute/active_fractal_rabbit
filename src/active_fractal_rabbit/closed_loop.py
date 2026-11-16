@@ -3,10 +3,9 @@
 from __future__ import annotations
 
 import json
-from dataclasses import replace
 from pathlib import Path
 
-from .config import load_config, with_candidate
+from .config import derived_run, load_config, with_candidate
 from .pipeline import run_pipeline
 from .types import PipelineResult, ProjectConfig
 
@@ -18,14 +17,7 @@ def run_closed_loop(config_path: str | Path) -> list[PipelineResult]:
     results: list[PipelineResult] = []
     current: ProjectConfig = base
     for iteration in range(base.closed_loop.iterations):
-        current = replace(
-            current,
-            run_id=f"{base.run_id}_iter_{iteration + 1}",
-            output_dir=base.project_root
-            / "output"
-            / "runs"
-            / f"{base.run_id}_iter_{iteration + 1}",
-        )
+        current = derived_run(current, f"{base.run_id}_iter_{iteration + 1}")
         result = run_pipeline(current, config_path)
         results.append(result)
         if result.selected_next_candidate is None:
@@ -37,7 +29,7 @@ def run_closed_loop(config_path: str | Path) -> list[PipelineResult]:
         )
         current = with_candidate(base, candidate, f"{base.run_id}_{candidate.name}")
     _write_summary(
-        base.project_root / "output" / "runs" / f"{base.run_id}_closed_loop.json",
+        base.output_dir.parent / f"{base.run_id}_closed_loop.json",
         results,
     )
     return results

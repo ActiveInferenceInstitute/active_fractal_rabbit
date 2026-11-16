@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import argparse
 from pathlib import Path
 
 try:
@@ -13,7 +14,14 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def main() -> int:
-    run_and_write_aif_deepening_candidates(ROOT)
+    parser = argparse.ArgumentParser(description="Summarize source-bound AIF diagnostic evidence.")
+    parser.add_argument("--project-root", default=str(ROOT))
+    parser.add_argument("--runs-dir", default=None)
+    parser.add_argument("--out", default=None)
+    args = parser.parse_args()
+    print(run_and_write_aif_deepening_candidates(
+        args.project_root, args.out, runs_dir=args.runs_dir
+    ))
     return 0
 
 

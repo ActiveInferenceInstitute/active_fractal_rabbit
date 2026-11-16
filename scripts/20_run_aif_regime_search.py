@@ -19,6 +19,7 @@ from active_fractal_rabbit.sota_program_harness import (
     DEFAULT_BOOT_SEED,
     DEFAULT_SPATIAL_BINS,
 )  # noqa: E402
+from active_fractal_rabbit.power_analysis import DEFAULT_GEN_SEEDS
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -37,6 +38,7 @@ def main() -> int:
     parser.add_argument("--spatial-bins", type=int, default=DEFAULT_SPATIAL_BINS)
     parser.add_argument("--regime", action="append", choices=CANONICAL_AIF_REGIMES)
     parser.add_argument("--realization-seed", action="append", type=int)
+    parser.add_argument("--diagnostic-realization-seed", action="append", type=int)
     args = parser.parse_args()
 
     regime_ids = tuple(args.regime) if args.regime else CANONICAL_AIF_REGIMES
@@ -54,11 +56,16 @@ def main() -> int:
         spatial_bins=args.spatial_bins,
         regime_ids=regime_ids,
         realization_seeds=realization_seeds,
+        diagnostic_realization_seeds=(
+            tuple(args.diagnostic_realization_seed)
+            if args.diagnostic_realization_seed else DEFAULT_GEN_SEEDS
+        ),
     )
 
     print(str(paths["leaderboard"]))
     print(str(paths["search"]))
     print(str(paths["gate"]))
+    print(str(paths["diagnostic_leaderboard"]))
     print()
     print(f"STATUS: {payload['status']}  (gate_clears={payload['gate_clears']})")
     for regime_id, summary in payload["regime_summaries"].items():

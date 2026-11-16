@@ -958,14 +958,10 @@ def _factorial_caveat(policy_mode: str) -> str:
 
 
 def _resolved_existing_observations(config, config_path: Path) -> Path:
-    if config.fractalrabbit.execution == "fixture":
-        assert config.fractalrabbit.fixture_csv is not None
-        return config.fractalrabbit.fixture_csv
-    existing = config.output_dir / "observations.csv"
-    if existing.exists():
-        return existing
-    raise FileNotFoundError(
-        f"external observations for {config_path} are unavailable; run the external lane first"
+    from .observation_sources import resolve_observations_path
+
+    return resolve_observations_path(
+        config, requested_role=f"factorial observations for {config_path}"
     )
 
 

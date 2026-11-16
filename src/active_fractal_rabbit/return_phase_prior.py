@@ -8,8 +8,7 @@ from pathlib import Path
 import numpy as np
 
 from .config import load_config
-from .fractalrabbit import parse_waypoint_csv
-from .observations import discretize_observations
+from .observation_sources import load_observation_sequence
 from .sequence_baselines import _neg_log, _persistence_loss, _skill
 from .types import ObservationSequence
 
@@ -166,15 +165,9 @@ def run_and_write_return_phase_prior(
     """Run the return-plus-phase prior gate for a project config and write JSON."""
 
     config = load_config(config_path)
-    if config.fractalrabbit.execution == "fixture":
-        if config.fractalrabbit.fixture_csv is None:
-            raise ValueError("fixture execution requires fixture_csv")
-        obs_path = config.fractalrabbit.fixture_csv
-    else:
-        obs_path = config.output_dir / f"{config.fractalrabbit.output_prefix}XY.csv"
-        if not obs_path.exists():
-            obs_path = config.output_dir / "observations.csv"
-    sequence = discretize_observations(parse_waypoint_csv(obs_path), config.inference)
+    sequence = load_observation_sequence(
+        config, requested_role="return-phase observations"
+    )
     payload = run_return_phase_prior_analysis(
         sequence, smoothing=config.inference.smoothing, seed=config.seed
     )

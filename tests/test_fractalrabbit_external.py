@@ -31,9 +31,13 @@ def test_external_fractalrabbit_prepare_is_available_when_toolchain_exists() -> 
         pytest.skip("external FractalRabbit lane unavailable: " + "; ".join(reasons))
 
     config = load_config("configs/fractalrabbit_external.yaml")
-    jar = FractalRabbitRunner(config.fractalrabbit).prepare()
+    build = FractalRabbitRunner(config.fractalrabbit).prepare()
 
-    assert jar.exists()
+    from active_fractal_rabbit.fractalrabbit import file_sha256
+
+    assert build.jar_path.is_file()
+    assert build.commit == config.fractalrabbit.upstream_commit
+    assert file_sha256(build.jar_path) == build.jar_sha256
 
 
 def test_fixture_vs_external_tensor_comparison_when_artifacts_exist() -> None:

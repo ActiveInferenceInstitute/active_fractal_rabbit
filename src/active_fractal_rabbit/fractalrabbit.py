@@ -3,15 +3,21 @@
 from __future__ import annotations
 
 import csv
+import hashlib
+import math
 import os
 import shutil
 import subprocess
+import tempfile
+import uuid
 from pathlib import Path
 
 from .config import parameter_rows
 from .types import (
+    FractalRabbitBuild,
     FractalRabbitConfig,
     FractalRabbitParams,
+    ObservationBundle,
     PlaceObservation,
     WaypointObservation,
 )
@@ -107,6 +113,11 @@ def parse_waypoint_csv(path: str | Path) -> tuple[WaypointObservation, ...]:
         )
     if not rows:
         raise ValueError(f"{csv_path} contains no waypoint rows")
+    if any(
+        not all(math.isfinite(value) for value in (row.days, row.x_km, row.y_km))
+        for row in rows
+    ):
+        raise ValueError(f"{csv_path} contains nonfinite waypoint values")
     return tuple(sorted(rows, key=lambda item: (item.traveller_id, item.days)))
 
 
@@ -134,17 +145,39 @@ def parse_places_csv(path: str | Path) -> tuple[PlaceObservation, ...]:
         )
     if not rows:
         raise ValueError(f"{csv_path} contains no place rows")
+    if any(not math.isfinite(row.days) for row in rows):
+        raise ValueError(f"{csv_path} contains nonfinite place times")
     return tuple(sorted(rows, key=lambda item: (item.traveller_id, item.days)))
 
 
-def places_csv_for(waypoint_csv: str | Path) -> Path | None:
-    """Return the sibling PLACES file for a simulator XY output, if present."""
+def file_sha256(path: Path) -> str:
+    with path.open("rb") as handle:
+        return hashlib.file_digest(handle, "sha256").hexdigest()
 
-    xy = Path(waypoint_csv)
-    if not xy.name.endswith("XY.csv"):
-        return None
-    candidate = xy.with_name(xy.name[: -len("XY.csv")] + "PLACES.csv")
-    return candidate if candidate.exists() else None
+
+def _validated_bundle(
+    xy: Path,
+    places: Path | None,
+    parameters: Path | None = None,
+    build: FractalRabbitBuild | None = None,
+) -> ObservationBundle:
+    from .ground_truth import align_places
+
+    for path in (xy, places, parameters):
+        if path is not None and (path.is_symlink() or not path.is_file()):
+            raise FractalRabbitUnavailable(f"Expected a regular bundle member: {path}")
+    observations = parse_waypoint_csv(xy)
+    if places is not None:
+        align_places(observations, parse_places_csv(places))
+    return ObservationBundle(
+        xy_path=xy,
+        xy_sha256=file_sha256(xy),
+        places_path=places,
+        places_sha256=file_sha256(places) if places is not None else None,
+        parameters_path=parameters,
+        parameters_sha256=file_sha256(parameters) if parameters is not None else None,
+        build=build,
+    )
 
 
 class FractalRabbitRunner:
@@ -159,17 +192,37 @@ class FractalRabbitRunner:
             self.config.cache_dir / f"fractalrabbit-{self.config.upstream_commit[:12]}"
         )
 
-    @property
-    def jar_path(self) -> Path:
-        return (
-            self.source_dir / "target" / "fractalrabbit-1.0-jar-with-dependencies.jar"
+    def _git(self, *args: str, cwd: Path | None = None) -> str:
+        result = subprocess.run(
+            ["git", *args],
+            cwd=self.source_dir if cwd is None else cwd,
+            check=True,
+            capture_output=True,
+            text=True,
         )
+        return result.stdout.strip()
 
-    def prepare(self) -> Path:
-        """Clone/check out the pinned source and build the executable jar."""
+    def _admit_source(self) -> None:
+        if (
+            Path(self._git("rev-parse", "--show-toplevel")).resolve()
+            != self.source_dir.resolve()
+        ):
+            raise FractalRabbitUnavailable(
+                "Cached source is not its own Git repository"
+            )
+        if self._git("remote", "get-url", "origin") != self.config.upstream_repo:
+            raise FractalRabbitUnavailable(
+                "Cached source origin does not match configured upstream"
+            )
+        if self._git("status", "--porcelain=v1", "--untracked-files=all"):
+            raise FractalRabbitUnavailable(
+                "Cached source is dirty; preserve and resolve local changes"
+            )
 
-        _java_exe, java_home = self._check_external_requirements()
-        env = os.environ | {"JAVA_HOME": str(java_home)}
+    def prepare(self) -> FractalRabbitBuild:
+        """Build a fresh private checkout and return its observed executable identity."""
+
+        java_exe, java_home = self._check_external_requirements()
         self.config.cache_dir.mkdir(parents=True, exist_ok=True)
         if not self.source_dir.exists():
             subprocess.run(
@@ -177,62 +230,154 @@ class FractalRabbitRunner:
                 check=True,
                 text=True,
             )
-        subprocess.run(
-            ["git", "fetch", "--all", "--tags"],
-            cwd=self.source_dir,
-            check=True,
-            text=True,
+        self._admit_source()
+        self._git("fetch", "--all", "--tags")
+        requested = self._git(
+            "rev-parse", "--verify", f"{self.config.upstream_commit}^{{commit}}"
         )
-        subprocess.run(
-            ["git", "checkout", self.config.upstream_commit],
-            cwd=self.source_dir,
-            check=True,
-            text=True,
-        )
-        subprocess.run(
-            ["mvn", "-q", "-DskipTests", "package"],
-            cwd=self.source_dir,
-            check=True,
-            text=True,
-            env=env,
-        )
-        if not self.jar_path.exists():
-            candidates = sorted(
-                (self.source_dir / "target").glob("*jar-with-dependencies*.jar")
-            )
-            if not candidates:
-                raise FractalRabbitUnavailable(
-                    "Maven completed but no jar-with-dependencies artifact was produced"
-                )
-            return candidates[0]
-        return self.jar_path
-
-    def run(self, parameter_csv: str | Path, output_prefix: str | Path) -> Path:
-        """Run the simulator and return the generated `*XY.csv` file."""
-
-        jar = self.prepare()
-        java_exe, java_home = self._check_external_requirements()
-        prefix = Path(output_prefix)
-        prefix.parent.mkdir(parents=True, exist_ok=True)
-        subprocess.run(
-            [
-                str(java_exe),
-                "-cp",
-                str(jar),
-                "fractalRabbitGenerator.MainClassFR",
-                str(parameter_csv),
-                str(prefix),
-            ],
-            check=True,
-            text=True,
-            env=os.environ | {"JAVA_HOME": str(java_home)},
-        )
-        output = Path(str(prefix) + "XY.csv")
-        if not output.exists():
+        self._git("checkout", "--detach", requested)
+        self._admit_source()
+        commit = self._git("rev-parse", "HEAD")
+        tree = self._git("rev-parse", "HEAD^{tree}")
+        if commit != requested:
             raise FractalRabbitUnavailable(
-                f"FractalRabbit did not produce expected output {output}"
+                "Checked-out HEAD differs from requested revision"
             )
-        return output
+        maven_argv = ("mvn", "-q", "-DskipTests", "clean", "package")
+        with tempfile.TemporaryDirectory(
+            prefix="fractalrabbit-build-", dir=self.config.cache_dir
+        ) as temporary:
+            checkout = Path(temporary) / "source"
+            subprocess.run(
+                [
+                    "git",
+                    "clone",
+                    "--no-hardlinks",
+                    "--no-checkout",
+                    str(self.source_dir.resolve()),
+                    str(checkout),
+                ],
+                check=True,
+                text=True,
+            )
+            self._git("checkout", "--detach", commit, cwd=checkout)
+            if self._git("rev-parse", "HEAD", cwd=checkout) != commit:
+                raise FractalRabbitUnavailable(
+                    "Private build checkout has the wrong HEAD"
+                )
+            subprocess.run(
+                list(maven_argv),
+                cwd=checkout,
+                check=True,
+                text=True,
+                env=os.environ | {"JAVA_HOME": str(java_home)},
+            )
+            if (
+                self._git("rev-parse", "HEAD", cwd=checkout) != commit
+                or self._git("rev-parse", "HEAD^{tree}", cwd=checkout) != tree
+                or self._git(
+                    "status", "--porcelain=v1", "--untracked-files=no", cwd=checkout
+                )
+            ):
+                raise FractalRabbitUnavailable(
+                    "Build changed its tracked source identity"
+                )
+            candidates = list((checkout / "target").glob("*jar-with-dependencies*.jar"))
+            if len(candidates) != 1:
+                raise FractalRabbitUnavailable(
+                    f"Expected one freshly built dependency jar, found {len(candidates)}"
+                )
+            built = candidates[0]
+            if built.is_symlink() or not built.is_file() or built.stat().st_size == 0:
+                raise FractalRabbitUnavailable(
+                    "Build did not produce a regular nonempty jar"
+                )
+            digest = file_sha256(built)
+            artifacts = self.config.cache_dir / "executables"
+            artifacts.mkdir(exist_ok=True)
+            jar = artifacts / f"{commit}-{uuid.uuid4().hex}.jar"
+            shutil.copyfile(built, jar)
+            if file_sha256(jar) != digest:
+                jar.unlink()
+                raise FractalRabbitUnavailable("Published executable digest changed")
+        return FractalRabbitBuild(
+            self.config.upstream_repo,
+            self.config.upstream_commit,
+            commit,
+            tree,
+            jar.resolve(),
+            digest,
+            java_exe.resolve(),
+            java_home.resolve(),
+            maven_argv,
+        )
+
+    def run(self, output_prefix: str | Path) -> ObservationBundle:
+        """Execute in an empty directory; retain only this invocation's valid bundle."""
+
+        build = self.prepare()
+        if file_sha256(build.jar_path) != build.jar_sha256:
+            raise FractalRabbitUnavailable(
+                "Prepared executable digest changed before execution"
+            )
+        prefix = Path(output_prefix).resolve()
+        prefix.parent.mkdir(parents=True, exist_ok=True)
+        generation = f"{prefix.name}-{uuid.uuid4().hex}"
+        with tempfile.TemporaryDirectory(
+            prefix=".simulator-", dir=prefix.parent
+        ) as temporary:
+            staging = Path(temporary)
+            staged_prefix = staging / generation
+            parameters = write_parameter_csv(
+                self.config.params, staging / f"{generation}-parameters.csv"
+            )
+            parameter_digest = file_sha256(parameters)
+            subprocess.run(
+                [
+                    str(build.java_executable),
+                    "-cp",
+                    str(build.jar_path),
+                    "fractalRabbitGenerator.MainClassFR",
+                    str(parameters),
+                    str(staged_prefix),
+                ],
+                cwd=staging,
+                check=True,
+                text=True,
+                env=os.environ | {"JAVA_HOME": str(build.java_home)},
+            )
+            if file_sha256(parameters) != parameter_digest:
+                raise FractalRabbitUnavailable(
+                    "Simulator changed its parameter snapshot"
+                )
+            if file_sha256(build.jar_path) != build.jar_sha256:
+                raise FractalRabbitUnavailable(
+                    "Executable digest changed during execution"
+                )
+            xy = Path(str(staged_prefix) + "XY.csv")
+            companion = Path(str(staged_prefix) + "PLACES.csv")
+            places = companion if companion.exists() or companion.is_symlink() else None
+            bundle = _validated_bundle(xy, places, parameters, build)
+            published: list[Path] = []
+            try:
+                for member in (parameters, places, xy):
+                    if member is not None:
+                        target = prefix.parent / member.name
+                        member.rename(target)
+                        published.append(target)
+            except BaseException:
+                for target in published:
+                    target.unlink()
+                raise
+        return ObservationBundle(
+            xy_path=prefix.parent / xy.name,
+            xy_sha256=bundle.xy_sha256,
+            places_path=prefix.parent / places.name if places is not None else None,
+            places_sha256=bundle.places_sha256,
+            parameters_path=prefix.parent / parameters.name,
+            parameters_sha256=bundle.parameters_sha256,
+            build=build,
+        )
 
     def _check_external_requirements(self) -> tuple[Path, Path]:
         mvn = shutil.which("mvn")
@@ -256,15 +401,22 @@ class FractalRabbitRunner:
         return resolved
 
 
-def resolve_observation_csv(config: FractalRabbitConfig, run_dir: Path) -> Path:
-    """Return a simulator output CSV, running FractalRabbit or using a fixture."""
+def resolve_observations(
+    config: FractalRabbitConfig, run_dir: Path
+) -> ObservationBundle:
+    """Resolve a validated fixture or one fresh simulator invocation."""
 
     if config.execution == "fixture":
         assert config.fixture_csv is not None
-        return config.fixture_csv
-    params_csv = write_parameter_csv(config.params, run_dir / "parameters.csv")
-    runner = FractalRabbitRunner(config)
-    return runner.run(params_csv, run_dir / config.output_prefix)
+        xy = config.fixture_csv
+        candidate = (
+            xy.with_name(xy.name[: -len("XY.csv")] + "PLACES.csv")
+            if xy.name.endswith("XY.csv")
+            else None
+        )
+        places = candidate if candidate is not None and candidate.exists() else None
+        return _validated_bundle(xy, places)
+    return FractalRabbitRunner(config).run(run_dir / config.output_prefix)
 
 
 def _java_major_version(java_executable: str = "java") -> int | None:

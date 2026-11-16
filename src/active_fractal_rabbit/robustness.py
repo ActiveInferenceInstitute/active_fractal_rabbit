@@ -9,6 +9,8 @@ from dataclasses import replace
 from pathlib import Path
 from statistics import median
 
+from .config import derived_run
+
 
 def empirical_interval(values: Iterable[float]) -> dict[str, float]:
     sample = sorted(float(value) for value in values)
@@ -156,11 +158,8 @@ def make_upstream_candidate_runner(config_path, current_metrics_path):
             upstream_commit=sha,
             output_prefix=run_id,
         )
-        candidate_config = replace(
-            base,
-            run_id=run_id,
-            output_dir=base.project_root / "output" / "runs" / run_id,
-            fractalrabbit=candidate_fractalrabbit,
+        candidate_config = derived_run(
+            base, run_id, fractalrabbit=candidate_fractalrabbit
         )
         result = run_pipeline(candidate_config, config_path)
         return compare_upstream_metrics(current_metrics, result.metrics)
@@ -226,13 +225,7 @@ def run_and_write_variance_bands(config_path, out_path, *, n_realizations: int):
         run_id = f"variance_realization_{index + 1}"
         model = replace(base.inference.model, engine="reference")
         inference = replace(base.inference, model=model)
-        cfg = replace(
-            base,
-            run_id=run_id,
-            output_dir=base.project_root / "output" / "runs" / run_id,
-            inference=inference,
-            fractalrabbit=replace(base.fractalrabbit, output_prefix=run_id),
-        )
+        cfg = derived_run(base, run_id, inference=inference)
         result = run_pipeline(cfg, config_path)
         sequence = discretize_observations(
             parse_waypoint_csv(result.observations_path), cfg.inference

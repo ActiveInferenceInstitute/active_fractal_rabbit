@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from pathlib import Path
 
 import numpy as np
@@ -9,7 +10,7 @@ from active_fractal_rabbit.config import load_config
 from active_fractal_rabbit.fractalrabbit import (
     parse_places_csv,
     parse_waypoint_csv,
-    places_csv_for,
+    resolve_observations,
 )
 from active_fractal_rabbit.ground_truth import (
     align_places,
@@ -46,14 +47,17 @@ def test_parse_places_csv_roundtrip(tmp_path) -> None:
         parse_places_csv(empty)
 
 
-def test_places_csv_for_sibling_detection(tmp_path) -> None:
+def test_fixture_bundle_admits_only_aligned_companion(tmp_path) -> None:
     xy = tmp_path / "myrunXY.csv"
-    xy.write_text("x", encoding="utf-8")
-    assert places_csv_for(xy) is None  # sibling absent
+    xy.write_text("ID,Days,x(km),y(km)\n0,0,1,2\n", encoding="utf-8")
+    config = replace(load_config("configs/default.yaml").fractalrabbit, fixture_csv=xy)
+    assert resolve_observations(config, tmp_path).places_path is None
     places = tmp_path / "myrunPLACES.csv"
-    places.write_text("x", encoding="utf-8")
-    assert places_csv_for(xy) == places
-    assert places_csv_for(tmp_path / "fixture.csv") is None  # not an XY output
+    places.write_text("Traveler ID,Days,Place ID\n0,0,7\n", encoding="utf-8")
+    assert resolve_observations(config, tmp_path).places_path == places
+    places.write_text("Traveler ID,Days,Place ID\n1,0,7\n", encoding="utf-8")
+    with pytest.raises(ValueError, match="misalignment"):
+        resolve_observations(config, tmp_path)
 
 
 def test_align_places_strictness() -> None:

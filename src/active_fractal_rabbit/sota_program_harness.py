@@ -34,9 +34,10 @@ evidence does not clear the gate.
 
 from __future__ import annotations
 
+import hashlib
 import time
 from collections.abc import Mapping
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 
 import numpy as np
@@ -61,14 +62,12 @@ from .sota_program import (
     score_candidate,
 )
 from .sota_stressors import (
-    ADVERSARIAL_REPEAT_SEED,
+    DIAGNOSTIC_CELL_SPECS,
     DIAGNOSTIC_STRESSOR_LANES,
-    REGIME_STRESSOR_SECOND_REPEAT_SEED,
-    REPORTING_GAP_REPEAT_SEED,
+    build_diagnostic_dataset,
+    diagnostic_cell_ids,
     all_lane_definitions,
-    build_adversarial_missingness_partial_observability_dataset,
     build_regime_stressor_partial_observability_dataset,
-    build_regime_stressor_repeat_partial_observability_dataset,
     build_reporting_gap_partial_observability_dataset,
     lane_definitions,
 )
@@ -101,7 +100,7 @@ DEFAULT_N_BOOT = 2000
 DEFAULT_BOOT_SEED = 7
 CANONICAL_LANES = ("fractalrabbit", "gravity", "reporting_gap", "regime_stressor")
 DEFAULT_DIAGNOSTIC_N_TRAVELLERS = 32
-DEFAULT_DIAGNOSTIC_N_BOOT = 400
+DEFAULT_DIAGNOSTIC_N_BOOT = DEFAULT_N_BOOT
 
 SOTA_PROGRAM_LEADERBOARD_HEADER = [
     "candidate",
@@ -207,6 +206,8 @@ class LaneResult:
     # Consumed by the multiplicity ledger as this lane's per-comparison uncorrected p.
     one_sided_p: float = 1.0
     aif_adaptation: float = 0.0
+    provenance: dict[str, object] = field(default_factory=dict)
+    diagnostic_analyses: dict[str, object] = field(default_factory=dict)
 
 
 def _roster(
@@ -313,6 +314,15 @@ def score_lane(
         leakage_floor_ok=bool(aif_scored.pooled_mean_loss > LEAKAGE_FLOOR_NATS),
         n_holdout_travellers=int(ci.n_holdout_travellers),
         one_sided_p=float(ci.one_sided_p_b_better),
+        provenance={
+            "split": dataset.split,
+            "transition_smoothing": dataset.transition_smoothing,
+            "n_boot": int(n_boot),
+            "boot_seed": int(boot_seed),
+            "p_resolution_floor": 1.0 / (n_boot + 1),
+            "n_scored_steps": aif_scored.n_scored_steps,
+            "protocol": "locked_traveller_noisy_latent_prequential_train_only_transition",
+        },
     )
 
 
@@ -354,40 +364,13 @@ def build_diagnostic_lanes(
     *,
     n_travellers: int = DEFAULT_DIAGNOSTIC_N_TRAVELLERS,
     eps: float = DEFAULT_EPS,
+    lane_ids: tuple[str, ...] | None = None,
 ) -> dict[str, PartialObservabilityDataset]:
-    adversarial = build_adversarial_missingness_partial_observability_dataset(
-        inference_config, n_travellers=n_travellers, eps=eps
-    )
-    reporting_gap_repeat = build_reporting_gap_partial_observability_dataset(
-        inference_config,
-        n_travellers=n_travellers,
-        eps=eps,
-        gen_seed=REPORTING_GAP_REPEAT_SEED,
-        noise_seed=11,
-    )
-    high_motion_repeat = build_adversarial_missingness_partial_observability_dataset(
-        inference_config,
-        n_travellers=n_travellers,
-        eps=eps,
-        gen_seed=ADVERSARIAL_REPEAT_SEED,
-        noise_seed=12,
-    )
-    regime_repeat = build_regime_stressor_repeat_partial_observability_dataset(
-        inference_config, n_travellers=n_travellers, eps=eps
-    )
-    regime_repeat_2 = build_regime_stressor_repeat_partial_observability_dataset(
-        inference_config,
-        n_travellers=n_travellers,
-        eps=eps,
-        gen_seed=REGIME_STRESSOR_SECOND_REPEAT_SEED,
-        noise_seed=13,
-    )
     return {
-        "reporting_gap_adversarial": adversarial,
-        "reporting_gap_repeat": reporting_gap_repeat,
-        "high_motion_adversarial_repeat": high_motion_repeat,
-        "regime_stressor_repeat": regime_repeat,
-        "regime_stressor_repeat_2": regime_repeat_2,
+        name: build_diagnostic_dataset(
+            name, inference_config, n_travellers=n_travellers, eps=eps
+        )
+        for name in diagnostic_cell_ids(lane_ids)
     }
 
 
@@ -513,12 +496,18 @@ def run_diagnostic_robustness_suite(
     eps: float = DEFAULT_EPS,
     n_boot: int = DEFAULT_DIAGNOSTIC_N_BOOT,
     boot_seed: int = DEFAULT_BOOT_SEED,
+    lane_ids: tuple[str, ...] | None = None,
 ) -> GateResult:
+    from .forward_gates import run_bounded_diagnostic_analyses
+
     datasets = build_diagnostic_lanes(
-        inference_config, n_travellers=n_travellers, eps=eps
+        inference_config, n_travellers=n_travellers, eps=eps, lane_ids=lane_ids
     )
     lanes = {
-        name: score_lane(name, ds, n_boot=n_boot, boot_seed=boot_seed)
+        name: replace(
+            score_lane(name, ds, n_boot=n_boot, boot_seed=boot_seed),
+            diagnostic_analyses=run_bounded_diagnostic_analyses(ds, inference_config),
+        )
         for name, ds in datasets.items()
     }
     run_parameters = {
@@ -530,6 +519,10 @@ def run_diagnostic_robustness_suite(
         "lanes": list(lanes),
         "canonical": False,
         "diagnostic": True,
+        "grid_contract": "existing_profiles_repeated_v1",
+        "profiles": sorted({DIAGNOSTIC_CELL_SPECS[name][0] for name in lanes}),
+        "expected_cell_count": len(datasets),
+        "independence": "not assumed; repeated profiles and shared seeds remain in one Holm family",
     }
     return evaluate_gate(lanes, run_parameters=run_parameters)
 
@@ -730,6 +723,8 @@ def _missingness_status(lane_name: str) -> str:
         return "scored_repeated_regime_stressor_diagnostic_locked_split"
     if lane_name == "regime_stressor_repeat_2":
         return "scored_second_repeated_regime_stressor_diagnostic_locked_split"
+    if lane_name in DIAGNOSTIC_CELL_SPECS:
+        return f"scored_{DIAGNOSTIC_CELL_SPECS[lane_name][0]}_diagnostic_locked_split"
     return "scored_nominal_noisy_emission_partial_observability"
 
 
@@ -791,8 +786,13 @@ def robustness_diagnostic_payload(gate: GateResult) -> dict[str, object]:
             "aif_loss": round(lr.aif_loss, 6),
             "strongest_fair_baseline": lr.strongest_fair_name,
             "strongest_fair_loss": round(lr.strongest_fair_loss, 6),
-            "clustered_ci_low": round(lr.clustered_ci_low, 6),
-            "clustered_ci_high": round(lr.clustered_ci_high, 6),
+            "mean_difference_nats_fair_minus_aif": lr.mean_difference_nats,
+            "clustered_ci_low": lr.clustered_ci_low,
+            "clustered_ci_high": lr.clustered_ci_high,
+            "one_sided_p": lr.one_sided_p,
+            "leakage_floor_ok": lr.leakage_floor_ok,
+            "provenance": lr.provenance,
+            "bounded_m10_analyses": lr.diagnostic_analyses,
             "aif_beats_strongest_fair": lr.aif_beats_strongest_fair,
         }
     lane_statuses = [
@@ -803,7 +803,7 @@ def robustness_diagnostic_payload(gate: GateResult) -> dict[str, object]:
                 "robustness_role", "diagnostic stressor lane"
             ),
         }
-        for name in DIAGNOSTIC_STRESSOR_LANES
+        for name in gate.run_parameters.get("lanes", DIAGNOSTIC_STRESSOR_LANES)
     ]
     return {
         "schema": SOTA_PROGRAM_ROBUSTNESS_DIAGNOSTICS_SCHEMA,
@@ -813,9 +813,18 @@ def robustness_diagnostic_payload(gate: GateResult) -> dict[str, object]:
         "run_parameters": gate.run_parameters,
         "diagnostic_lanes": lane_summaries,
         "lane_statuses": lane_statuses,
-        "all_diagnostic_lanes_scored": all(
-            row["status"] == "scored" for row in lane_statuses
+        "profile_count": len({DIAGNOSTIC_CELL_SPECS[name][0] for name in gate.lanes}),
+        "unique_generator_seed_count": len(
+            {DIAGNOSTIC_CELL_SPECS[name][1] for name in gate.lanes}
         ),
+        "profile_draw_identity_count": len(
+            {DIAGNOSTIC_CELL_SPECS[name][:2] for name in gate.lanes}
+        ),
+        "expected_cell_count": len(lane_statuses),
+        "scored_cell_count": len(gate.lanes),
+        "independence": "not assumed; profile/draw identities can recur across noise realizations",
+        "all_diagnostic_lanes_scored": bool(lane_statuses)
+        and all(row["status"] == "scored" for row in lane_statuses),
         "candidate_count": len({str(row["candidate"]) for row in rows}),
         "row_count": len(rows),
         "leaderboard_columns": list(SOTA_PROGRAM_LEADERBOARD_HEADER),
@@ -834,8 +843,13 @@ def write_robustness_diagnostics(gate: GateResult, out_dir: Path) -> dict[str, P
     json_path.parent.mkdir(parents=True, exist_ok=True)
     import json
 
+    payload = robustness_diagnostic_payload(gate)
+    with csv_path.open("rb") as stream:
+        payload["leaderboard_csv_sha256"] = hashlib.file_digest(
+            stream, "sha256"
+        ).hexdigest()
     json_path.write_text(
-        json.dumps(robustness_diagnostic_payload(gate), indent=2) + "\n",
+        json.dumps(payload, indent=2) + "\n",
         encoding="utf-8",
     )
     return {"robustness_grid": csv_path, "robustness_diagnostics": json_path}
@@ -851,6 +865,7 @@ def gate_payload(gate: GateResult) -> dict[str, object]:
             "n_travellers": lr.n_travellers,
             "n_holdout_travellers": lr.n_holdout_travellers,
             "eps": lr.eps,
+            "provenance": lr.provenance,
             "aif_gamma": lr.aif_gamma,
             "aif_boost": lr.aif_boost,
             "aif_candidate": lr.aif_name,
@@ -941,7 +956,9 @@ def gate_payload(gate: GateResult) -> dict[str, object]:
             },
             "diagnostic_stressors": {
                 "status": "scored_separately_when_sota_program_runs",
-                "lanes": list(DIAGNOSTIC_STRESSOR_LANES),
+                "lanes": gate.run_parameters.get(
+                    "diagnostic_lanes", list(DIAGNOSTIC_STRESSOR_LANES)
+                ),
                 "artifacts": [
                     "output/runs/sota_program_robustness_grid.json",
                     "output/runs/sota_program_robustness_grid.csv",
@@ -985,9 +1002,12 @@ def run_and_write(
     spatial_bins: int = DEFAULT_SPATIAL_BINS,
     n_boot: int = DEFAULT_N_BOOT,
     boot_seed: int = DEFAULT_BOOT_SEED,
+    diagnostic_lane_ids: tuple[str, ...] | None = None,
+    diagnostic_n_boot: int = DEFAULT_DIAGNOSTIC_N_BOOT,
 ) -> tuple[GateResult, dict[str, Path]]:
     """End-to-end: build config + lanes, score, gate, and write the leaderboard + gate JSON."""
 
+    diagnostic_cell_ids(diagnostic_lane_ids)
     _assert_noncanonical_run_does_not_target_canonical_output(
         config_path=config_path,
         out_dir=out_dir,
@@ -1005,18 +1025,29 @@ def run_and_write(
         n_boot=n_boot,
         boot_seed=boot_seed,
     )
-    leaderboard_path = write_leaderboard_csv(
-        gate, out_dir / "sota_program_leaderboard.csv"
-    )
-    gate_path = write_gate_json(gate, out_dir / "sota_program_gate.json")
     diagnostic_gate = run_diagnostic_robustness_suite(
         inference_config,
         n_travellers=min(int(n_travellers), DEFAULT_DIAGNOSTIC_N_TRAVELLERS),
         eps=eps,
-        n_boot=min(int(n_boot), DEFAULT_DIAGNOSTIC_N_BOOT),
+        n_boot=diagnostic_n_boot,
         boot_seed=boot_seed,
+        lane_ids=diagnostic_lane_ids,
     )
     diagnostic_paths = write_robustness_diagnostics(diagnostic_gate, out_dir)
+    with diagnostic_paths["robustness_diagnostics"].open("rb") as stream:
+        digest = hashlib.file_digest(stream, "sha256").hexdigest()
+    gate = replace(
+        gate,
+        run_parameters={
+            **gate.run_parameters,
+            "diagnostic_lanes": list(diagnostic_gate.lanes),
+            "diagnostic_artifact_sha256": digest,
+        },
+    )
+    leaderboard_path = write_leaderboard_csv(
+        gate, out_dir / "sota_program_leaderboard.csv"
+    )
+    gate_path = write_gate_json(gate, out_dir / "sota_program_gate.json")
     return gate, {
         "leaderboard": leaderboard_path,
         "gate": gate_path,

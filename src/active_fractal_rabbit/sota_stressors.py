@@ -9,11 +9,12 @@ waypoint process and reporting pattern.
 from __future__ import annotations
 
 import math
+from dataclasses import replace
 
 import numpy as np
 
 from .observations import discretize_observations
-from .power_analysis import generate_synthetic_waypoints
+from .power_analysis import DEFAULT_GEN_SEEDS, generate_synthetic_waypoints
 from .sota_program import (
     DEFAULT_N_TRAVELLERS,
     PartialObservabilityDataset,
@@ -34,13 +35,31 @@ DEFAULT_REPORTING_GAP_MIN_KEEP = 64
 DEFAULT_REGIME_REPORTS = 260
 DEFAULT_REGIME_DAYS = 21.0
 DEFAULT_BOX_KM = 200.0
-DIAGNOSTIC_STRESSOR_LANES = (
-    "reporting_gap_adversarial",
-    "reporting_gap_repeat",
-    "high_motion_adversarial_repeat",
-    "regime_stressor_repeat",
-    "regime_stressor_repeat_2",
-)
+# Existing generator/reporting profiles; this registry expands repetitions, not models.
+# (profile, generator seed, observation-noise seed). Existing cells keep their exact seeds.
+DIAGNOSTIC_CELL_SPECS = {
+    "reporting_gap_adversarial": ("high_motion", 2026, 0),
+    "reporting_gap_repeat": ("reporting_gap", REPORTING_GAP_REPEAT_SEED, 11),
+    "high_motion_adversarial_repeat": ("high_motion", ADVERSARIAL_REPEAT_SEED, 12),
+    "regime_stressor_repeat": ("regime_switch_long", REGIME_STRESSOR_REPEAT_SEED, 0),
+    "regime_stressor_repeat_2": (
+        "regime_switch_long",
+        REGIME_STRESSOR_SECOND_REPEAT_SEED,
+        13,
+    ),
+    **{
+        f"{profile}_draw_{seed}": (profile, seed, 20260701 + seed % 997)
+        for profile in (
+            "reporting_gap",
+            "high_motion",
+            "regime_switch",
+            "regime_switch_long",
+        )
+        for seed in DEFAULT_GEN_SEEDS
+    },
+}
+DIAGNOSTIC_STRESSOR_LANES = tuple(DIAGNOSTIC_CELL_SPECS)
+DIAGNOSTIC_SPLIT_SEED = 20260616
 
 
 def thin_reporting_gap_waypoints(
@@ -496,35 +515,77 @@ def lane_definitions() -> dict[str, dict[str, object]]:
 
 
 def diagnostic_lane_definitions() -> dict[str, dict[str, object]]:
-    """Stable reader-facing definitions for scored diagnostic stressor lanes."""
+    """Finite existing-profile grid; repeated cells are not independent hypotheses."""
 
     return {
-        "reporting_gap_adversarial": {
+        name: {
             "status": "scored_diagnostic",
-            "latent_process": "FractalRabbit-style synthetic waypoints after high-motion-biased missingness",
-            "robustness_role": "diagnostic adversarial-missingness variant; synthetic-only",
-        },
-        "reporting_gap_repeat": {
-            "status": "scored_diagnostic",
-            "latent_process": "independent repeated FractalRabbit-style reporting-gap thinning",
-            "robustness_role": "diagnostic repeated burst-missingness/reporting-gap lane; synthetic-only",
-        },
-        "high_motion_adversarial_repeat": {
-            "status": "scored_diagnostic",
-            "latent_process": "independent high-motion-biased missingness realization",
-            "robustness_role": "diagnostic repeated high-motion adversarial-missingness lane; synthetic-only",
-        },
-        "regime_stressor_repeat": {
-            "status": "scored_diagnostic",
-            "latent_process": "independent repeated larger regime-stressor realization",
-            "robustness_role": "diagnostic repeated-realization regime stressor; synthetic-only",
-        },
-        "regime_stressor_repeat_2": {
-            "status": "scored_diagnostic",
-            "latent_process": "second independent repeated larger regime-stressor realization",
-            "robustness_role": "diagnostic second repeated-realization regime stressor; synthetic-only",
-        },
+            "profile": profile,
+            "generator_seed": seed,
+            "split_seed": DIAGNOSTIC_SPLIT_SEED,
+            "noise_seed": noise,
+            "latent_process": profile,
+            "robustness_role": "existing-profile repeated synthetic diagnostic; not a canonical gate",
+        }
+        for name, (profile, seed, noise) in DIAGNOSTIC_CELL_SPECS.items()
     }
+
+
+def diagnostic_cell_ids(lane_ids: tuple[str, ...] | None = None) -> tuple[str, ...]:
+    ids = DIAGNOSTIC_STRESSOR_LANES if lane_ids is None else tuple(lane_ids)
+    if not ids or len(set(ids)) != len(ids):
+        raise ValueError("diagnostic lane IDs must be nonempty and unique")
+    unknown = set(ids) - DIAGNOSTIC_CELL_SPECS.keys()
+    if unknown:
+        raise ValueError(f"unknown diagnostic lane IDs: {sorted(unknown)}")
+    return ids
+
+
+def build_diagnostic_dataset(
+    lane_id: str, inference_config: InferenceConfig, *, n_travellers: int, eps: float
+) -> PartialObservabilityDataset:
+    profile, seed, noise = DIAGNOSTIC_CELL_SPECS[lane_id]
+    builder, n_reports, n_days = {
+        "reporting_gap": (build_reporting_gap_partial_observability_dataset, 240, 18.0),
+        "high_motion": (
+            build_adversarial_missingness_partial_observability_dataset,
+            260,
+            20.0,
+        ),
+        "regime_switch": (
+            build_regime_stressor_partial_observability_dataset,
+            260,
+            21.0,
+        ),
+        "regime_switch_long": (
+            build_regime_stressor_repeat_partial_observability_dataset,
+            300,
+            28.0,
+        ),
+    }[profile]
+    dataset = builder(
+        inference_config,
+        n_travellers=n_travellers,
+        eps=eps,
+        gen_seed=seed,
+        split_seed=DIAGNOSTIC_SPLIT_SEED,
+        noise_seed=noise,
+    )
+    travellers, counts = np.unique(dataset.travellers, return_counts=True)
+    metadata = {
+        **dataset.split.get("lane_metadata", {}),
+        **diagnostic_lane_definitions()[lane_id],
+        "lane_id": lane_id,
+        "n_reports_before_thinning_per_traveller": n_reports,
+        "n_days": n_days,
+        "spatial_bins": inference_config.spatial_bins,
+        "retained_reports_per_traveller": {
+            str(t): int(c) for t, c in zip(travellers, counts)
+        },
+        "draw_identity": f"{profile}:{seed}",
+        "independence": "not assumed; shared generator seeds and profiles are explicitly retained",
+    }
+    return replace(dataset, split={**dataset.split, "lane_metadata": metadata})
 
 
 def all_lane_definitions() -> dict[str, dict[str, object]]:

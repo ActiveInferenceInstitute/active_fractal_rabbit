@@ -15,15 +15,16 @@ foundation-model SOTA claims.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import time
 from collections.abc import Callable
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 
 import numpy as np
 
-from .power_analysis import traveller_clustered_bootstrap_ci
+from .power_analysis import DEFAULT_GEN_SEEDS, traveller_clustered_bootstrap_ci
 from .sota_aif_candidate import fit_aif_candidate
 from .sota_program import (
     PartialObservabilityDataset,
@@ -148,6 +149,7 @@ class RegimeRealizationResult:
     aif_beats_strongest_fair: bool
     leakage_floor_ok: bool
     n_holdout_travellers: int
+    provenance: dict[str, object] = field(default_factory=dict)
 
 
 def build_aif_regime_specs() -> dict[str, RegimeSpec]:
@@ -331,7 +333,120 @@ def score_regime_realization(
         aif_beats_strongest_fair=aif_beats,
         leakage_floor_ok=leakage_floor_ok,
         n_holdout_travellers=int(ci.n_holdout_travellers),
+        provenance={
+            "split": dataset.split,
+            "transition_smoothing": dataset.transition_smoothing,
+            "n_boot": int(n_boot),
+            "boot_seed": int(boot_seed),
+            "p_resolution_floor": 1.0 / (n_boot + 1),
+            "protocol": "locked_traveller_noisy_latent_prequential_train_only_transition",
+        },
     )
+
+
+def _score_regime_grid(
+    inference_config,
+    regime_ids,
+    realization_seeds,
+    *,
+    n_travellers,
+    n_boot,
+    boot_seed,
+    fixed_split: bool,
+) -> list[RegimeRealizationResult]:
+    specs = build_aif_regime_specs()
+    if not regime_ids or len(set(regime_ids)) != len(regime_ids):
+        raise ValueError("regime IDs must be nonempty and unique")
+    if set(regime_ids) - specs.keys():
+        raise ValueError("unknown regime ID")
+    if not realization_seeds or len(set(realization_seeds)) != len(realization_seeds):
+        raise ValueError("realization seeds must be nonempty and unique")
+    results = []
+    for regime_id in regime_ids:
+        for idx, seed in enumerate(realization_seeds):
+            split_seed = DEFAULT_AIF_REGIME_SPLIT_SEED + (0 if fixed_split else idx)
+            noise_seed = DEFAULT_AIF_REGIME_NOISE_SEED + int(seed % 997)
+            dataset = build_regime_dataset(
+                regime_id,
+                inference_config,
+                n_travellers=n_travellers,
+                realization_seed=seed,
+                split_seed=split_seed,
+                noise_seed=noise_seed,
+            )
+            results.append(
+                score_regime_realization(
+                    specs[regime_id],
+                    dataset,
+                    realization_seed=seed,
+                    split_seed=split_seed,
+                    noise_seed=noise_seed,
+                    n_boot=n_boot,
+                    boot_seed=boot_seed,
+                )
+            )
+    return results
+
+
+def run_diagnostic_regime_repetitions(
+    inference_config: InferenceConfig,
+    *,
+    regime_ids: tuple[str, ...] = CANONICAL_AIF_REGIMES,
+    realization_seeds: tuple[int, ...] = DEFAULT_GEN_SEEDS,
+    n_travellers: int = DEFAULT_AIF_REGIME_N_TRAVELLERS,
+    n_boot: int = DEFAULT_AIF_REGIME_N_BOOT,
+    boot_seed: int = DEFAULT_BOOT_SEED,
+) -> dict[str, object]:
+    results = _score_regime_grid(
+        inference_config,
+        regime_ids,
+        realization_seeds,
+        n_travellers=n_travellers,
+        n_boot=n_boot,
+        boot_seed=boot_seed,
+        fixed_split=True,
+    )
+    summaries = _regime_summaries(results)
+    for regime_id, summary in summaries.items():
+        rows = [r for r in results if r.regime_id == regime_id]
+        summary.update(
+            one_sided_p_max=max(r.one_sided_p for r in rows),
+            one_sided_p_min=min(r.one_sided_p for r in rows),
+            mean_advantage_nats=float(np.mean([r.mean_difference_nats for r in rows])),
+            min_advantage_nats=min(r.mean_difference_nats for r in rows),
+            min_clustered_ci_low=min(r.clustered_ci_low for r in rows),
+        )
+    return {
+        "schema": "active-fractal-rabbit-aif-diagnostic-repetitions-v1",
+        "status": "diagnostic_repetitions_scored",
+        "run_parameters": {
+            "regime_ids": list(regime_ids),
+            "realization_seeds": list(realization_seeds),
+            "n_travellers": n_travellers,
+            "spatial_bins": inference_config.spatial_bins,
+            "n_boot": n_boot,
+            "boot_seed": boot_seed,
+            "split_seed": DEFAULT_AIF_REGIME_SPLIT_SEED,
+            "noise_seed_rule": "20260701 + realization_seed % 997",
+            "canonical": False,
+            "diagnostic": True,
+        },
+        "expected_realization_count": len(regime_ids) * len(realization_seeds),
+        "scored_realization_count": len(results),
+        "all_realizations_scored": len(results)
+        == len(regime_ids) * len(realization_seeds),
+        "regime_summaries": summaries,
+        "realization_summaries": [
+            {**_realization_summary(r), "one_sided_p": r.one_sided_p} for r in results
+        ],
+        "leaderboard_columns": list(AIF_REGIME_SEARCH_HEADER),
+        "leaderboard_rows": regime_search_rows(results),
+        "boundary": (
+            "Existing-regime diagnostic repetitions only; fixed split and seed-derived noise. "
+            "Worst-realization p and all-realizations clearance enter the joint multiplicity "
+            "family; diagnostics never promote the canonical gate."
+        ),
+    }
 
 
 def run_regime_search(
@@ -342,35 +457,28 @@ def run_regime_search(
     n_travellers: int = DEFAULT_AIF_REGIME_N_TRAVELLERS,
     n_boot: int = DEFAULT_AIF_REGIME_N_BOOT,
     boot_seed: int = DEFAULT_BOOT_SEED,
+    diagnostic_realization_seeds: tuple[int, ...] = DEFAULT_GEN_SEEDS,
 ) -> dict[str, object]:
     """Run the configured regime search and return a JSON-serialisable payload."""
 
     specs = build_aif_regime_specs()
-    results: list[RegimeRealizationResult] = []
-    for regime_id in regime_ids:
-        spec = specs[regime_id]
-        for idx, realization_seed in enumerate(realization_seeds):
-            split_seed = DEFAULT_AIF_REGIME_SPLIT_SEED + idx
-            noise_seed = DEFAULT_AIF_REGIME_NOISE_SEED + int(realization_seed % 997)
-            dataset = build_regime_dataset(
-                regime_id,
-                inference_config,
-                n_travellers=n_travellers,
-                realization_seed=realization_seed,
-                split_seed=split_seed,
-                noise_seed=noise_seed,
-            )
-            results.append(
-                score_regime_realization(
-                    spec,
-                    dataset,
-                    realization_seed=realization_seed,
-                    split_seed=split_seed,
-                    noise_seed=noise_seed,
-                    n_boot=n_boot,
-                    boot_seed=boot_seed,
-                )
-            )
+    results = _score_regime_grid(
+        inference_config,
+        regime_ids,
+        realization_seeds,
+        n_travellers=n_travellers,
+        n_boot=n_boot,
+        boot_seed=boot_seed,
+        fixed_split=False,
+    )
+    diagnostics = run_diagnostic_regime_repetitions(
+        inference_config,
+        regime_ids=regime_ids,
+        realization_seeds=diagnostic_realization_seeds,
+        n_travellers=n_travellers,
+        n_boot=n_boot,
+        boot_seed=boot_seed,
+    )
 
     rows = regime_search_rows(results)
     summaries = _regime_summaries(results)
@@ -451,6 +559,7 @@ def run_regime_search(
         "controls": _control_payload(summaries, results),
         "regime_summaries": summaries,
         "realization_summaries": [_realization_summary(result) for result in results],
+        "diagnostic_repetitions": diagnostics,
         "leaderboard_columns": list(AIF_REGIME_SEARCH_HEADER),
         "leaderboard_rows": rows,
         "blocked_candidate_families": [
@@ -560,11 +669,14 @@ def write_regime_search_csv(rows: list[dict[str, object]], path: Path) -> Path:
     return path
 
 
-def gate_payload(payload: dict[str, object]) -> dict[str, object]:
-    """Extract the smaller manuscript/provenance-facing gate summary."""
+def gate_payload(
+    payload: dict[str, object], *, search_artifact_sha256: str
+) -> dict[str, object]:
+    """Project the gate from the search whose emitted bytes have this digest."""
 
     return {
         "schema": AIF_REGIME_GATE_SCHEMA,
+        "search_artifact_sha256": search_artifact_sha256,
         "status": payload["status"],
         "gate_clears": payload["gate_clears"],
         "cleared_regime_count": payload["cleared_regime_count"],
@@ -581,6 +693,7 @@ def gate_payload(payload: dict[str, object]) -> dict[str, object]:
         "regime_definitions": payload["regime_definitions"],
         "regime_summaries": payload["regime_summaries"],
         "realization_summaries": payload["realization_summaries"],
+        "diagnostic_repetitions": payload.get("diagnostic_repetitions", {}),
         "leaderboard_columns": payload["leaderboard_columns"],
         "blocked_candidate_families": payload["blocked_candidate_families"],
     }
@@ -596,6 +709,7 @@ def run_and_write_aif_regime_search(
     spatial_bins: int = DEFAULT_SPATIAL_BINS,
     regime_ids: tuple[str, ...] = CANONICAL_AIF_REGIMES,
     realization_seeds: tuple[int, ...] = DEFAULT_AIF_REGIME_REALIZATION_SEEDS,
+    diagnostic_realization_seeds: tuple[int, ...] = DEFAULT_GEN_SEEDS,
 ) -> tuple[dict[str, object], dict[str, Path]]:
     """Build the regime search artifacts in ``out_dir``."""
 
@@ -607,23 +721,44 @@ def run_and_write_aif_regime_search(
         n_travellers=n_travellers,
         n_boot=n_boot,
         boot_seed=boot_seed,
+        diagnostic_realization_seeds=tuple(diagnostic_realization_seeds),
     )
     output_dir = Path(out_dir)
     csv_path = write_regime_search_csv(
         payload["leaderboard_rows"],  # type: ignore[arg-type]
         output_dir / "aif_regime_search.csv",
     )
+    diagnostic_csv = write_regime_search_csv(
+        payload["diagnostic_repetitions"]["leaderboard_rows"],
+        output_dir / "aif_regime_diagnostic_repetitions.csv",
+    )
+    with diagnostic_csv.open("rb") as stream:
+        payload["diagnostic_repetitions"]["leaderboard_csv_sha256"] = (
+            hashlib.file_digest(stream, "sha256").hexdigest()
+        )
     search_path = output_dir / "aif_regime_search.json"
     gate_path = output_dir / "aif_regime_sota_gate.json"
     output_dir.mkdir(parents=True, exist_ok=True)
     search_path.write_text(
         json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )
+    with search_path.open("rb") as stream:
+        search_digest = hashlib.file_digest(stream, "sha256").hexdigest()
     gate_path.write_text(
-        json.dumps(gate_payload(payload), indent=2, sort_keys=True) + "\n",
+        json.dumps(
+            gate_payload(payload, search_artifact_sha256=search_digest),
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n",
         encoding="utf-8",
     )
-    return payload, {"leaderboard": csv_path, "search": search_path, "gate": gate_path}
+    return payload, {
+        "leaderboard": csv_path,
+        "search": search_path,
+        "gate": gate_path,
+        "diagnostic_leaderboard": diagnostic_csv,
+    }
 
 
 def _build_identity_regime(
@@ -838,6 +973,7 @@ def _realization_summary(result: RegimeRealizationResult) -> dict[str, object]:
         "split_seed": result.split_seed,
         "noise_seed": result.noise_seed,
         "emission_model": result.emission_model,
+        "provenance": result.provenance,
         "missingness_mode": result.missingness_mode,
         "n_travellers": result.n_travellers,
         "n_holdout_travellers": result.n_holdout_travellers,

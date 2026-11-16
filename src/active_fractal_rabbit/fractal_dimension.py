@@ -128,7 +128,7 @@ def run_fractal_dimension_sweep(
             dimension_control_active=True,
         )
 
-    from .config import load_config
+    from .config import derived_run, load_config
     from .pipeline import run_pipeline
 
     base = load_config(config_path)
@@ -145,12 +145,8 @@ def run_fractal_dimension_sweep(
             )
             model = replace(base.inference.model, engine="reference")
             inference = replace(base.inference, model=model)
-            cfg = replace(
-                base,
-                run_id=run_id,
-                output_dir=base.project_root / "output" / "runs" / run_id,
-                fractalrabbit=fractalrabbit,
-                inference=inference,
+            cfg = derived_run(
+                base, run_id, fractalrabbit=fractalrabbit, inference=inference
             )
             result = run_pipeline(cfg, config_path)
             rows.append(_row_from_metrics(dimension, run_id, result.metrics))

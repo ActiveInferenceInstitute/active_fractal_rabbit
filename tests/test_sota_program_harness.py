@@ -405,6 +405,7 @@ def test_run_and_write_emits_csv_and_gate_json(tmp_path: Path) -> None:
         n_travellers=N_TRAVELLERS,
         eps=0.3,
         n_boot=N_BOOT,
+        diagnostic_n_boot=N_BOOT,
     )
     lb = paths["leaderboard"]
     gj = paths["gate"]

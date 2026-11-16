@@ -18,7 +18,7 @@ from pathlib import Path
 
 import numpy as np
 
-from .config import load_config
+from .config import derived_run, load_config
 from .fractalrabbit import parse_waypoint_csv
 from .pipeline import run_pipeline
 from .types import PipelineResult, ProjectConfig, WaypointObservation
@@ -150,9 +150,7 @@ def run_negative_controls(config_path: str | Path) -> Path:
             "They are software diagnostics on the fixture lane, not empirical mobility evidence."
         ),
     }
-    summary_path = (
-        base.project_root / "output" / "runs" / "negative_controls_summary.json"
-    )
+    summary_path = base.output_dir.parent / "negative_controls_summary.json"
     summary_path.parent.mkdir(parents=True, exist_ok=True)
     summary_path.write_text(
         json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8"
@@ -174,13 +172,7 @@ def _control_config(
     if observation is not None:
         inference = replace(inference, observation=observation)
     inference = replace(inference, model=replace(inference.model, engine="reference"))
-    return replace(
-        base,
-        run_id=run_id,
-        output_dir=base.project_root / "output" / "runs" / run_id,
-        fractalrabbit=fractalrabbit,
-        inference=inference,
-    )
+    return derived_run(base, run_id, fractalrabbit=fractalrabbit, inference=inference)
 
 
 def _control_record(

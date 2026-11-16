@@ -7,10 +7,10 @@ tests, figures, or manuscript requires it.
 ## Host Prerequisites Explain Every Skip
 
 The pinned FractalRabbit commit's Maven build targets **JDK 21**; the lane also
-needs **Maven** and **git**. Where that toolchain is present the lane has been
-executed end to end (see `output/runs/fractalrabbit_external/`); where it is
-absent the lane is skipped with an explicit, named reason rather than failing
-silently:
+needs **Maven** and **git**. A saved `output/runs/fractalrabbit_external/`
+directory and toolchain availability do not by themselves establish current
+qualified completion. When the toolchain is absent, the lane is skipped with
+an explicit, named reason rather than failing silently:
 
 ```bash
 brew install openjdk@21 maven
@@ -48,15 +48,47 @@ uv run python scripts/02_run_pipeline.py --config configs/fractalrabbit_external
 ```
 
 The first command clones the pinned commit into `.cache/fractalrabbit/` and
-builds the jar-with-dependencies artifact; the second writes a full run under
-`output/runs/fractalrabbit_external/` with the same artifact contract as the
-fixture lane.
+builds the jar-with-dependencies artifact; the second writes the base run to the
+configured `output_dir` (by default `output/runs/fractalrabbit_external/`).
+Derived runs use that leaf's parent collection, as described in
+[`config_schema.md`](config_schema.md). External **sensitivity** children and
+their simulator prefixes are lane-qualified; this does not guarantee isolation
+for variance-realization or fractal-dimension children in a shared collection.
+Select separate collections or supported explicit destinations for those families.
 
 The FractalRabbit source and jars remain cache-local and are not tracked in this
 project. `THIRD_PARTY_NOTICES.md` records the pinned upstream Apache-2.0 license
 and NOTICE boundary, and `docs/ip_license_status.md` records what must be carried
 forward if a public bundle ever distributes upstream source, jars, or derivative
 simulator code.
+
+## Completion Requires Build and Fresh-Bundle Custody
+
+External completion requires observed build inputs and the actual executable,
+not just the configured upstream pin. The build admits the checkout's root,
+origin, clean source state, revision, and tree, then binds the successfully
+built runnable JAR by digest. Dirty or unverifiable inputs, identity mismatches,
+failed builds, and zero or multiple candidate JARs are rejected without
+resetting or deleting source and without reusing an old executable. An explicitly
+selected upstream-sensitivity revision retains its requested and observed
+identity rather than being relabelled with the default pin.
+
+Execution must produce a fresh, validated XY bundle and, when present, an
+aligned finite PLACES companion, bound to the parameter snapshot and executable
+that ran. Companion absence is explicit. Newly produced identical bytes are
+admissible, but existing XY or PLACES files cannot fill in missing fresh output.
+A failed attempt preserves prior completed output rather than publishing
+partial completion. Implicit canonical observation resolution checks the bound
+execution receipt; missing or changed bound artifacts fail closed. Explicitly
+supplied paths/observations do not perform that receipt verification: the caller
+must admit their source, freshness, executable, and companion custody before
+passing them to a receiving analysis.
+
+Old saved external artifacts remain historical and are not silently upgraded
+into current qualified receipts. Source/CLI acceptance with recorded transports
+does not qualify an actual Java/Maven simulator build, a fresh external
+realization, or scientific or empirical success. Those require separately
+authorized execution and the existing promotion evidence.
 
 ## Fixture and External Tensors Are Compared, Not Pooled
 

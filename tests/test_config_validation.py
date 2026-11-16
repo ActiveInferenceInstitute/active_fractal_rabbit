@@ -196,3 +196,74 @@ def test_rejects_bad_grouped_config_values(tmp_path) -> None:
                 + "\nrobustness:\n  external_realization_fractal_dimensions: [1.21, 0]\n",
             )
         )
+
+
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        {"space_dimension": 3},
+        {"fractal_dimension": 0},
+        {"number_of_points": 1},
+        {"number_of_travellers": 0},
+        {"number_of_co_travellers": -1},
+        {"number_of_co_travellers": 3},
+        {"number_of_days": 0},
+        {"number_of_reports": 0},
+    ],
+)
+def test_scope23_contract_candidate_overrides_use_base_parameter_admission(
+    tmp_path, overrides
+) -> None:
+    import yaml
+    from active_fractal_rabbit.pipeline import run_pipeline_from_path
+
+    raw = yaml.safe_load(_base())
+    raw["output_dir"] = str(tmp_path / "owned" / "base")
+    raw["closed_loop"]["candidates"] = [{"name": "invalid", "params": overrides}]
+    config_path = _write(tmp_path, yaml.safe_dump(raw))
+    with pytest.raises(ValueError):
+        run_pipeline_from_path(config_path)
+    assert not (tmp_path / "owned").exists()
+
+
+@pytest.mark.parametrize("names", [("same", "same"), (1, "1")])
+def test_scope23_contract_candidate_names_are_unique_after_string_conversion(
+    tmp_path, names
+) -> None:
+    import yaml
+
+    raw = yaml.safe_load(_base())
+    raw["closed_loop"]["candidates"] = [
+        {"name": names[0], "params": {"number_of_reports": 4}},
+        {"name": names[1], "params": {"number_of_reports": 8}},
+    ]
+    with pytest.raises(ValueError, match="unique"):
+        load_config(_write(tmp_path, yaml.safe_dump(raw)))
+
+
+def test_scope23_contract_candidate_unknown_keys_still_fail(tmp_path) -> None:
+    import yaml
+
+    raw = yaml.safe_load(_base())
+    raw["closed_loop"]["candidates"] = [
+        {"name": "typo", "params": {"number_of_reportz": 8}}
+    ]
+    with pytest.raises(TypeError, match="number_of_reportz"):
+        load_config(_write(tmp_path, yaml.safe_dump(raw)))
+
+
+def test_scope23_contract_partial_candidate_inherits_parameters(tmp_path) -> None:
+    import yaml
+
+    raw = yaml.safe_load(_base())
+    raw["closed_loop"]["candidates"] = [
+        {"name": "higher", "params": {"number_of_reports": 8}}
+    ]
+    config = load_config(_write(tmp_path, yaml.safe_dump(raw)))
+    candidate = config.closed_loop.candidates[0]
+    assert candidate.params.number_of_reports == 8
+    assert candidate.params.number_of_travellers == 2
+    assert (
+        candidate.params.fractal_dimension
+        == config.fractalrabbit.params.fractal_dimension
+    )

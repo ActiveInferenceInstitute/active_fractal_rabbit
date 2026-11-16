@@ -1,16 +1,17 @@
-# IP and License Status: Publication Remains Release-Gated {#sec:ip-license-status}
+# IP and License Status: Public Release Record and Future Release Gates
+{#sec:ip-license-status}
 
-This document records the repository's current intellectual-property,
-licensing, and publication-readiness posture. It is a release-readiness
-signpost, not legal advice; public publication should be reviewed by the
-project owner or qualified counsel before the private repository is made public,
-archived, or redistributed.
+This document records the repository's public v0.2.0 release and its current
+intellectual-property and licensing posture. It is a release-readiness
+signpost, not legal advice. The project owner or qualified counsel should
+review any subsequent release, archival deposit, or redistribution. The
+recorded v0.2.0 qualification does not establish freshness of current artifacts.
 
 ## Current Status Is Public Release
 
 | Area | Status | Release interpretation |
 | --- | --- | --- |
-| Repository visibility | Public GitHub repository under [`ActiveInferenceInstitute/active_fractal_rabbit`](https://github.com/ActiveInferenceInstitute/active_fractal_rabbit); prior private staging history at `docxology/active_fractal_rabbit` is superseded and no longer used | Public release requires the fresh gates below to be green and the release manifest current. |
+| Repository visibility | Public GitHub repository under [`ActiveInferenceInstitute/active_fractal_rabbit`](https://github.com/ActiveInferenceInstitute/active_fractal_rabbit); prior private staging history at `docxology/active_fractal_rabbit` is superseded and no longer used | Any subsequent public bundle requires fresh gates and a current release manifest; the recorded v0.2.0 qualification does not establish current freshness. |
 | Original code | Licensed under MIT in `LICENSE` | Suitable for permissive source redistribution, subject to owner review. |
 | Project-authored docs, manuscript, figures, and scholarly outputs | Licensed under CC-BY-4.0 in `LICENSE-DOCS.md` unless a file says otherwise | Attribution required for public reuse. |
 | Third-party notices | Recorded in `THIRD_PARTY_NOTICES.md` | Must stay included in any public or archival bundle. |

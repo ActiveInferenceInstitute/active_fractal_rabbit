@@ -5,6 +5,8 @@ import json
 import shutil
 from pathlib import Path
 
+import pytest
+
 from active_fractal_rabbit import release
 from active_fractal_rabbit.active_sensing import run_and_write_active_sensing
 from active_fractal_rabbit.adaptive_aif_ablation import (
@@ -33,6 +35,7 @@ from active_fractal_rabbit.fractal_dimension import (
 from active_fractal_rabbit.frontier import run_and_write_frontier
 from active_fractal_rabbit.hardened_anomaly import run_and_write_hardened_anomaly
 from active_fractal_rabbit.manuscript_variables import write_variables
+from active_fractal_rabbit.multiplicity_ledger import run_and_write_multiplicity_ledger
 from active_fractal_rabbit.mission_collection import run_and_write_mission_collection
 from active_fractal_rabbit.model_comparison import run_and_write_model_comparison
 from active_fractal_rabbit.model_gates import run_and_write_model_gates
@@ -294,14 +297,33 @@ def _write_external_release_placeholders(root: Path) -> None:
 
 
 def _canonical_aif_regime_artifacts_exist(root: Path) -> bool:
-    path = root / "output" / "runs" / "aif_regime_sota_gate.json"
-    if not path.is_file():
+    from active_fractal_rabbit.aif_regime_search import gate_payload
+
+    runs = root / "output" / "runs"
+    path = runs / "aif_regime_sota_gate.json"
+    search_path = runs / "aif_regime_search.json"
+    csv_path = runs / "aif_regime_diagnostic_repetitions.csv"
+    try:
+        search_bytes = search_path.read_bytes()
+        search = json.loads(search_bytes)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        if payload != gate_payload(
+            search,
+            search_artifact_sha256=hashlib.sha256(search_bytes).hexdigest(),
+        ):
+            return False
+        if (
+            search["diagnostic_repetitions"]["leaderboard_csv_sha256"]
+            != hashlib.sha256(csv_path.read_bytes()).hexdigest()
+        ):
+            return False
+    except (OSError, ValueError, KeyError, TypeError):
         return False
-    payload = json.loads(path.read_text(encoding="utf-8"))
     regimes = payload.get("regime_summaries", {})
-    if not isinstance(regimes, dict):
-        return False
-    return {"identity_emission_collapse", "symmetric_noise_045"} <= set(regimes)
+    return isinstance(regimes, dict) and {
+        "identity_emission_collapse",
+        "symmetric_noise_045",
+    } <= set(regimes)
 
 
 def _ensure_aif_regime_artifacts(root: Path) -> None:
@@ -607,7 +629,7 @@ def test_manifest_on_real_project_covers_release_groups(repo_sandbox) -> None:
         project_root=root,
         fixture_config="configs/default.yaml",
         external_config="configs/fractalrabbit_external.yaml",
-        external_ready=False,
+        external_observations=None,
     )
     run_and_write_sota_benchmark(config, root / "output" / "runs")
     run_and_write_sota_program(config_path=config, out_dir=root / "output" / "runs")
@@ -792,3 +814,143 @@ def test_manifest_verifier_rejects_self_declared_required_subset(tmp_path) -> No
     assert report["missing"] == []
     assert report["unhashed_required"] == []
     assert report["missing_manifest_required"] == ["configs/default.yaml"]
+
+
+@pytest.fixture
+def diagnostic_release_root(tmp_path: Path) -> Path:
+    root = _seed_project(tmp_path)
+    runs = root / "output" / "runs"
+    config = PROJECT_ROOT / "configs" / "default.yaml"
+    run_and_write_sota_program(
+        config_path=config,
+        out_dir=runs,
+        n_travellers=6,
+        n_boot=31,
+        boot_seed=9,
+        spatial_bins=3,
+        diagnostic_lane_ids=("high_motion_draw_2026",),
+        diagnostic_n_boot=31,
+    )
+    run_and_write_aif_regime_search(
+        config,
+        runs,
+        n_travellers=6,
+        n_boot=31,
+        boot_seed=9,
+        spatial_bins=3,
+        regime_ids=("identity_emission_collapse",),
+        realization_seeds=(20260625,),
+        diagnostic_realization_seeds=(2026, 2027),
+    )
+    (runs / "partial_observability_analysis.json").write_text(
+        json.dumps(
+            {
+                "cross_realization_n_draws": 5,
+                "cross_realization_sign_stable_under_noise": True,
+                "cross_realization_min_fraction_positive_under_noise": 1.0,
+                "max_noise_advantage_nats": 0.7,
+            }
+        )
+    )
+    run_and_write_multiplicity_ledger(root)
+    return root
+
+
+def test_scope23_contract_release_requires_and_hashes_diagnostic_regime_csv(
+    diagnostic_release_root: Path,
+) -> None:
+    root = diagnostic_release_root
+    required = (
+        "output/runs/aif_regime_diagnostic_repetitions.csv",
+        "output/runs/aif_regime_sota_gate.json",
+        "output/runs/multiplicity_ledger.json",
+    )
+    path = build_release_manifest(root, required_paths=required)
+    payload = json.loads(path.read_text())
+    by_path = {entry["path"]: entry for entry in payload["entries"]}
+    csv_path = required[0]
+    assert (
+        by_path[csv_path]["sha256"]
+        == hashlib.sha256((root / csv_path).read_bytes()).hexdigest()
+    )
+    assert verify_release_manifest(
+        path,
+        expected_required_paths=required,
+        validate_semantics=False,
+    ) == {
+        "missing": [],
+        "mismatched": [],
+        "unhashed_required": [],
+        "missing_manifest_required": [],
+        "omitted_entries": [],
+        "invalid_manifest": [],
+        "failed_checks": [],
+    }
+    path = build_release_manifest(root)
+    payload = json.loads(path.read_text())
+    payload["required_paths"].remove(csv_path)
+    payload["entries"] = [
+        entry for entry in payload["entries"] if entry["path"] != csv_path
+    ]
+    payload["n_files"] = len(payload["entries"])
+    payload["groups"] = sorted({entry["group"] for entry in payload["entries"]})
+    path.write_text(json.dumps(payload))
+    report = verify_release_manifest(path, validate_semantics=False)
+    assert csv_path in report["missing_manifest_required"]
+    assert csv_path in report["unhashed_required"]
+    assert csv_path in report["omitted_entries"]
+
+
+@pytest.mark.parametrize(
+    "name,damage",
+    [
+        ("sota_program_robustness_grid.csv", "missing"),
+        ("sota_program_robustness_grid.csv", "changed"),
+        ("aif_regime_diagnostic_repetitions.csv", "missing"),
+        ("aif_regime_diagnostic_repetitions.csv", "changed"),
+        ("aif_regime_sota_gate.json", "missing"),
+        ("aif_regime_sota_gate.json", "mismatched"),
+    ],
+)
+def test_scope23_contract_release_cannot_rehash_an_inconsistent_family(
+    diagnostic_release_root: Path,
+    name: str,
+    damage: str,
+) -> None:
+    root = diagnostic_release_root
+    required = (
+        "output/runs/aif_regime_diagnostic_repetitions.csv",
+        "output/runs/aif_regime_sota_gate.json",
+        "output/runs/multiplicity_ledger.json",
+    )
+    manifest = build_release_manifest(root, required_paths=required)
+    path = root / "output" / "runs" / name
+    if damage == "missing":
+        path.unlink()
+    elif damage == "mismatched":
+        gate = json.loads(path.read_text())
+        gate["gate_clears"] = not gate["gate_clears"]
+        path.write_text(json.dumps(gate))
+    else:
+        path.write_text(path.read_text() + "\n")
+    report = verify_release_manifest(
+        manifest,
+        expected_required_paths=required,
+        validate_semantics=False,
+    )
+    assert any(
+        "diagnostic comparison family" in failure for failure in report["failed_checks"]
+    )
+    if damage == "missing":
+        assert f"output/runs/{name}" in report["missing"]
+    else:
+        assert f"output/runs/{name}" in report["mismatched"]
+    rebuilt = build_release_manifest(root, required_paths=required)
+    report = verify_release_manifest(
+        rebuilt,
+        expected_required_paths=required,
+        validate_semantics=False,
+    )
+    assert any(
+        "diagnostic comparison family" in failure for failure in report["failed_checks"]
+    )

@@ -6,12 +6,14 @@ from pathlib import Path
 
 import pytest
 
+from active_fractal_rabbit.aif_regime_search import gate_payload as regime_gate_payload
 from active_fractal_rabbit.challenge_pack import (
     CHALLENGE_PACK_SCHEMA,
     LITERATURE_REFRESH_DATE,
     NON_OPERATIONAL_USAGE_STATEMENT,
     build_open_challenge_pack,
 )
+from active_fractal_rabbit.multiplicity_ledger import run_and_write_multiplicity_ledger
 from active_fractal_rabbit.sota_program_harness import (
     CANONICAL_LANES,
     DEFAULT_BOOT_SEED,
@@ -271,11 +273,6 @@ def _seed_pack_project(root: Path) -> None:
     (runs / "aif_regime_search.json").write_text(
         json.dumps(aif_payload) + "\n", encoding="utf-8"
     )
-    gate_payload = dict(aif_payload)
-    gate_payload["schema"] = "active-fractal-rabbit-aif-regime-sota-gate-v1"
-    (runs / "aif_regime_sota_gate.json").write_text(
-        json.dumps(gate_payload) + "\n", encoding="utf-8"
-    )
     (runs / "fair_inference_external_realizations.json").write_text(
         json.dumps(
             {
@@ -299,6 +296,113 @@ def _seed_pack_project(root: Path) -> None:
     (data / "manuscript_variable_provenance.json").write_text(
         json.dumps({"status": "passed", "n_tokens": 12}) + "\n", encoding="utf-8"
     )
+    _seed_joint_diagnostics(root)
+
+
+def _seed_joint_diagnostics(root: Path) -> None:
+    """Bind the existing deterministic pack rows as a complete diagnostic family."""
+    runs = root / "output" / "runs"
+    lane = "reporting_gap_adversarial"
+    grid_path = runs / "sota_program_robustness_grid.json"
+    grid = {
+        "run_parameters": {"lanes": [lane], "n_boot": 2000},
+        "diagnostic_lanes": {
+            lane: {
+                "one_sided_p": 0.9,
+                "mean_difference_nats_fair_minus_aif": -0.02,
+                "clustered_ci_low": -0.1,
+                "clustered_ci_high": 0.1,
+                "aif_beats_strongest_fair": False,
+                "n_holdout_travellers": 6,
+            }
+        },
+        "all_diagnostic_lanes_scored": True,
+        "expected_cell_count": 1,
+        "scored_cell_count": 1,
+        "profile_count": 1,
+        "profile_draw_identity_count": 1,
+        "lane_statuses": [{"lane": lane, "status": "scored"}],
+        "leaderboard_csv_sha256": hashlib.sha256(
+            (runs / "sota_program_robustness_grid.csv").read_bytes()
+        ).hexdigest(),
+    }
+    grid_path.write_text(json.dumps(grid))
+    gate_path = runs / "sota_program_gate.json"
+    gate = json.loads(gate_path.read_text())
+    gate["run_parameters"].update(
+        diagnostic_lanes=[lane],
+        diagnostic_artifact_sha256=hashlib.sha256(grid_path.read_bytes()).hexdigest(),
+    )
+    gate_path.write_text(json.dumps(gate))
+    search_path = runs / "aif_regime_search.json"
+    search = json.loads(search_path.read_text())
+    regime_id = next(iter(search["regime_summaries"]))
+    row = grid["diagnostic_lanes"][lane]
+    seeds = [20260625]
+    diagnostic_csv = runs / "aif_regime_diagnostic_repetitions.csv"
+    diagnostic_csv.write_bytes((runs / "aif_regime_search.csv").read_bytes())
+    summary = {
+        "gate_clears": False,
+        "eligible_for_regime_sota": False,
+        "n_realizations": len(seeds),
+        "realization_seeds": seeds,
+        "one_sided_p_max": row["one_sided_p"],
+        "mean_advantage_nats": row["mean_difference_nats_fair_minus_aif"],
+        "min_advantage_nats": row["mean_difference_nats_fair_minus_aif"],
+        "min_clustered_ci_low": row["clustered_ci_low"],
+    }
+    search.update(
+        claim="Deterministic challenge-pack input fixture; no scientific qualification.",
+        run_parameters={"n_boot": 2000},
+        regime_definitions={},
+        realization_summaries=[],
+        leaderboard_columns=[],
+        blocked_candidate_families=[],
+        diagnostic_repetitions={
+            "run_parameters": {
+                "regime_ids": [regime_id],
+                "realization_seeds": seeds,
+                "n_boot": 2000,
+            },
+            "regime_summaries": {regime_id: summary},
+            "realization_summaries": [
+                {
+                    "regime_id": regime_id,
+                    "realization_seed": seeds[0],
+                    "one_sided_p": row["one_sided_p"],
+                    "realization_clears": False,
+                }
+            ],
+            "expected_realization_count": len(seeds),
+            "scored_realization_count": len(seeds),
+            "all_realizations_scored": True,
+            "leaderboard_csv_sha256": hashlib.sha256(
+                diagnostic_csv.read_bytes()
+            ).hexdigest(),
+        },
+    )
+    search_path.write_text(json.dumps(search))
+    (runs / "aif_regime_sota_gate.json").write_text(
+        json.dumps(
+            regime_gate_payload(
+                search,
+                search_artifact_sha256=hashlib.sha256(
+                    search_path.read_bytes()
+                ).hexdigest(),
+            )
+        )
+    )
+    (runs / "partial_observability_analysis.json").write_text(
+        json.dumps(
+            {
+                "cross_realization_n_draws": 5,
+                "cross_realization_sign_stable_under_noise": True,
+                "cross_realization_min_fraction_positive_under_noise": 1.0,
+                "max_noise_advantage_nats": 0.7,
+            }
+        )
+    )
+    run_and_write_multiplicity_ledger(root)
 
 
 def test_challenge_pack_records_non_operational_boundary_and_blocked_foundation_rows(
@@ -394,6 +498,16 @@ def test_challenge_pack_records_non_operational_boundary_and_blocked_foundation_
         (tmp_path / "output" / "runs" / "sota_task_contract.json").read_bytes()
     ).hexdigest()
     assert contract_artifact["sha256"] == expected_digest
+    diagnostic_artifact = artifacts_by_path[
+        "output/runs/aif_regime_diagnostic_repetitions.csv"
+    ]
+    assert diagnostic_artifact["exists"] is True
+    assert (
+        diagnostic_artifact["sha256"]
+        == hashlib.sha256(
+            (tmp_path / diagnostic_artifact["path"]).read_bytes()
+        ).hexdigest()
+    )
 
 
 def test_challenge_pack_rejects_noncanonical_sota_program_artifact(tmp_path) -> None:
@@ -416,3 +530,72 @@ def test_challenge_pack_rejects_malformed_required_artifact(tmp_path) -> None:
 
     with pytest.raises(ValueError, match="invalid JSON"):
         build_open_challenge_pack(tmp_path)
+
+
+def test_scope23_contract_pack_requires_current_diagnostic_family_and_bound_csv(
+    tmp_path,
+):
+    _seed_pack_project(tmp_path)
+    runs = tmp_path / "output/runs"
+    ledger_path = runs / "multiplicity_ledger.json"
+    ledger_path.unlink()
+    with pytest.raises(ValueError, match="multiplicity_ledger"):
+        build_open_challenge_pack(tmp_path)
+    run_and_write_multiplicity_ledger(tmp_path)
+    path = build_open_challenge_pack(tmp_path)
+    payload = json.loads(path.read_text())
+    evidence = payload["sota_program_robustness_diagnostics"]
+    assert evidence["joint_multiplicity"]["current"] is True
+    assert evidence["joint_multiplicity"]["diagnostic_comparison_ids"] == [
+        "aif_regime_diagnostic::identity_emission_collapse",
+        "sota_diagnostic::reporting_gap_adversarial",
+    ]
+    assert (
+        evidence["profile_count"]
+        == evidence["expected_cell_count"]
+        == evidence["scored_cell_count"]
+        == 1
+    )
+    assert payload["claim_gate"]["status"] == "sota_not_cleared"
+    assert payload["aif_regime_sota_gate"]["gate_clears"] is False
+    artifacts = {row["path"]: row for row in payload["source_artifacts"]}
+    for name in [
+        "aif_regime_diagnostic_repetitions.csv",
+        "aif_regime_sota_gate.json",
+        "sota_program_robustness_grid.csv",
+        "multiplicity_ledger.json",
+    ]:
+        artifact = artifacts[f"output/runs/{name}"]
+        assert artifact["exists"] is True
+        assert (
+            artifact["sha256"] == hashlib.sha256((runs / name).read_bytes()).hexdigest()
+        )
+
+
+@pytest.mark.parametrize(
+    "name,damage",
+    [
+        ("sota_program_robustness_grid.csv", "missing"),
+        ("sota_program_robustness_grid.csv", "changed"),
+        ("aif_regime_diagnostic_repetitions.csv", "missing"),
+        ("aif_regime_diagnostic_repetitions.csv", "changed"),
+        ("aif_regime_sota_gate.json", "missing"),
+        ("aif_regime_sota_gate.json", "mismatched"),
+    ],
+)
+def test_scope23_contract_pack_rejects_incomplete_or_mismatched_companions(
+    tmp_path, name, damage
+):
+    _seed_pack_project(tmp_path)
+    path = tmp_path / "output/runs" / name
+    if damage == "missing":
+        path.unlink()
+    elif damage == "mismatched":
+        gate = json.loads(path.read_text())
+        gate["gate_clears"] = not gate["gate_clears"]
+        path.write_text(json.dumps(gate))
+    else:
+        path.write_text(path.read_text() + "\n")
+    with pytest.raises(ValueError):
+        build_open_challenge_pack(tmp_path)
+    assert not (tmp_path / "output/runs/open_challenge_pack.json").exists()

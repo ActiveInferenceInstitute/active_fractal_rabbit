@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 from pathlib import Path
 
 try:
@@ -11,7 +12,6 @@ except ImportError:  # pragma: no cover - only hit when run as a standalone scri
 from active_fractal_rabbit.multiplicity_ledger import (  # noqa: E402
     DEFAULT_ALPHA,
     DEFAULT_FDR_Q,
-    build_multiplicity_ledger,
     run_and_write_multiplicity_ledger,
 )
 
@@ -30,15 +30,16 @@ def main() -> int:
     parser.add_argument(
         "--out-dir", default=None, help="defaults to <root>/output/runs"
     )
+    parser.add_argument("--runs-dir", default=None, help="input artifacts; independent of --out-dir")
     parser.add_argument("--alpha", type=float, default=DEFAULT_ALPHA)
     parser.add_argument("--fdr-q", type=float, default=DEFAULT_FDR_Q)
     args = parser.parse_args()
 
     root = Path(args.project_root)
-    payload = build_multiplicity_ledger(root, alpha=args.alpha, fdr_q=args.fdr_q)
     path = run_and_write_multiplicity_ledger(
-        root, out_dir=args.out_dir, alpha=args.alpha, fdr_q=args.fdr_q
+        root, out_dir=args.out_dir, alpha=args.alpha, fdr_q=args.fdr_q, runs_dir=args.runs_dir
     )
+    payload = json.loads(path.read_text(encoding="utf-8"))
 
     print(str(path))
     print()
