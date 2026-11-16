@@ -8,8 +8,8 @@ import pytest
 
 from active_fractal_rabbit.aif_regime_search import run_and_write_aif_regime_search
 from active_fractal_rabbit.manuscript_variables import (
-    compute_variables,
     _require_canonical_sota_program,
+    compute_variables,
 )
 from active_fractal_rabbit.robustness import write_variance_bands
 from active_fractal_rabbit.variable_provenance import (

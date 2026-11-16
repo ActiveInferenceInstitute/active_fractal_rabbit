@@ -4,7 +4,6 @@ import os
 from pathlib import Path
 
 import numpy as np
-
 from png_fixtures import synthetic_png_bytes
 
 import active_fractal_rabbit.render_freshness as freshness

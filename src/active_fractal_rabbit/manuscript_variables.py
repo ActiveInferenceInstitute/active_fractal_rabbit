@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
+import csv
 import importlib.metadata as dist_metadata
 import json
-from pathlib import Path
-import csv
 import math
 import os
 import subprocess
+from pathlib import Path
 
 from .config import load_config
 from .sota_program_harness import canonical_run_parameter_violations

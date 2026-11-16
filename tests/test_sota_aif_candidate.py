@@ -25,8 +25,8 @@ from active_fractal_rabbit.sota_aif_candidate import (
     DEFAULT_BOOST_GRID,
     DEFAULT_GAMMA_GRID,
     PrecisionReturnAIFCandidate,
-    _precision_weight_belief,
     _online_transition_from_observations,
+    _precision_weight_belief,
     _train_only_dataset,
     _visited_from_observations,
     fit_aif_candidate,
@@ -219,9 +219,9 @@ def test_fit_only_sees_train_travellers_not_evaluation_holdout() -> None:
     TRAIN travellers; the evaluation holdout travellers are NEVER scored during fitting."""
     ds = _dataset(n_travellers=24)
     inner = _train_only_dataset(ds)
-    eval_holdout_travs = set(int(t) for t in ds.travellers[ds.is_holdout])
-    inner_val_travs = set(int(t) for t in ds.travellers[inner.is_holdout])
-    train_travs = set(int(t) for t in ds.travellers[~ds.is_holdout])
+    eval_holdout_travs = {int(t) for t in ds.travellers[ds.is_holdout]}
+    inner_val_travs = {int(t) for t in ds.travellers[inner.is_holdout]}
+    train_travs = {int(t) for t in ds.travellers[~ds.is_holdout]}
     # the inner validation set is non-empty, a strict subset of TRAIN, and disjoint from
     # the evaluation holdout
     assert inner_val_travs
@@ -329,7 +329,7 @@ def test_grids_contain_baseline_fallback_points() -> None:
 def test_fit_requires_enough_train_travellers() -> None:
     ds = _dataset(n_travellers=2)
     # with 2 travellers the split may leave <2 train travellers; the inner split must fail loud
-    train = set(int(t) for t in ds.travellers[~ds.is_holdout])
+    train = {int(t) for t in ds.travellers[~ds.is_holdout]}
     if len(train) < 2:
         with pytest.raises(ValueError):
             _train_only_dataset(ds)

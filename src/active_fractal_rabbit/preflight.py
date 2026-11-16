@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-import importlib.metadata as metadata
 import shutil
 import subprocess
+from importlib import metadata
 
 
 def preflight_status() -> dict[str, str]:

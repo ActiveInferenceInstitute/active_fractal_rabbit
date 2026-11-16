@@ -22,6 +22,12 @@ import numpy as np
 import pytest
 
 from active_fractal_rabbit.config import load_config
+from active_fractal_rabbit.sota_neural import (
+    SOTA_NEURAL_SCHEMA,
+    MlpNextCellCandidate,
+    MlpWeights,
+    train_mlp_candidate,
+)
 from active_fractal_rabbit.sota_program import (
     Candidate,
     HardFilterCandidate,
@@ -31,12 +37,6 @@ from active_fractal_rabbit.sota_program import (
     build_partial_observability_dataset,
     paired_loss_difference_ci,
     score_candidate,
-)
-from active_fractal_rabbit.sota_neural import (
-    SOTA_NEURAL_SCHEMA,
-    MlpNextCellCandidate,
-    MlpWeights,
-    train_mlp_candidate,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -67,8 +67,8 @@ def test_candidate_implements_protocol_and_scores() -> None:
     assert scored.n_scored_steps > 0
     assert np.isfinite(scored.pooled_mean_loss)
     # only holdout travellers are scored
-    holdout_travs = set(int(t) for t in ds.travellers[ds.is_holdout])
-    assert set(int(t) for t in scored.step_travellers).issubset(holdout_travs)
+    holdout_travs = {int(t) for t in ds.travellers[ds.is_holdout]}
+    assert {int(t) for t in scored.step_travellers}.issubset(holdout_travs)
 
 
 def test_schema_constant_is_versioned() -> None:
@@ -151,12 +151,12 @@ def test_prediction_depends_only_on_the_belief() -> None:
     ds = _dataset(n_travellers=16)
     cand = train_mlp_candidate(ds)
     belief = ds.emission[3, :] / ds.emission[3, :].sum()
-    base_kw = dict(
-        n_states=ds.n_states,
-        transition=ds.transition,
-        emission=ds.emission,
-        belief=belief,
-    )
+    base_kw = {
+        "n_states": ds.n_states,
+        "transition": ds.transition,
+        "emission": ds.emission,
+        "belief": belief,
+    }
     ctx_a = PredictContext(
         past_observations=np.array([3], dtype=int),
         prev_observation=3,

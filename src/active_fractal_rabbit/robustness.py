@@ -4,10 +4,10 @@ from __future__ import annotations
 
 import json
 import subprocess
+from collections.abc import Callable, Iterable
 from dataclasses import replace
 from pathlib import Path
 from statistics import median
-from typing import Callable, Iterable
 
 
 def empirical_interval(values: Iterable[float]) -> dict[str, float]:

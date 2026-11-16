@@ -168,7 +168,7 @@ class FractalRabbitRunner:
     def prepare(self) -> Path:
         """Clone/check out the pinned source and build the executable jar."""
 
-        java_exe, java_home = self._check_external_requirements()
+        _java_exe, java_home = self._check_external_requirements()
         env = os.environ | {"JAVA_HOME": str(java_home)}
         self.config.cache_dir.mkdir(parents=True, exist_ok=True)
         if not self.source_dir.exists():

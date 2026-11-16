@@ -5,32 +5,32 @@ import json
 import shutil
 from pathlib import Path
 
-import active_fractal_rabbit.release as release
+from active_fractal_rabbit import release
 from active_fractal_rabbit.active_sensing import run_and_write_active_sensing
 from active_fractal_rabbit.adaptive_aif_ablation import (
     run_and_write_adaptive_aif_ablation,
 )
-from active_fractal_rabbit.anomaly import run_and_write_anomaly
 from active_fractal_rabbit.aif_deepening import run_and_write_aif_deepening_candidates
 from active_fractal_rabbit.aif_regime_search import run_and_write_aif_regime_search
 from active_fractal_rabbit.aif_sweep import run_and_write_aif_sweep
+from active_fractal_rabbit.anomaly import run_and_write_anomaly
 from active_fractal_rabbit.anticipatory import run_and_write_anticipatory
-from active_fractal_rabbit.claim_audit import write_claim_audit
 from active_fractal_rabbit.challenge_pack import build_open_challenge_pack
 from active_fractal_rabbit.circadian_phase import run_and_write_circadian_phase
+from active_fractal_rabbit.claim_audit import write_claim_audit
 from active_fractal_rabbit.confound_taxonomy import run_and_write_confound_taxonomy
 from active_fractal_rabbit.cover_art import render_cover_art
-from active_fractal_rabbit.forward_gates import run_and_write_forward_gates
-from active_fractal_rabbit.frontier import run_and_write_frontier
-from active_fractal_rabbit.fractal_dimension import (
-    run_and_write_fractal_dimension_sweep,
-)
 from active_fractal_rabbit.fair_inference import (
     REQUIRED_EXTERNAL_REALIZATION_IDS,
     run_and_write_fair_inference,
     write_fair_external_realizations,
 )
 from active_fractal_rabbit.figures import generate_figures
+from active_fractal_rabbit.forward_gates import run_and_write_forward_gates
+from active_fractal_rabbit.fractal_dimension import (
+    run_and_write_fractal_dimension_sweep,
+)
+from active_fractal_rabbit.frontier import run_and_write_frontier
 from active_fractal_rabbit.hardened_anomaly import run_and_write_hardened_anomaly
 from active_fractal_rabbit.manuscript_variables import write_variables
 from active_fractal_rabbit.mission_collection import run_and_write_mission_collection
@@ -38,17 +38,11 @@ from active_fractal_rabbit.model_comparison import run_and_write_model_compariso
 from active_fractal_rabbit.model_gates import run_and_write_model_gates
 from active_fractal_rabbit.model_spec import run_and_write_model_conformance
 from active_fractal_rabbit.negative_controls import run_negative_controls
-from active_fractal_rabbit.pipeline import run_pipeline_from_path
 from active_fractal_rabbit.partial_observability import (
     run_and_write_partial_observability,
 )
+from active_fractal_rabbit.pipeline import run_pipeline_from_path
 from active_fractal_rabbit.power_analysis import run_and_write_power_analysis
-from active_fractal_rabbit.regime_mechanism_synthesis import (
-    run_and_write_regime_mechanism_synthesis,
-)
-from active_fractal_rabbit.regime_switch_phase_diagnostic import (
-    run_and_write_regime_switch_phase_diagnostic,
-)
 from active_fractal_rabbit.privacy_frontier import run_and_write_privacy_frontier
 from active_fractal_rabbit.privacy_utility_frontier import (
     run_and_write_privacy_utility_frontier,
@@ -57,10 +51,16 @@ from active_fractal_rabbit.privacy_utility_repeats import (
     run_and_write_privacy_utility_repeats,
 )
 from active_fractal_rabbit.pymdp_benchmark import write_pymdp_benchmark_matrix
+from active_fractal_rabbit.regime_mechanism_synthesis import (
+    run_and_write_regime_mechanism_synthesis,
+)
+from active_fractal_rabbit.regime_switch_phase_diagnostic import (
+    run_and_write_regime_switch_phase_diagnostic,
+)
 from active_fractal_rabbit.release import (
+    RELEASE_MANIFEST_SCHEMA,
     REQUIRED_PUBLICATION_PATHS,
     REQUIRED_RELEASE_PATHS,
-    RELEASE_MANIFEST_SCHEMA,
     build_release_manifest,
     sha256_file,
     verify_release_manifest,
@@ -80,10 +80,10 @@ from active_fractal_rabbit.spatial_resolution_frontier import (
     run_and_write_spatial_resolution_frontier,
 )
 from active_fractal_rabbit.structure_recovery import run_and_write_structure_recovery
+from active_fractal_rabbit.sweeps import run_replicated_sensitivity
 from active_fractal_rabbit.synthetic_task_utility_privacy import (
     run_and_write_synthetic_task_utility_privacy,
 )
-from active_fractal_rabbit.sweeps import run_replicated_sensitivity
 from active_fractal_rabbit.visual_claim_audit import write_visual_claim_audit
 from active_fractal_rabbit.visual_quality import write_visual_quality_audit
 

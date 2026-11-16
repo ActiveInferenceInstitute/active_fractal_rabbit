@@ -67,12 +67,12 @@ def test_emission_matrix_is_the_known_symmetric_channel() -> None:
 def test_generator_shape_and_disjoint_locked_split() -> None:
     ds = _dataset(n_travellers=24, bins=6)
     assert ds.n_states == 36  # 6x6 grid of spatial cells
-    assert set(int(t) for t in ds.travellers) == set(range(24))
+    assert {int(t) for t in ds.travellers} == set(range(24))
     # observed and latent align in length and index order
     assert ds.observed.shape == ds.latent.shape == ds.travellers.shape
     # holdout is keyed on traveller identity: no traveller crosses the split
-    holdout_travs = set(int(t) for t in ds.travellers[ds.is_holdout])
-    train_travs = set(int(t) for t in ds.travellers[~ds.is_holdout])
+    holdout_travs = {int(t) for t in ds.travellers[ds.is_holdout]}
+    train_travs = {int(t) for t in ds.travellers[~ds.is_holdout]}
     assert holdout_travs and train_travs
     assert holdout_travs.isdisjoint(train_travs)
     # transition is column-stochastic (transition[next, prev])
@@ -116,8 +116,8 @@ def test_scorer_shapes_and_per_traveller_pooling() -> None:
     )
     assert scored.n_scored_steps > 0
     # scored travellers are exactly the holdout travellers
-    holdout_travs = set(int(t) for t in ds.travellers[ds.is_holdout])
-    assert set(int(t) for t in scored.step_travellers).issubset(holdout_travs)
+    holdout_travs = {int(t) for t in ds.travellers[ds.is_holdout]}
+    assert {int(t) for t in scored.step_travellers}.issubset(holdout_travs)
     # pooled mean equals the mean of the per-step losses
     assert abs(scored.pooled_mean_loss - float(scored.step_losses.mean())) < 1e-12
     # per-traveller means reconstruct from the step losses

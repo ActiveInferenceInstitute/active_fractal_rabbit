@@ -49,8 +49,10 @@ from typing import Protocol, runtime_checkable
 
 import numpy as np
 
-from .partial_observability import DEFAULT_EPS_LEVELS  # noqa: F401  (re-exported regime grid)
-from .partial_observability import realize_noisy_observations
+from .partial_observability import (
+    DEFAULT_EPS_LEVELS,  # noqa: F401  (re-exported regime grid)
+    realize_noisy_observations,
+)
 from .power_analysis import (
     generate_synthetic_sequence,
     traveller_clustered_bootstrap_stats,

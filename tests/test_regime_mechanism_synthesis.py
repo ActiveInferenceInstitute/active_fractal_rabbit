@@ -20,15 +20,15 @@ from active_fractal_rabbit.regime_mechanism_synthesis import (
 ROOT = Path(__file__).resolve().parents[1]
 CONFIG = ROOT / "configs" / "default.yaml"
 
-_BASE_KWARGS = dict(
-    eligible_for_regime_sota=True,
-    mean_advantage_nats=0.05,
-    ci_low=0.01,
-    ci_high=0.09,
-    holm_survives=True,
-    clears_battery=True,
-    is_mobile=True,
-)
+_BASE_KWARGS = {
+    "eligible_for_regime_sota": True,
+    "mean_advantage_nats": 0.05,
+    "ci_low": 0.01,
+    "ci_high": 0.09,
+    "holm_survives": True,
+    "clears_battery": True,
+    "is_mobile": True,
+}
 
 
 def test_mechanism_verdict_negative_control_is_trivial_regardless_of_numbers() -> None:

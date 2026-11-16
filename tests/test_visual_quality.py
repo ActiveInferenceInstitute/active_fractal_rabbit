@@ -376,13 +376,14 @@ def test_figure_sources_do_not_reintroduce_tiny_font_literals() -> None:
                 if keyword.arg != "fontsize":
                     continue
                 value = keyword.value
-                if isinstance(value, ast.Constant) and isinstance(
-                    value.value, (int, float)
+                if (
+                    isinstance(value, ast.Constant)
+                    and isinstance(value.value, (int, float))
+                    and float(value.value) < 15.0
                 ):
-                    if float(value.value) < 15.0:
-                        violations.append(
-                            f"{source_path.relative_to(root)}:{value.lineno} fontsize={value.value}"
-                        )
+                    violations.append(
+                        f"{source_path.relative_to(root)}:{value.lineno} fontsize={value.value}"
+                    )
 
     assert violations == []
 

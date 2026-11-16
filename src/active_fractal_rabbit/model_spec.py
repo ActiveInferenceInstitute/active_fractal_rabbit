@@ -17,9 +17,9 @@ specification and a check; no mobility claim is made.
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 from pathlib import Path
-import json
 
 import numpy as np
 
@@ -567,12 +567,12 @@ def run_and_write_model_conformance(
     sequence = discretize_observations(
         parse_waypoint_csv(config.fractalrabbit.fixture_csv), config.inference
     )
-    sizes = dict(
-        num_spatial_states=sequence.num_spatial_states,
-        num_time_bins=sequence.num_time_bins,
-        num_speed_categories=sequence.num_speed_categories,
-        num_burst_categories=sequence.num_burst_categories,
-    )
+    sizes = {
+        "num_spatial_states": sequence.num_spatial_states,
+        "num_time_bins": sequence.num_time_bins,
+        "num_speed_categories": sequence.num_speed_categories,
+        "num_burst_categories": sequence.num_burst_categories,
+    }
     single = build_pomdp(
         sequence, config.inference.model.smoothing, config.inference.model.controls
     )

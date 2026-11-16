@@ -29,6 +29,7 @@ an advantage — partial observability with a noisy emission.
 
 from __future__ import annotations
 
+import itertools
 import math
 
 import numpy as np
@@ -202,7 +203,7 @@ def noisy_emission_advantage(
     )
     noisy = [r for r in rows if r["eps"] > 0.0]
     advs = [r["aif_advantage_over_hard_nats"] for r in rows]
-    monotone = all(b >= a - 1e-6 for a, b in zip(advs, advs[1:]))
+    monotone = all(b >= a - 1e-6 for a, b in itertools.pairwise(advs))
     max_row = max(rows, key=lambda r: r["eps"])
     # Quantify "grows with noise" as a single number: OLS slope (nats per unit eps) of the mean
     # advantage against the noise level, with the trend R^2. Deterministic given fixed seeds.
@@ -335,9 +336,9 @@ def cross_realization_noisy_emission_advantage(
 
     noisy = [row for row in summary_rows if float(row["eps"]) > 0.0]
     means = [float(row["mean_advantage_nats"]) for row in summary_rows]
-    monotone = all(b >= a - 1e-9 for a, b in zip(means, means[1:]))
+    monotone = all(b >= a - 1e-9 for a, b in itertools.pairwise(means))
     return {
-        "cross_realization_n_draws": int(len(generator_seeds)),
+        "cross_realization_n_draws": len(generator_seeds),
         "cross_realization_n_travellers": int(n_travellers),
         "cross_realization_rows": summary_rows,
         "cross_realization_draw_rows": draw_rows,
@@ -401,9 +402,9 @@ def run_and_write_partial_observability(config_path, observations_path, out_path
         payload["external_lane"] = {
             "status": "completed",
             "source": str(external_path),
-            "n_observations": int(len(external_sequence.observations)),
-            "n_travellers": int(
-                len({row.traveller_id for row in external_sequence.observations})
+            "n_observations": len(external_sequence.observations),
+            "n_travellers": len(
+                {row.traveller_id for row in external_sequence.observations}
             ),
             "analysis": external_result,
             "boundary": (

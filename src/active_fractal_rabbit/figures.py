@@ -7,13 +7,13 @@ import hashlib
 import json
 from pathlib import Path
 
-import matplotlib.pyplot as plt
 import matplotlib
+import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib import patches
 from matplotlib import patheffects as path_effects
 from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.lines import Line2D
-import numpy as np
 
 from .config import DEFAULT_FIGURES, DEFAULT_PALETTE
 from .figure_style import (
@@ -28,9 +28,13 @@ from .figure_style import (
     TICK_FONT_SIZE,
     editorial_palette,
     font_contract_payload,
-    gate_status_color as _atlas_status_color,
-    gate_verdict_label as _atlas_label,
     manuscript_rcparams,
+)
+from .figure_style import (
+    gate_status_color as _atlas_status_color,
+)
+from .figure_style import (
+    gate_verdict_label as _atlas_label,
 )
 from .sota_program_figures import sota_program_leaderboard_summary
 from .types import FigureRegistryEntry
@@ -6486,7 +6490,7 @@ def _model_comparison_under_noise(
     chance_loss = summary.get("chance_loss_nats")
     if isinstance(chance_loss, int | float) and np.isfinite(float(chance_loss)):
         chance_loss = float(chance_loss)
-        chance_cells = int(round(float(np.exp(chance_loss))))
+        chance_cells = round(float(np.exp(chance_loss)))
         ax.axvline(
             chance_loss,
             color=palette.get("gray", "#888888"),

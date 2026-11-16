@@ -166,7 +166,7 @@ def run_heldout_reporting_process(
         test = traveller == value
         if test.any() and (~test).any():
             loto_folds.append((~test, test))
-    cut = int(round(0.7 * n_intervals))
+    cut = round(0.7 * n_intervals)
     order = np.arange(n_intervals)
     temporal_train = order < cut
     temporal_folds = [(temporal_train, ~temporal_train)]

@@ -15,11 +15,11 @@ foundation-model SOTA claims.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, replace
 import json
-from pathlib import Path
 import time
-from typing import Callable
+from collections.abc import Callable
+from dataclasses import dataclass, replace
+from pathlib import Path
 
 import numpy as np
 
@@ -402,7 +402,7 @@ def run_regime_search(
         "boot_seed": int(boot_seed),
         "regime_ids": list(regime_ids),
         "realization_seeds": [int(seed) for seed in realization_seeds],
-        "n_realizations": int(len(list(realization_seeds))),
+        "n_realizations": len(list(realization_seeds)),
         "canonical": _is_canonical_regime_search(
             n_travellers=n_travellers,
             spatial_bins=inference_config.spatial_bins,
@@ -944,21 +944,21 @@ def _is_canonical_regime_search(
 
 
 __all__ = [
-    "AIF_REGIME_SEARCH_SCHEMA",
     "AIF_REGIME_GATE_SCHEMA",
     "AIF_REGIME_SEARCH_HEADER",
+    "AIF_REGIME_SEARCH_SCHEMA",
     "CANONICAL_AIF_REGIMES",
-    "DEFAULT_AIF_REGIME_N_TRAVELLERS",
     "DEFAULT_AIF_REGIME_N_BOOT",
+    "DEFAULT_AIF_REGIME_N_TRAVELLERS",
     "DEFAULT_AIF_REGIME_REALIZATION_SEEDS",
-    "RegimeSpec",
     "RegimeRealizationResult",
+    "RegimeSpec",
     "build_aif_regime_specs",
     "build_regime_dataset",
-    "score_regime_realization",
-    "run_regime_search",
-    "regime_search_rows",
-    "write_regime_search_csv",
     "gate_payload",
+    "regime_search_rows",
     "run_and_write_aif_regime_search",
+    "run_regime_search",
+    "score_regime_realization",
+    "write_regime_search_csv",
 ]

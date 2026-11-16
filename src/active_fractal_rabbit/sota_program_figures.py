@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from math import isfinite
 
-
 SOTA_PROGRAM_FIGURE_SCHEMA = "active-fractal-rabbit-sota-program-figure-adapter-v1"
 
 

@@ -9,8 +9,8 @@ tradeoff while keeping higher resolutions available as stress settings.
 
 from __future__ import annotations
 
-from dataclasses import replace
 import json
+from dataclasses import replace
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -129,7 +129,7 @@ def run_spatial_resolution_frontier(
         "best_feasible_row": best_feasible,
         "best_full_location_fit_row": best_full_location,
         "best_no_location_recovery_row": best_no_location,
-        "strict_feasible_candidate_count": int(len(strict_feasible)),
+        "strict_feasible_candidate_count": len(strict_feasible),
         "best_feasible_is_strict": bool(strict_feasible),
         "default_minus_coarse": default_minus_coarse,
         "selection_rules": {

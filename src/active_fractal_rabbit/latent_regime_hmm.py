@@ -144,7 +144,7 @@ def run_latent_regime_hmm_analysis(
     markov = float(bar["switching_hmm_mean_predictive_loss"])
 
     # temporal held-out split over segments (fit on the first ~70%, score the rest)
-    cut = max(1, int(round(0.7 * len(segments))))
+    cut = max(1, round(0.7 * len(segments)))
     train_segments = segments[:cut]
 
     rows = []

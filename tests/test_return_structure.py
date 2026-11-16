@@ -3,11 +3,11 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
+from active_fractal_rabbit.anticipatory import _brier_on_all
 from active_fractal_rabbit.config import load_config
 from active_fractal_rabbit.fractalrabbit import parse_waypoint_csv
-from active_fractal_rabbit.observations import discretize_observations
-from active_fractal_rabbit.anticipatory import _brier_on_all
 from active_fractal_rabbit.inference import run_latent_inference
+from active_fractal_rabbit.observations import discretize_observations
 from active_fractal_rabbit.pomdp import build_pomdp
 from active_fractal_rabbit.return_structure import (
     conditional_entropy_reduction,

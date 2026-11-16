@@ -80,15 +80,15 @@ def lock_traveller_split(
     rng = np.random.default_rng(seed)
     shuffled = unique.copy()
     rng.shuffle(shuffled)
-    n_holdout = max(1, int(round(holdout_fraction * unique.size)))
+    n_holdout = max(1, round(holdout_fraction * unique.size))
     n_holdout = min(n_holdout, unique.size - 1)  # keep at least one train traveller
-    holdout_ids = set(int(t) for t in shuffled[:n_holdout])
+    holdout_ids = {int(t) for t in shuffled[:n_holdout]}
     is_holdout = np.array([int(t) in holdout_ids for t in travellers], dtype=bool)
     return {
         "seed": int(seed),
         "holdout_fraction": float(holdout_fraction),
         "n_travellers": int(unique.size),
-        "n_holdout_travellers": int(len(holdout_ids)),
+        "n_holdout_travellers": len(holdout_ids),
         "holdout_traveller_ids": sorted(holdout_ids),
         "is_holdout": is_holdout,
         "n_train_steps": int((~is_holdout).sum()),
@@ -212,7 +212,7 @@ def _score_predictor(
         "loss_ci_high": ci_high,
         "brier_score": float(np.mean(brier)),
         "ece": _ece(conf, hit, n_calib_bins),
-        "n_scored_steps": int(len(losses)),
+        "n_scored_steps": len(losses),
     }
 
 

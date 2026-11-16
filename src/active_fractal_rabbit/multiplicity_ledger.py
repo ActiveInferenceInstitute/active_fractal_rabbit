@@ -267,7 +267,7 @@ def _partial_observability_entry(
     # How many unanimous draws the sign-test alone would need to clear that threshold —
     # an actionable, derived target, not a claim that the result currently requires it.
     min_draws = (
-        int(math.ceil(math.log(bonferroni_threshold) / math.log(0.5)))
+        math.ceil(math.log(bonferroni_threshold) / math.log(0.5))
         if 0.0 < bonferroni_threshold < 1.0
         else None
     )

@@ -35,6 +35,7 @@ candidate and its honest fitter.
 
 from __future__ import annotations
 
+import itertools
 from dataclasses import dataclass, field
 
 import numpy as np
@@ -123,7 +124,7 @@ def _online_transition_from_observations(
         where=totals > 0.0,
     )
     counts = np.zeros_like(context.transition, dtype=float)
-    for prev, nxt in zip(post[:-1], post[1:]):
+    for prev, nxt in itertools.pairwise(post):
         counts += np.outer(nxt, prev)
     column_totals = counts.sum(axis=0, keepdims=True)
     local = np.divide(
@@ -225,8 +226,8 @@ def _train_only_dataset(
     # chosen by a fixed-seed permutation so the fit is reproducible and split-stable.
     rng = np.random.default_rng(20260616)
     order = rng.permutation(train_travs)
-    n_val = max(1, int(round(0.4 * order.size)))
-    val_travs = set(int(t) for t in order[:n_val])
+    n_val = max(1, round(0.4 * order.size))
+    val_travs = {int(t) for t in order[:n_val]}
     inner_holdout = np.array([int(t) in val_travs for t in travellers], dtype=bool)
     inner_train = (~is_holdout) & (~inner_holdout)
     counts = np.full(

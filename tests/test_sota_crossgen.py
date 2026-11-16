@@ -79,9 +79,9 @@ def test_gravity_waypoints_are_deterministic() -> None:
 
 def test_gravity_generator_rejects_degenerate_inputs() -> None:
     for bad in (
-        dict(n_travellers=1),
-        dict(n_travellers=4, n_places=1),
-        dict(n_travellers=4, n_reports=1),
+        {"n_travellers": 1},
+        {"n_travellers": 4, "n_places": 1},
+        {"n_travellers": 4, "n_reports": 1},
     ):
         try:
             generate_gravity_waypoints(**{"seed": 2026, **bad})
@@ -96,12 +96,12 @@ def test_gravity_generator_rejects_degenerate_inputs() -> None:
 def test_gravity_dataset_shape_and_disjoint_locked_split() -> None:
     ds = _dataset(n_travellers=24, bins=6)
     assert ds.n_states == 36  # 6x6 grid of spatial cells (spatial_bins ** 2)
-    assert set(int(t) for t in ds.travellers) == set(range(24))
+    assert {int(t) for t in ds.travellers} == set(range(24))
     # observed and latent align in length and index order
     assert ds.observed.shape == ds.latent.shape == ds.travellers.shape
     # holdout is keyed on traveller identity: no traveller crosses the split
-    holdout_travs = set(int(t) for t in ds.travellers[ds.is_holdout])
-    train_travs = set(int(t) for t in ds.travellers[~ds.is_holdout])
+    holdout_travs = {int(t) for t in ds.travellers[ds.is_holdout]}
+    train_travs = {int(t) for t in ds.travellers[~ds.is_holdout]}
     assert holdout_travs and train_travs
     assert holdout_travs.isdisjoint(train_travs)
     # transition is column-stochastic (transition[next, prev])
@@ -168,8 +168,8 @@ def test_spine_candidates_score_on_gravity_dataset() -> None:
         assert scored.n_scored_steps > 0
         assert np.isfinite(scored.pooled_mean_loss)
         # scored travellers are a subset of the holdout travellers
-        holdout_travs = set(int(t) for t in ds.travellers[ds.is_holdout])
-        assert set(int(t) for t in scored.step_travellers).issubset(holdout_travs)
+        holdout_travs = {int(t) for t in ds.travellers[ds.is_holdout]}
+        assert {int(t) for t in scored.step_travellers}.issubset(holdout_travs)
 
 
 def test_uniform_candidate_loss_equals_log_n_on_gravity() -> None:
@@ -203,7 +203,7 @@ def test_peeking_candidate_cannot_win_on_gravity() -> None:
 def test_paired_difference_ci_is_well_formed_on_gravity() -> None:
     ds = _dataset()
     soft = score_candidate(ds, SoftFilterCandidate())
-    hard, observed_markov = (score_candidate(ds, c) for c in reference_baselines())
+    hard, _observed_markov = (score_candidate(ds, c) for c in reference_baselines())
     ci = paired_loss_difference_ci(soft, hard, n_boot=500)
     expected = soft.pooled_mean_loss - hard.pooled_mean_loss
     assert abs(ci.mean_difference_nats - expected) < 1e-9

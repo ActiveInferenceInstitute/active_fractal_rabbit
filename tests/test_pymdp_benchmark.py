@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import importlib.metadata as metadata
 import json
+from importlib import metadata
 from pathlib import Path
 
 import pytest

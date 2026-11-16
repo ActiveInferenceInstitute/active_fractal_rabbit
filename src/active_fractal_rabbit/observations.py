@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import itertools
 from collections import defaultdict
 
 import numpy as np
@@ -175,7 +176,7 @@ def _speed_intervals_and_first_observation(
     intervals = np.zeros(len(observations), dtype=float)
     is_first_observation = np.ones(len(observations), dtype=bool)
     for rows in by_traveller.values():
-        for (_, previous), (idx, current) in zip(rows, rows[1:]):
+        for (_, previous), (idx, current) in itertools.pairwise(rows):
             is_first_observation[idx] = False
             dt = max(current.days - previous.days, 0.0)
             intervals[idx] = dt

@@ -138,7 +138,7 @@ def run_sequence_baseline_analysis(
     return {
         "schema": SEQUENCE_BASELINE_SCHEMA,
         "status": "completed",
-        "n_observations": int(len(cells)),
+        "n_observations": len(cells),
         "n_scored_steps": n_scored,
         "n_states": n_states,
         "smoothing": float(smoothing),

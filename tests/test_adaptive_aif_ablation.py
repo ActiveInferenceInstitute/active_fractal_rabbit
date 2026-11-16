@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from active_fractal_rabbit.adaptive_aif_ablation import run_adaptive_aif_ablation
 import pytest
+
+from active_fractal_rabbit.adaptive_aif_ablation import run_adaptive_aif_ablation
 
 
 def test_adaptive_ablation_is_scored_and_honestly_bounded() -> None:

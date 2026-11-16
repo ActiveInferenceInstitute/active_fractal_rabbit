@@ -138,7 +138,7 @@ def run_return_phase_prior_analysis(
         "schema": RETURN_PHASE_PRIOR_SCHEMA,
         "status": "completed",
         "verdict": verdict,
-        "n_observations": int(len(cells)),
+        "n_observations": len(cells),
         "n_scored_steps": n_scored,
         "n_states": n_states,
         "n_phases": n_phases,
