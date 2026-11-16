@@ -77,9 +77,7 @@ def test_spatial_resolution_frontier_selects_4x4_tradeoff(tmp_path) -> None:
     assert "larger_best_feasible_is_strict" in confirmation["comparison"]
     assert len(confirmation["sample_size_ladder"]) == 2
     assert confirmation["sample_size_ladder_summary"]["multipliers"] == [2, 4]
-    assert (
-        confirmation["sample_size_ladder_summary"]["largest_n_observations"] == 9600
-    )
+    assert confirmation["sample_size_ladder_summary"]["largest_n_observations"] == 9600
     assert confirmation_observations.read_text(encoding="utf-8").count("\n") == 9601
     assert (tmp_path / "larger_sample" / "2x_observations.csv").is_file()
     assert (tmp_path / "larger_sample" / "4x_observations.csv").is_file()

@@ -150,9 +150,7 @@ def test_all_hooks_pass_on_a_consistent_tree(tmp_path):
         payload["n_verified_live_state"] + payload["n_verified_documented"]
         == payload["n_verified"]
     )
-    assert (
-        payload["n_verified_documented"] == 2
-    )  # long-memory, multiscale (doc-grade)
+    assert payload["n_verified_documented"] == 2  # long-memory, multiscale (doc-grade)
     assert payload["n_verified_live_state"] == payload["n_verified"] - 2
     assert "verified against live state" in payload["verdict"]
 

@@ -582,7 +582,11 @@ def test_manifest_on_real_project_covers_release_groups(repo_sandbox) -> None:
         config,
         root / "output" / "runs" / "spatial_resolution_frontier.json",
         root / "output" / "runs" / "spatial_resolution_larger_sample_confirmation.json",
-        root / "output" / "runs" / "spatial_resolution_larger_sample" / "observations.csv",
+        root
+        / "output"
+        / "runs"
+        / "spatial_resolution_larger_sample"
+        / "observations.csv",
         sample_multipliers=(2, 4),
         candidate_bins=(3, 4),
         pymdp_validation_steps=2,

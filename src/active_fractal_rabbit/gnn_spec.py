@@ -59,7 +59,9 @@ REQUIRED_SECTIONS: tuple[str, ...] = (
     "Connections",
 )
 
-_VAR_RE = re.compile(r"^(?P<name>[A-Za-z_\u03c0][A-Za-z0-9_\u03c0]*)\[(?P<dims>[^\]]*)\]")
+_VAR_RE = re.compile(
+    r"^(?P<name>[A-Za-z_\u03c0][A-Za-z0-9_\u03c0]*)\[(?P<dims>[^\]]*)\]"
+)
 _CONNECTION_RE = re.compile(
     r"^(?P<src>[A-Za-z_\u03c0][A-Za-z0-9_\u03c0]*)"
     r"(?P<op>[>\-])"

@@ -224,10 +224,7 @@ def compute_variables(project_root: str | Path | None = None) -> dict[str, str]:
         root / "output" / "runs" / "spatial_resolution_frontier.json", {}
     )
     spatial_resolution_confirmation = _read_json(
-        root
-        / "output"
-        / "runs"
-        / "spatial_resolution_larger_sample_confirmation.json",
+        root / "output" / "runs" / "spatial_resolution_larger_sample_confirmation.json",
         {},
     )
     return_phase_prior = _read_json(
@@ -810,9 +807,7 @@ def compute_variables(project_root: str | Path | None = None) -> dict[str, str]:
         "AIF_DEEPENING_PROTOCOL_CANDIDATES": _fmt(
             aif_deepening.get("scored_protocol_candidate_count", 0)
         ),
-        "ADAPTIVE_AIF_REALIZATIONS": _fmt(
-            adaptive_aif.get("realization_count", 0)
-        ),
+        "ADAPTIVE_AIF_REALIZATIONS": _fmt(adaptive_aif.get("realization_count", 0)),
         "ADAPTIVE_AIF_MEAN_GAIN": _fmt(
             adaptive_aif.get("adaptive_improvement_nats", 0.0)
         ),

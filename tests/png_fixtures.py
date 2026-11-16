@@ -23,9 +23,7 @@ def synthetic_png_bytes(
     figure = Figure(figsize=(width_px / 100.0, height_px / 100.0), dpi=100)
     canvas = FigureCanvasAgg(figure)
     axis = figure.add_subplot(111)
-    values = [
-        math.sin(2.0 * math.pi * (index / 511.0 + phase)) for index in range(512)
-    ]
+    values = [math.sin(2.0 * math.pi * (index / 511.0 + phase)) for index in range(512)]
     axis.plot(range(512), values)
     axis.set_title(f"synthetic audit fixture {phase:g}")
     buffer = io.BytesIO()

@@ -1373,7 +1373,9 @@ def verify_token_provenance(
     if expected_specs is not None:
         expected_tokens = [spec.token for spec in expected_specs]
         if entry_tokens != expected_tokens:
-            raise ProvenanceError("provenance entries do not match the required token set")
+            raise ProvenanceError(
+                "provenance entries do not match the required token set"
+            )
         for entry, spec in zip(entries, expected_specs):
             if (
                 str(entry.get("path")) != spec.path
@@ -1382,7 +1384,9 @@ def verify_token_provenance(
                 or str(entry.get("formatter")) != spec.formatter
                 or bool(entry.get("optional", False)) != spec.optional
             ):
-                raise ProvenanceError(f"provenance specification drift for {spec.token}")
+                raise ProvenanceError(
+                    f"provenance specification drift for {spec.token}"
+                )
     root = _verification_root(provenance_path, Path(payload["project_root"]))
     checked: list[str] = []
     for entry in entries:

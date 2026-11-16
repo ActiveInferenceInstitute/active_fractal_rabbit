@@ -59,9 +59,7 @@ def run_adaptive_aif_ablation(
         fixed = score_candidate(dataset, fixed_fit.candidate)
         adaptive = score_candidate(dataset, adaptive_fit.candidate)
         fair = score_candidate(dataset, OnlineBaseRateCandidate())
-        fixed_ci = paired_loss_difference_ci(
-            fixed, adaptive, n_boot=n_boot, seed=7
-        )
+        fixed_ci = paired_loss_difference_ci(fixed, adaptive, n_boot=n_boot, seed=7)
         fair_ci = paired_loss_difference_ci(fair, adaptive, n_boot=n_boot, seed=11)
         rows.append(
             {
@@ -102,7 +100,9 @@ def run_adaptive_aif_ablation(
     improvements = np.asarray(
         [row["fixed_minus_adaptive_nats"] for row in rows], dtype=float
     )
-    fair_gaps = np.asarray([row["fair_minus_adaptive_nats"] for row in rows], dtype=float)
+    fair_gaps = np.asarray(
+        [row["fair_minus_adaptive_nats"] for row in rows], dtype=float
+    )
     representative = rows[0]
     fixed = representative["fixed"]
     adaptive = representative["adaptive"]
@@ -167,5 +167,7 @@ def run_and_write_adaptive_aif_ablation(
     )
     out = root / "output/runs/adaptive_aif_ablation.json"
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    out.write_text(
+        json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     return out

@@ -90,7 +90,9 @@ def render_cover_art(
     _draw_title_band(ax, palette, n_reports, n_travellers)
     _draw_lattice(ax, observations, features, bins, palette)
     _draw_model_regime_map(ax, palette)
-    _draw_evidence_boundary(ax, palette, model_gates, forward_gates, efe, linkage, poisoning)
+    _draw_evidence_boundary(
+        ax, palette, model_gates, forward_gates, efe, linkage, poisoning
+    )
     _draw_metrics(
         ax,
         palette,
@@ -469,11 +471,25 @@ def _draw_model_regime_map(ax, palette: dict[str, str]) -> None:
         )
         ax.add_patch(
             patches.Rectangle(
-                (x, y - 0.047), 0.012, 0.103, facecolor=color, edgecolor="none", zorder=4
+                (x, y - 0.047),
+                0.012,
+                0.103,
+                facecolor=color,
+                edgecolor="none",
+                zorder=4,
             )
         )
-        ax.text(x + 0.025, y + 0.031, tag, fontsize=10.5, fontweight="bold", color=color)
-        ax.text(x + 0.025, y + 0.006, lead, fontsize=14, fontweight="bold", color=palette["ink"])
+        ax.text(
+            x + 0.025, y + 0.031, tag, fontsize=10.5, fontweight="bold", color=color
+        )
+        ax.text(
+            x + 0.025,
+            y + 0.006,
+            lead,
+            fontsize=14,
+            fontweight="bold",
+            color=palette["ink"],
+        )
         ax.text(x + 0.025, y - 0.021, models, fontsize=11.5, color=palette["ink"])
         ax.text(x + 0.217, y - 0.021, boundary, fontsize=10.5, color=palette["muted"])
 
@@ -508,7 +524,9 @@ def _draw_evidence_boundary(
             linewidth=1.4,
         )
     )
-    ax.text(0.575, 0.307, "EVIDENCE BOUNDARY", fontsize=9.5, fontweight="bold", color=color)
+    ax.text(
+        0.575, 0.307, "EVIDENCE BOUNDARY", fontsize=9.5, fontweight="bold", color=color
+    )
     ax.text(
         0.575,
         0.287,

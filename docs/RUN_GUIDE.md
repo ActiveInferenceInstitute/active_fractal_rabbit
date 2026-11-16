@@ -10,7 +10,7 @@ into prose.
 
 | Arm | Command | What it runs | CI step |
 | --- | --- | --- | --- |
-| `lint` | `./run.sh lint` | `ruff check .` with the pinned dev dependency | `gate` → Lint |
+| `lint` | `./run.sh lint` | `ruff check .` and `ruff format --check src tests` with the pinned dev dependency | `gate` → Lint |
 | `test` | `./run.sh test` | Fast suite: `pytest tests/ -m "not requires_fractalrabbit and not slow" --no-cov -q` | `gate` → Fast tests |
 | `test-full` | `./run.sh test-full` | Documented gate: `pytest tests/ --cov=src --cov-fail-under=90` | `gate` → Full tests with the coverage floor |
 | `docs` | `./run.sh docs` | Relative-link check plus the generated-timings contract | `gate` → Documentation links and generated timing contract |
@@ -45,9 +45,9 @@ coverage floor; it is the arm to run before landing.
 - **`types`.** This repository configures no type checker: there is no mypy or
   pyright configuration or dependency in `pyproject.toml`. Adding a `types` arm
   would introduce a new gate, not expose an existing one.
-- **`format`.** `ruff format --check` currently reports files that would be
-  reformatted, and formatting is not part of the documented gate. `lint` is
-  `ruff check` only, so the arm matches the existing code state.
+
+The lint arm checks formatting for `src` and `tests`. To apply it locally,
+run `uv run --frozen --extra dev ruff format src tests`.
 
 ## Documentation arm
 

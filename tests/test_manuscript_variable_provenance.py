@@ -490,8 +490,8 @@ def test_gnn_variables_come_from_the_shared_reader_runtime(
     runtime = tmp_path / "python"
     runtime.write_text(
         "#!/bin/sh\n"
-        "printf '%s' '{\"gnn_pin_path\": \".github/gnn-pin.json\", "
-        "\"gnn_commit\": \"75c834bd8519dc7b5adc4d24f16bf393cfd1ecdf\"}'\n",
+        'printf \'%s\' \'{"gnn_pin_path": ".github/gnn-pin.json", '
+        '"gnn_commit": "75c834bd8519dc7b5adc4d24f16bf393cfd1ecdf"}\'\n',
         encoding="utf-8",
     )
     runtime.chmod(0o755)

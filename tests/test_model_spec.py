@@ -140,9 +140,7 @@ def test_model_card_and_artifact_render(tmp_path: Path) -> None:
     assert "| `location` | 16 | cell |" in docs_card
     assert "| `location` | 9 | cell |" not in docs_card
 
-    out = run_and_write_model_conformance(
-        CONFIG, tmp_path / "model_conformance.json"
-    )
+    out = run_and_write_model_conformance(CONFIG, tmp_path / "model_conformance.json")
     payload = json.loads(out.read_text(encoding="utf-8"))
     assert payload["schema"] == MODEL_SPEC_SCHEMA
     assert payload["status"] == "pass"
@@ -241,10 +239,7 @@ def test_factorial_conformance_rejects_wrong_transition_shape() -> None:
         factorial_spec(**_sizes(sequence)),
     )
     assert report["conforms"] is False
-    assert any(
-        not c["passed"] and c["check"] == "B[0]_shape"
-        for c in report["checks"]
-    )
+    assert any(not c["passed"] and c["check"] == "B[0]_shape" for c in report["checks"])
 
 
 def test_conformance_rejects_missing_tensors_and_control_drift() -> None:
@@ -292,9 +287,7 @@ def test_conformance_rejects_missing_tensors_and_control_drift() -> None:
     )
     assert factorial_report["conforms"] is False
     failed = {
-        item["check"]
-        for item in factorial_report["checks"]
-        if not item["passed"]
+        item["check"] for item in factorial_report["checks"] if not item["passed"]
     }
     assert {"B_count", "C_count", "D_count"} <= failed
 

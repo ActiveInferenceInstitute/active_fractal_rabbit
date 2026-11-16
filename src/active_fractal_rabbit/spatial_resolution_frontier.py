@@ -268,7 +268,11 @@ def run_and_write_larger_sample_confirmation(
             largest_observations_path = observations_path
             largest_comparison = comparison
 
-    if largest_frontier is None or largest_observations_path is None or largest_comparison is None:
+    if (
+        largest_frontier is None
+        or largest_observations_path is None
+        or largest_comparison is None
+    ):
         raise ValueError("sample_multipliers must contain at least one multiplier")
     stability = _sample_size_ladder_summary(ladder)
     payload = {
@@ -293,7 +297,9 @@ def run_and_write_larger_sample_confirmation(
     }
     out = Path(out_path)
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    out.write_text(
+        json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
 
     primary_payload["larger_sample_confirmation"] = {
         **largest_comparison,
@@ -306,9 +312,7 @@ def run_and_write_larger_sample_confirmation(
         "sample_size_ladder_summary": stability,
         "n_observations": int(largest_frontier["n_observations"]),
         "n_travellers": int(largest_frontier["n_travellers"]),
-        "reports_per_traveller": int(
-            largest_frontier["max_reports_per_traveller"]
-        ),
+        "reports_per_traveller": int(largest_frontier["max_reports_per_traveller"]),
         "best_feasible_bins": int(
             largest_frontier["best_feasible_row"]["spatial_bins"]
         ),
@@ -712,7 +716,7 @@ def _sentinel_indices(n_steps: int, max_steps: int) -> tuple[int, ...]:
 
 
 def _sample_summary(
-    observations: tuple[WaypointObservation, ...]
+    observations: tuple[WaypointObservation, ...],
 ) -> dict[str, int | float]:
     counts: dict[int, int] = {}
     for row in observations:
@@ -731,7 +735,10 @@ def _confirmation_multipliers(
     sample_multiplier: int, sample_multipliers: tuple[int, ...] | None
 ) -> tuple[int, ...]:
     requested = sample_multipliers or DEFAULT_CONFIRMATION_SAMPLE_MULTIPLIERS
-    if sample_multipliers is None and sample_multiplier != DEFAULT_CONFIRMATION_SAMPLE_MULTIPLIER:
+    if (
+        sample_multipliers is None
+        and sample_multiplier != DEFAULT_CONFIRMATION_SAMPLE_MULTIPLIER
+    ):
         requested = (sample_multiplier,)
     multipliers = tuple(dict.fromkeys(int(item) for item in requested))
     if not multipliers:
@@ -753,9 +760,9 @@ def _selection_summary(
     fit_gap = float(default_row["full_location_mean_predictive_loss"]) - float(
         best_feasible["full_location_mean_predictive_loss"]
     )
-    no_location_delta = float(default_row["no_location_mean_mass_on_true_cell"]) - float(
-        coarse_row["no_location_mean_mass_on_true_cell"]
-    )
+    no_location_delta = float(
+        default_row["no_location_mean_mass_on_true_cell"]
+    ) - float(coarse_row["no_location_mean_mass_on_true_cell"])
     return {
         "default_is_fully_occupied": int(default_row["empty_state_count"]) == 0,
         "default_is_best_feasible_fit": int(default_row["spatial_bins"])
@@ -818,7 +825,9 @@ def _sample_size_ladder_summary(ladder: list[dict[str, object]]) -> dict[str, ob
 
 def _compact_frontier_summary(payload: dict[str, object]) -> dict[str, object]:
     default = (
-        payload.get("default_row", {}) if isinstance(payload.get("default_row"), dict) else {}
+        payload.get("default_row", {})
+        if isinstance(payload.get("default_row"), dict)
+        else {}
     )
     best = (
         payload.get("best_feasible_row", {})
@@ -833,9 +842,7 @@ def _compact_frontier_summary(payload: dict[str, object]) -> dict[str, object]:
     return {
         "n_observations": int(payload.get("n_observations", 0) or 0),
         "n_travellers": int(payload.get("n_travellers", 0) or 0),
-        "reports_per_traveller": int(
-            payload.get("max_reports_per_traveller", 0) or 0
-        ),
+        "reports_per_traveller": int(payload.get("max_reports_per_traveller", 0) or 0),
         "verdict": str(payload.get("verdict", "unavailable")),
         "default_spatial_bins": int(payload.get("default_spatial_bins", 0) or 0),
         "default_state_count": int(default.get("state_count", 0) or 0),
