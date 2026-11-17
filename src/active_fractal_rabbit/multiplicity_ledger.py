@@ -36,6 +36,7 @@ it is a multiplicity audit of synthetic software measurements on the pinned gene
 from __future__ import annotations
 
 import json
+import hashlib
 import math
 from dataclasses import dataclass
 from pathlib import Path
@@ -63,7 +64,7 @@ class Comparison:
     """One directional AIF-vs-fair comparison drawn from the live artifacts."""
 
     comparison_id: str
-    family: str  # "aif_regime" | "sota_lane"
+    family: str
     description: str
     mean_advantage_nats: (
         float  # loss(strongest_fair) - loss(aif); positive => AIF better
@@ -138,32 +139,53 @@ def benjamini_hochberg_adjusted_pvalues(pvalues: list[float]) -> list[float]:
     return result
 
 
-def _read_json(path: Path) -> dict:
-    if not path.is_file():
-        raise MultiplicityLedgerError(f"missing comparison artifact: {path}")
+def read_comparison_artifact(path: Path, *, expected_sha256: str | None = None) -> dict:
+    """Read one JSON object, optionally bound to an already checked family."""
     try:
-        data = json.loads(path.read_text(encoding="utf-8"))
-    except json.JSONDecodeError as exc:  # pragma: no cover - defensive
+        raw = path.read_bytes()
+    except OSError as exc:
+        raise MultiplicityLedgerError(
+            f"missing or unreadable comparison artifact: {path}"
+        ) from exc
+    if (
+        expected_sha256 is not None
+        and hashlib.sha256(raw).hexdigest() != expected_sha256
+    ):
+        raise MultiplicityLedgerError(
+            f"comparison artifact changed after family validation: {path}"
+        )
+    try:
+        data = json.loads(raw)
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
         raise MultiplicityLedgerError(f"malformed artifact {path}: {exc}") from exc
-    if not isinstance(data, dict):  # pragma: no cover - defensive
+    if not isinstance(data, dict):
         raise MultiplicityLedgerError(f"artifact {path} is not a JSON object")
     return data
+
+
+def _artifact_sha256(path: Path) -> str:
+    try:
+        with path.open("rb") as stream:
+            return hashlib.file_digest(stream, "sha256").hexdigest()
+    except OSError as exc:
+        raise MultiplicityLedgerError(
+            f"missing or unreadable comparison artifact: {path}"
+        ) from exc
 
 
 def enumerate_comparison_family(runs_dir: str | Path) -> list[Comparison]:
     """Deterministically enumerate every AIF-vs-fair comparison that reports a bootstrap p.
 
-    The rule (no hand-picking): one comparison per regime in ``aif_regime_search.json`` that
-    exposes ``one_sided_p_max``, plus one comparison per lane in ``sota_program_gate.json``
-    that exposes ``one_sided_p``. A regime or lane that does not carry the p-value field is
-    omitted with no silent default — the enumerator must FIRE (drop the comparison) so a stale
-    artifact cannot inflate the family with placeholder significance.
+    Canonical p-bearing comparisons and every declared diagnostic cell/regime enter
+    one family, including losers and negative controls. Artifacts without any
+    diagnostic declaration remain readable; declared diagnostics must be complete
+    and bound to the current producer artifact, never silently omitted.
     """
 
     runs = Path(runs_dir)
     comparisons: list[Comparison] = []
 
-    regime = _read_json(runs / "aif_regime_search.json")
+    regime = read_comparison_artifact(runs / "aif_regime_search.json")
     regime_run_parameters = regime.get("run_parameters", {})
     regime_n_boot = (
         int(regime_run_parameters["n_boot"])
@@ -198,7 +220,7 @@ def enumerate_comparison_family(runs_dir: str | Path) -> list[Comparison]:
             )
         )
 
-    sota = _read_json(runs / "sota_program_gate.json")
+    sota = read_comparison_artifact(runs / "sota_program_gate.json")
     sota_run_parameters = sota.get("run_parameters", {})
     sota_n_boot = (
         int(sota_run_parameters["n_boot"])
@@ -237,6 +259,12 @@ def enumerate_comparison_family(runs_dir: str | Path) -> list[Comparison]:
             )
         )
 
+    try:
+        comparisons.extend(_diagnostic_comparisons(runs, regime, sota))
+    except (KeyError, TypeError, ValueError) as exc:
+        raise MultiplicityLedgerError(
+            f"incomplete diagnostic comparisons; regenerate producers: {exc}"
+        ) from exc
     if not comparisons:
         raise MultiplicityLedgerError(
             "no AIF-vs-fair comparisons exposed a one-sided bootstrap p-value; "
@@ -245,13 +273,180 @@ def enumerate_comparison_family(runs_dir: str | Path) -> list[Comparison]:
     return comparisons
 
 
+def comparison_source_hashes(runs_dir: str | Path) -> dict[str, str]:
+    runs = Path(runs_dir)
+    regime = read_comparison_artifact(runs / "aif_regime_search.json")
+    sota = read_comparison_artifact(runs / "sota_program_gate.json")
+    names = ["aif_regime_search.json", "sota_program_gate.json"]
+    if (
+        "diagnostic_lanes" in sota.get("run_parameters", {})
+        or (runs / "sota_program_robustness_grid.json").is_file()
+    ):
+        names.extend(
+            [
+                "sota_program_robustness_grid.json",
+                "sota_program_robustness_grid.csv",
+            ]
+        )
+    if "diagnostic_repetitions" in regime:
+        names.extend(
+            [
+                "aif_regime_sota_gate.json",
+                "aif_regime_diagnostic_repetitions.csv",
+            ]
+        )
+    return {name: _artifact_sha256(runs / name) for name in names}
+
+
+def _diagnostic_comparisons(runs: Path, regime: dict, sota: dict) -> list[Comparison]:
+    comparisons = []
+    parameters = sota.get("run_parameters", {})
+    grid_path = runs / "sota_program_robustness_grid.json"
+    if "diagnostic_lanes" in parameters or grid_path.is_file():
+        expected = parameters["diagnostic_lanes"]
+        grid = read_comparison_artifact(grid_path)
+        if _artifact_sha256(grid_path) != parameters.get("diagnostic_artifact_sha256"):
+            raise ValueError("SOTA diagnostic artifact is stale or unbound")
+        if _artifact_sha256(runs / "sota_program_robustness_grid.csv") != grid.get(
+            "leaderboard_csv_sha256"
+        ):
+            raise ValueError("SOTA diagnostic CSV is stale or unbound")
+        rows = grid["diagnostic_lanes"]
+        run = grid["run_parameters"]
+        if (
+            not expected
+            or len(set(expected)) != len(expected)
+            or set(rows) != set(expected)
+            or run["lanes"] != expected
+            or grid["expected_cell_count"] != len(expected)
+            or grid["scored_cell_count"] != len(expected)
+            or not grid["all_diagnostic_lanes_scored"]
+        ):
+            raise ValueError("SOTA diagnostic cell set is incomplete")
+        for lane_id in sorted(rows):
+            lane = rows[lane_id]
+            comparisons.append(
+                Comparison(
+                    comparison_id=f"sota_diagnostic::{lane_id}",
+                    family="sota_diagnostic",
+                    description=f"Diagnostic existing-profile AIF-vs-fair comparison {lane_id}",
+                    mean_advantage_nats=float(
+                        lane["mean_difference_nats_fair_minus_aif"]
+                    ),
+                    clustered_ci_low=float(lane["clustered_ci_low"]),
+                    clustered_ci_high=float(lane["clustered_ci_high"]),
+                    one_sided_p=float(lane["one_sided_p"]),
+                    individually_clears=bool(lane["aif_beats_strongest_fair"]),
+                    n_holdout_travellers=int(lane["n_holdout_travellers"]),
+                    n_boot=int(run["n_boot"]),
+                )
+            )
+    if "diagnostic_repetitions" in regime:
+        from .aif_regime_search import gate_payload
+
+        search_digest = _artifact_sha256(runs / "aif_regime_search.json")
+        regime_gate = read_comparison_artifact(runs / "aif_regime_sota_gate.json")
+        if regime_gate != gate_payload(regime, search_artifact_sha256=search_digest):
+            raise ValueError(
+                "AIF regime gate is stale or inconsistent with its search family"
+            )
+        diagnostic = regime["diagnostic_repetitions"]
+        if _artifact_sha256(
+            runs / "aif_regime_diagnostic_repetitions.csv"
+        ) != diagnostic.get("leaderboard_csv_sha256"):
+            raise ValueError("AIF diagnostic CSV is stale or unbound")
+        run = diagnostic["run_parameters"]
+        ids, seeds = run["regime_ids"], run["realization_seeds"]
+        realizations = diagnostic["realization_summaries"]
+        summaries = diagnostic["regime_summaries"]
+        expected = {(name, seed) for name in ids for seed in seeds}
+        actual = {(row["regime_id"], row["realization_seed"]) for row in realizations}
+        if (
+            not ids
+            or not seeds
+            or len(set(ids)) != len(ids)
+            or len(set(seeds)) != len(seeds)
+            or set(summaries) != set(ids)
+            or actual != expected
+            or len(realizations) != len(expected)
+            or diagnostic["expected_realization_count"] != len(expected)
+            or diagnostic["scored_realization_count"] != len(expected)
+            or not diagnostic["all_realizations_scored"]
+        ):
+            raise ValueError("AIF diagnostic repetition set is incomplete")
+        for regime_id in sorted(summaries):
+            summary = summaries[regime_id]
+            rows = [row for row in realizations if row["regime_id"] == regime_id]
+            if (
+                summary["n_realizations"] != len(seeds)
+                or summary["realization_seeds"] != seeds
+                or float(summary[REGIME_P_FIELD])
+                != max(float(row["one_sided_p"]) for row in rows)
+                or bool(summary["gate_clears"])
+                != (
+                    bool(summary["eligible_for_regime_sota"])
+                    and all(bool(row["realization_clears"]) for row in rows)
+                )
+            ):
+                raise ValueError(
+                    f"AIF diagnostic conjunction inconsistent: {regime_id}"
+                )
+            comparisons.append(
+                Comparison(
+                    comparison_id=f"aif_regime_diagnostic::{regime_id}",
+                    family="aif_regime_diagnostic",
+                    description=f"All repeated diagnostic realizations of existing AIF regime {regime_id}",
+                    mean_advantage_nats=float(summary["mean_advantage_nats"]),
+                    min_advantage_nats=float(summary["min_advantage_nats"]),
+                    clustered_ci_low=float(summary["min_clustered_ci_low"]),
+                    one_sided_p=float(summary[REGIME_P_FIELD]),
+                    individually_clears=bool(summary["gate_clears"]),
+                    n_holdout_travellers=None,
+                    n_boot=int(run["n_boot"]),
+                )
+            )
+    return comparisons
+
+
+def diagnostic_family_evidence(runs_dir: str | Path, ledger: dict) -> dict:
+    """Report current joint-family custody, without promoting any scientific gate."""
+    try:
+        comparisons = enumerate_comparison_family(runs_dir)
+        expected = {c.comparison_id for c in comparisons}
+        recorded = {row["comparison_id"] for row in ledger.get("comparisons", [])}
+        hashes = comparison_source_hashes(runs_dir)
+        complete = {
+            "aif_regime_sota_gate.json",
+            "aif_regime_diagnostic_repetitions.csv",
+            "sota_program_robustness_grid.json",
+            "sota_program_robustness_grid.csv",
+        } <= hashes.keys()
+        current = (
+            complete
+            and expected == recorded
+            and len(recorded) == ledger.get("family_size")
+            and hashes == ledger.get("source_artifact_sha256")
+        )
+        ids = sorted(c.comparison_id for c in comparisons if "diagnostic" in c.family)
+        return {
+            "status": "current_joint_family" if current else "unavailable_or_stale",
+            "current": current,
+            "diagnostic_comparison_ids": ids,
+            "diagnostic_comparison_count": len(ids),
+            "family_size": len(expected),
+            "source_artifact_sha256": ledger.get("source_artifact_sha256", {}),
+        }
+    except (OSError, MultiplicityLedgerError, KeyError, TypeError, ValueError) as exc:
+        return {"status": "unavailable_or_stale", "current": False, "reason": str(exc)}
+
+
 def _partial_observability_entry(
     runs_dir: Path, *, family_size: int, alpha: float
 ) -> dict:
     """The fair-by-construction positive, evaluated under its own replication criterion."""
 
     path = runs_dir / "partial_observability_analysis.json"
-    data = _read_json(path)
+    data = read_comparison_artifact(path)
     n_draws = int(data.get("cross_realization_n_draws", 0))
     sign_stable = bool(data.get("cross_realization_sign_stable_under_noise", False))
     min_fraction_positive = float(
@@ -305,11 +500,12 @@ def build_multiplicity_ledger(
     *,
     alpha: float = DEFAULT_ALPHA,
     fdr_q: float = DEFAULT_FDR_Q,
+    runs_dir: str | Path | None = None,
 ) -> dict:
     """Assemble the multiplicity-corrected ledger payload from live artifacts."""
 
     root = Path(project_root)
-    runs = root / "output" / "runs"
+    runs = Path(runs_dir) if runs_dir is not None else root / "output" / "runs"
     comparisons = enumerate_comparison_family(runs)
     comparisons = sorted(comparisons, key=lambda c: c.comparison_id)
 
@@ -367,13 +563,13 @@ def build_multiplicity_ledger(
         # (the honest conjunction floor). A regime clustered_ci_high is DELIBERATELY omitted:
         # min_clustered_ci_low and max_clustered_ci_high come from DIFFERENT realizations, so
         # pairing them would imply a false single-comparison interval.
-        if comp.family == "sota_lane":
+        if comp.family in {"sota_lane", "sota_diagnostic"}:
             rows[-1]["clustered_ci_high"] = (
                 round(comp.clustered_ci_high, 6)
                 if comp.clustered_ci_high is not None
                 else None
             )
-        if comp.family == "aif_regime":
+        if comp.family in {"aif_regime", "aif_regime_diagnostic"}:
             rows[-1]["min_advantage_nats"] = (
                 round(comp.min_advantage_nats, 6)
                 if comp.min_advantage_nats is not None
@@ -477,6 +673,8 @@ def build_multiplicity_ledger(
         "schema": MULTIPLICITY_LEDGER_SCHEMA,
         "alpha": alpha,
         "fdr_q": fdr_q,
+        "input_runs_dir": str(runs.resolve()),
+        "source_artifact_sha256": comparison_source_hashes(runs),
         # Factual descriptors of how each comparison's clustered_ci_low is constructed: a
         # two-sided 95% percentile bootstrap interval whose LOWER edge is the 2.5th percentile.
         # Documentation only — no verdict reads these; the clearance rule is the pipeline's own
@@ -485,8 +683,8 @@ def build_multiplicity_ledger(
         "ci_lower_percentile": 2.5,
         "family_definition": (
             "deterministic enumeration of every AIF-vs-fair comparison that reports a one-sided "
-            "clustered-bootstrap p-value (regimes in aif_regime_search.json + lanes in "
-            "sota_program_gate.json); the family is not hand-selected"
+            "clustered-bootstrap p-value: canonical AIF regimes and SOTA lanes plus every "
+            "declared SOTA diagnostic cell and worst-p AIF diagnostic regime; not hand-selected"
         ),
         "family_size": family_size,
         "n_individually_clearing": n_individually_clearing,
@@ -521,11 +719,14 @@ def run_and_write_multiplicity_ledger(
     *,
     alpha: float = DEFAULT_ALPHA,
     fdr_q: float = DEFAULT_FDR_Q,
+    runs_dir: str | Path | None = None,
 ) -> Path:
     """Build the ledger and write ``multiplicity_ledger.json`` under ``out_dir``."""
 
     root = Path(project_root)
-    payload = build_multiplicity_ledger(root, alpha=alpha, fdr_q=fdr_q)
+    payload = build_multiplicity_ledger(
+        root, alpha=alpha, fdr_q=fdr_q, runs_dir=runs_dir
+    )
     target_dir = Path(out_dir) if out_dir is not None else root / "output" / "runs"
     target_dir.mkdir(parents=True, exist_ok=True)
     path = target_dir / "multiplicity_ledger.json"

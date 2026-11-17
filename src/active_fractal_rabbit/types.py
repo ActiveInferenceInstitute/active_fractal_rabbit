@@ -36,6 +36,34 @@ class FractalRabbitConfig:
 
 
 @dataclass(frozen=True)
+class FractalRabbitBuild:
+    """Measured executable built from an independently checked-out source tree."""
+
+    upstream_repo: str
+    requested_revision: str
+    commit: str
+    tree: str
+    jar_path: Path
+    jar_sha256: str
+    java_executable: Path
+    java_home: Path
+    maven_argv: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class ObservationBundle:
+    """Validated members from one invocation, with explicit companion absence."""
+
+    xy_path: Path
+    xy_sha256: str
+    places_path: Path | None = None
+    places_sha256: str | None = None
+    parameters_path: Path | None = None
+    parameters_sha256: str | None = None
+    build: FractalRabbitBuild | None = None
+
+
+@dataclass(frozen=True)
 class ObservationConfig:
     """Discretization settings for sporadic waypoint observations."""
 

@@ -99,6 +99,46 @@ In summary: The power analysis is a **regime characterization**, not a hypothesi
 
 The manuscript-level comparison family is stricter still: every AIF-versus-fair row that reports a one-sided clustered-bootstrap p-value enters the generated multiplicity ledger, where Holm-Bonferroni is the primary family-wise correction and Benjamini-Hochberg is a secondary false-discovery sensitivity report. These corrections do not upgrade the measurements into population inference. They only prevent a synthetic benchmark with many chances to win from presenting isolated raw p-values as results.
 
+## Complete Diagnostic Families Stay Separate From Canonical Claims
+
+Expanded stressor profiles and regime-search repeats remain diagnostic; they do
+not replace canonical lanes or relax existing split, tuning, or claim rules.
+Their joint multiplicity family includes every declared comparison, including
+losing candidates and every required realization. The AIF writer binds
+`aif_regime_diagnostic_repetitions.csv` in the search JSON and binds the regime
+gate to the emitted search's SHA-256. Shared family validation checks that gate
+against the producer projection, the AIF diagnostic CSV digest, and the existing
+SOTA grid JSON/CSV digests. Missing, changed, mismatched, or incomplete declared
+companions reject ledger construction rather than dropping inconvenient rows.
+
+Current joint-family evidence binds both diagnostic CSVs and the regime gate
+alongside the search, SOTA gate, and grid JSON. Inputs without diagnostic
+declarations remain available for historical audits, not current complete-family
+qualification. Deepening reads gate/repetition fields only against a checked
+current family; otherwise it exposes unavailable/stale custody and no borrowed
+regime/repetition fields. Independently scored adaptation evidence remains
+separate. Challenge packs require/include the AIF diagnostic CSV and use the same
+shared check. Full release coverage includes that CSV and rejects inconsistent
+families even if a manifest has merely rehashed the changed files.
+
+These are the source-authored repair contracts. No regenerated production
+family, passing verification, scientific clearance, or publication authorization
+is established by this source-only continuation; independent parent qualification
+is still required.
+
+A repeated-realization conjunction retains the worst p-value and is blocked by
+any required non-win. Holm-Bonferroni remains the primary correction and
+Benjamini-Hochberg remains the sensitivity report; neither can turn a failed
+conjunction into a cleared result. Diagnostic repetitions are separate from
+online-transition adaptation-trial counts, and neither is an empirical sample
+size or evidence of external validity.
+
+`scripts/21_run_multiplicity_ledger.py` accepts an explicit `--runs-dir` input
+collection independently of `--out-dir`. The diagnostic consumer
+`scripts/26_run_aif_deepening.py` likewise accepts `--runs-dir` independently of
+`--out`. When using a nondefault run collection, pass it explicitly: changing
+the output destination does not select the input evidence.
+
 ## Data and Artifacts Carry the Statistical Surface
 
 The three modules work together:

@@ -3,20 +3,22 @@
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import sys
-from dataclasses import asdict
+import tempfile
+from dataclasses import asdict, replace
 from importlib import metadata
 from pathlib import Path
 
 import numpy as np
 
-from .config import load_config
+from .config import load_config, validate_closed_loop
 from .fractalrabbit import (
+    file_sha256,
     parse_places_csv,
     parse_waypoint_csv,
-    places_csv_for,
-    resolve_observation_csv,
+    resolve_observations,
 )
 from .ground_truth import align_places, place_statistics, state_recovery
 from .inference import (
@@ -39,11 +41,80 @@ from .types import (
 
 
 def run_pipeline(config: ProjectConfig, config_path: str | Path) -> PipelineResult:
-    """Run one configured simulate/observe/infer/score pass."""
+    """Compute privately, then publish a complete run with rollback on failure."""
 
-    run_dir = config.output_dir
-    run_dir.mkdir(parents=True, exist_ok=True)
-    source_csv = resolve_observation_csv(config.fractalrabbit, run_dir)
+    validate_closed_loop(config.closed_loop)
+    config.output_dir.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(
+        prefix=".pipeline-", dir=config.output_dir.parent
+    ) as temporary:
+        staging = Path(temporary)
+        result = _run_pipeline(config, config_path, staging)
+        _publish_run(staging, config.output_dir)
+    return result
+
+
+def _publish_run(staging: Path, destination: Path) -> None:
+    """Replace owned files, committing provenance last; retain backups if rollback fails."""
+
+    files = sorted(
+        staging.iterdir(), key=lambda p: (p.name == "provenance_manifest.json", p.name)
+    )
+    for source in files:
+        target = destination / source.name
+        if not source.is_file() or source.is_symlink():
+            raise ValueError(f"Unexpected staged run member: {source}")
+        if target.is_symlink() or (target.exists() and not target.is_file()):
+            raise ValueError(f"Refusing nonregular run destination: {target}")
+    destination.mkdir(parents=True, exist_ok=True)
+    backup = Path(tempfile.mkdtemp(prefix=".previous-run-", dir=destination.parent))
+    installed: list[Path] = []
+    retain_backup = False
+    try:
+        for source in files:
+            target = destination / source.name
+            if target.exists():
+                shutil.copy2(target, backup / target.name)
+            os.replace(source, target)
+            installed.append(target)
+    except BaseException as failure:
+        errors: list[BaseException] = []
+        for target in reversed(installed):
+            try:
+                previous = backup / target.name
+                if previous.exists():
+                    os.replace(previous, target)
+                else:
+                    target.unlink()
+            except BaseException as error:
+                errors.append(error)
+        if errors:
+            retain_backup = True
+            raise BaseExceptionGroup(
+                f"Run publication/rollback failed; prior bytes retained at {backup}",
+                [failure, *errors],
+            )
+        raise
+    finally:
+        if not retain_backup:
+            shutil.rmtree(backup)
+
+
+def _run_pipeline(
+    config: ProjectConfig, config_path: str | Path, run_dir: Path
+) -> PipelineResult:
+    run_dir = run_dir.resolve()
+
+    def published(path: Path) -> Path:
+        path = path.resolve()
+        return (
+            config.output_dir / path.relative_to(run_dir)
+            if path.is_relative_to(run_dir)
+            else path
+        )
+
+    bundle = resolve_observations(config.fractalrabbit, run_dir)
+    source_csv = bundle.xy_path
     observations = parse_waypoint_csv(source_csv)
     observations_path = run_dir / "observations.csv"
     if source_csv.resolve() != observations_path.resolve():
@@ -75,7 +146,7 @@ def run_pipeline(config: ProjectConfig, config_path: str | Path) -> PipelineResu
     holdout_metrics = _holdout_metrics(config, sequence)
     pymdp_metrics = pymdp_result.metrics if pymdp_result is not None else {}
     ground_truth_metrics, ground_truth_rows = _ground_truth_evaluation(
-        source_csv, sequence, inference, pymdp_result
+        bundle.places_path, sequence, inference, pymdp_result
     )
     objective_metrics, objective_lanes = _objective_evaluation(
         model, sequence, inference, pymdp_result
@@ -115,6 +186,9 @@ def run_pipeline(config: ProjectConfig, config_path: str | Path) -> PipelineResu
         "config_snapshot": run_dir / "config_snapshot.json",
         "provenance_manifest": run_dir / "provenance_manifest.json",
     }
+    if bundle.parameters_path is not None:
+        artifacts["parameters"] = run_dir / "parameters.csv"
+        shutil.copyfile(bundle.parameters_path, artifacts["parameters"])
     _write_json(artifacts["metrics"], metrics)
     _write_json(artifacts["baseline_metrics"], baseline.metrics)
     _write_baseline_trace_csv(artifacts["baseline_trace"], baseline)
@@ -142,8 +216,27 @@ def run_pipeline(config: ProjectConfig, config_path: str | Path) -> PipelineResu
         artifacts["calibration"], objective_lanes, objective_lanes[0]["floors"]
     )
     _write_json(artifacts["config_snapshot"], _jsonable(asdict(config)))
+    observed_commit = (
+        bundle.build.commit
+        if bundle.build is not None
+        else config.fractalrabbit.upstream_commit
+    )
+    receipt = _jsonable(
+        asdict(
+            replace(
+                bundle,
+                xy_path=published(bundle.xy_path),
+                places_path=published(bundle.places_path)
+                if bundle.places_path is not None
+                else None,
+                parameters_path=published(bundle.parameters_path)
+                if bundle.parameters_path is not None
+                else None,
+            )
+        )
+    )
     run_metadata = {
-        "fractalrabbit_commit": config.fractalrabbit.upstream_commit,
+        "fractalrabbit_commit": observed_commit,
         "fractalrabbit_execution": config.fractalrabbit.execution,
         "observation_modalities": model.observation_names,
         "config_path": str(config_path),
@@ -153,24 +246,28 @@ def run_pipeline(config: ProjectConfig, config_path: str | Path) -> PipelineResu
         "engine": config.inference.model.engine,
         "baseline_control": baseline.metrics["baseline_control"],
         "places_available": ground_truth_rows.get("place_ids") is not None,
+        "observation_bundle": receipt,
     }
     _write_json(run_dir / "metadata.json", run_metadata)
     _write_json(
         artifacts["provenance_manifest"],
         {
             "run_id": config.run_id,
-            "source_csv": str(source_csv),
+            "source_csv": str(published(source_csv)),
             "config_path": str(config_path),
             "upstream_repo": config.fractalrabbit.upstream_repo,
-            "upstream_commit": config.fractalrabbit.upstream_commit,
+            "upstream_commit": observed_commit,
+            "configured_upstream_commit": config.fractalrabbit.upstream_commit,
+            "observation_bundle": receipt,
             "software": {
                 "python": sys.version.split()[0],
                 "fractalrabbit": {
                     "repo": config.fractalrabbit.upstream_repo,
-                    "commit": config.fractalrabbit.upstream_commit,
+                    "commit": observed_commit,
+                    "build": receipt["build"],
                     "commit_url": (
                         "https://github.com/NationalSecurityAgency/fractalrabbit/tree/"
-                        f"{config.fractalrabbit.upstream_commit}"
+                        f"{observed_commit}"
                     ),
                     "release_status": "no upstream GitHub releases were available when this manifest schema was added",
                 },
@@ -183,18 +280,23 @@ def run_pipeline(config: ProjectConfig, config_path: str | Path) -> PipelineResu
                 "pyyaml": {"version": _package_version("pyyaml")},
             },
             "execution": config.fractalrabbit.execution,
-            "artifacts": {key: str(path) for key, path in artifacts.items()},
+            "artifacts": {key: str(published(path)) for key, path in artifacts.items()},
+            "artifact_sha256": {
+                key: file_sha256(path)
+                for key, path in artifacts.items()
+                if key != "provenance_manifest"
+            },
         },
     )
     return PipelineResult(
         run_id=config.run_id,
         config_path=Path(config_path).resolve(),
-        output_dir=run_dir,
-        observations_path=observations_path,
+        output_dir=config.output_dir,
+        observations_path=published(observations_path),
         metrics=metrics,
         selected_next_candidate=selected,
         candidate_scores=candidate_scores,
-        artifacts=artifacts,
+        artifacts={key: published(path) for key, path in artifacts.items()},
         metadata=run_metadata,
     )
 
@@ -211,6 +313,7 @@ def score_candidates(
 ) -> tuple[CandidateScore, ...]:
     """Score declared candidates using the measured objective and transparent report-density scaling."""
 
+    validate_closed_loop(config.closed_loop)
     if not config.closed_loop.candidates:
         return ()
     metric_name = _objective_metric(config.closed_loop.objective)
@@ -421,7 +524,9 @@ def _write_pymdp_trace_csv(path: Path, result, controls: tuple[str, ...]) -> Non
     path.write_text("\n".join(rows) + "\n", encoding="utf-8")
 
 
-def _ground_truth_evaluation(source_csv: Path, sequence, inference, pymdp_result):
+def _ground_truth_evaluation(
+    places_path: Path | None, sequence, inference, pymdp_result
+):
     """Score posteriors against the exact true cell; join PLACES when emitted."""
 
     metrics, ref_mass, ref_top1 = state_recovery(
@@ -442,7 +547,6 @@ def _ground_truth_evaluation(source_csv: Path, sequence, inference, pymdp_result
         metrics |= pymdp_metrics
         rows["pymdp_mass"] = pymdp_mass
         rows["pymdp_top1"] = pymdp_top1
-    places_path = places_csv_for(source_csv)
     if places_path is not None:
         place_ids = align_places(sequence.observations, parse_places_csv(places_path))
         metrics |= place_statistics(place_ids)

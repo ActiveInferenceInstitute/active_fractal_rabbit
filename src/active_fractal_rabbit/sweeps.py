@@ -9,7 +9,7 @@ from pathlib import Path
 from statistics import mean, stdev
 from typing import Any
 
-from .config import load_config
+from .config import derived_run, load_config
 from .pipeline import run_pipeline
 from .types import PipelineResult, ProjectConfig
 
@@ -35,12 +35,8 @@ def run_replicated_sensitivity(config_path: str | Path) -> dict[str, Path]:
         if base.fractalrabbit.execution == "fixture"
         else f"_{base.fractalrabbit.execution}"
     )
-    json_path = (
-        base.project_root / "output" / "runs" / f"sensitivity_summary{suffix}.json"
-    )
-    csv_path = (
-        base.project_root / "output" / "runs" / f"sensitivity_summary{suffix}.csv"
-    )
+    json_path = base.output_dir.parent / f"sensitivity_summary{suffix}.json"
+    csv_path = base.output_dir.parent / f"sensitivity_summary{suffix}.csv"
     json_path.write_text(
         json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )
@@ -206,14 +202,13 @@ def _with_run(
         selected_inference,
         model=replace(selected_inference.model, engine="reference"),
     )
-    return replace(
+    if base.fractalrabbit.execution != "fixture":
+        run_id = f"{run_id}_{base.fractalrabbit.execution}"
+    return derived_run(
         base,
-        run_id=run_id,
-        output_dir=base.project_root / "output" / "runs" / run_id,
+        run_id,
         inference=selected_inference,
-        fractalrabbit=fractalrabbit
-        if fractalrabbit is not None
-        else replace(base.fractalrabbit, output_prefix=run_id),
+        fractalrabbit=fractalrabbit,
     )
 
 
@@ -236,6 +231,8 @@ def _summary_payload(
         runs.append(
             {
                 "run_id": result.run_id,
+                "output_dir": str(result.output_dir),
+                "artifacts": {key: str(path) for key, path in result.artifacts.items()},
                 "factors": factors,
                 "factor_metadata": factors,
                 "source_config": str(result.config_path),

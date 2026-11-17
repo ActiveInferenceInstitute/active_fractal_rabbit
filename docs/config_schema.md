@@ -9,7 +9,7 @@ Configuration uses grouped `observation:` and `model:` blocks; the keys below ar
 | --- | --- | --- | --- | --- |
 | root | `run_id` | config stem | string | run directory names, metadata |
 | root | `seed` | `0` | integer | config snapshot, negative-control shuffles (`output/negative_controls/*.csv`) |
-| root | `output_dir` | `output/runs/<run_id>` | path | all run artifacts |
+| root | `output_dir` | `output/runs/<run_id>` | base-run leaf path | base artifacts; its parent owns derived run siblings and summaries |
 | `authors[]` | `orcid` | none | ORCID iD text, e.g. `0000-0001-6232-9096` | PDF cover metadata |
 | `paper` | `date` | empty | empty string for render-day `\today`, or explicit date text | PDF cover date |
 | `paper.cover` | `image` | none | generated image path such as `output/cover/active_fractal_rabbit_cover.png` | PDF cover visual |
@@ -55,13 +55,44 @@ Configuration uses grouped `observation:` and `model:` blocks; the keys below ar
 | `robustness` | `external_realization_fractal_dimensions` | `[1.21, 1.45, 1.7]` | nonempty positive-float sequence | pinned external fair-ladder repeats in `fair_inference_external_realizations.json` |
 | `robustness` | `stop_on_external_unavailable` | `true` | boolean | final-study external-lane confirmation policy |
 
+## Derived Runs Stay in the Configured Collection
+
+`output_dir` is the base-run leaf, not a second collection root. Derived run
+siblings and shared summaries use `base.output_dir.parent`, including sensitivity,
+robustness, fractal-dimension, and negative-control runs. An explicit caller
+`out_path` remains authoritative. Negative-control mutated-input CSV storage is
+separately declared scratch; changing `output_dir` does not relocate the entire
+research tree.
+
+Fixture sensitivity children retain their unsuffixed identities. External
+**sensitivity** children and their simulator output prefixes are lane-qualified
+so those children cannot overwrite fixture sensitivity results or change their
+manuscript-token bindings. This is not general derived-run isolation:
+variance realizations and fractal-dimension children retain shared names when
+fixture and external configurations select the same collection. Use separate
+configured collections or an explicitly supported caller destination for those
+families. Consumers use returned artifact paths rather than reconstructing
+paths under the default `output/runs/` collection.
+
+Full-study downstream stages consume the completed `PipelineResult` observations
+and metrics. If no current external result is available, its downstream outputs
+remain unavailable; previously saved canonical files cannot stand in for that
+result. The external build and observation-bundle requirements are documented in
+[`external_lane.md`](external_lane.md).
+
+Completed-run provenance names the published run leaf, including when the
+configured collection has a symlinked ancestor. Temporary staging paths are
+resolved before bundle members are remapped, so raw observations, companions,
+and parameter snapshots remain readable after publication removes staging.
+
 ## Run Artifacts Feed the Figure Registry Contract
 
 The default fixture lane writes `config_snapshot.json` for the fully resolved dataclass state and `provenance_manifest.json` for the source CSV, upstream pin, and artifact map. Every run writes `ground_truth.csv` (per-step true cell, posterior mass on the
 true cell, and top-1 correctness for each enabled inference lane; plus
-`true_place_id` when the simulator's `*PLACES.csv` ground-truth stream is
-present, which the pipeline auto-detects next to the XY output). The
-`pymdp_trace.csv` artifact carries per-step variational free energy and wall
+`true_place_id` when an aligned simulator `*PLACES.csv` companion is admitted
+with the current observation bundle). Companion absence is explicit; a stale
+neighboring file is not a substitute.
+The `pymdp_trace.csv` artifact carries per-step variational free energy and wall
 time alongside policy posteriors and per-policy expected free energy; runtime
 keys (`*_runtime_*`) are the only intentionally nondeterministic values in
 `metrics.json`. The figure keys `pymdp_diagnostics` and `state_recovery`
@@ -137,7 +168,8 @@ lane-qualified `missingness_model_analysis_fixture.json` /
 `sota_leaderboard.csv`, `sota_claim_gate.json`, `sota_program_gate.json`,
 `sota_program_leaderboard.csv`, `sota_program_robustness_grid.json`,
 `sota_program_robustness_grid.csv`, `aif_regime_search.csv`,
-`aif_regime_search.json`, `aif_regime_sota_gate.json`, `aif_sweep.json`,
+`aif_regime_diagnostic_repetitions.csv`, `aif_regime_search.json`,
+`aif_regime_sota_gate.json`, `aif_sweep.json`,
 `aif_deepening_candidates.json`, `multiplicity_ledger.json`,
 `confound_taxonomy.json`, `regime_mechanism_synthesis.json`,
 `regime_switch_phase_diagnostic.json`,

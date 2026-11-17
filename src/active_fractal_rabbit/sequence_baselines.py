@@ -18,8 +18,7 @@ from pathlib import Path
 import numpy as np
 
 from .config import load_config
-from .fractalrabbit import parse_waypoint_csv
-from .observations import discretize_observations
+from .observation_sources import load_observation_sequence
 from .types import ObservationSequence
 
 SEQUENCE_BASELINE_SCHEMA = "active-fractal-rabbit-sequence-baseline-v1"
@@ -162,15 +161,9 @@ def run_and_write_sequence_baselines(
     """Run the sequence-baseline gate for ``config_path`` and write JSON."""
 
     config = load_config(config_path)
-    if config.fractalrabbit.execution == "fixture":
-        if config.fractalrabbit.fixture_csv is None:
-            raise ValueError("fixture execution requires fixture_csv")
-        obs_path = config.fractalrabbit.fixture_csv
-    else:
-        obs_path = config.output_dir / f"{config.fractalrabbit.output_prefix}XY.csv"
-        if not obs_path.exists():
-            obs_path = config.output_dir / "observations.csv"
-    sequence = discretize_observations(parse_waypoint_csv(obs_path), config.inference)
+    sequence = load_observation_sequence(
+        config, requested_role="sequence-baseline observations"
+    )
     metrics = _read_json(config.output_dir / "metrics.json", {})
     payload = run_sequence_baseline_analysis(
         sequence,

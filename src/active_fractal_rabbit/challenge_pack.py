@@ -13,6 +13,11 @@ import json
 from pathlib import Path
 
 from .release import sha256_file as _sha256
+from .multiplicity_ledger import (
+    MultiplicityLedgerError,
+    diagnostic_family_evidence,
+    read_comparison_artifact,
+)
 from .sota_benchmark import REQUIRED_BASELINE_FAMILIES
 from .sota_program_harness import (
     SOTA_PROGRAM_LEADERBOARD_HEADER,
@@ -126,6 +131,7 @@ def build_open_challenge_pack(
     _require_file(runs / "sota_program_leaderboard.csv")
     _require_file(runs / "sota_program_robustness_grid.csv")
     _require_file(runs / "aif_regime_search.csv")
+    _require_file(runs / "aif_regime_diagnostic_repetitions.csv")
     benchmark = _read_required_json(runs / "sota_benchmark_matrix.json")
     gate = _read_required_json(runs / "sota_claim_gate.json")
     sota_program = _read_required_json(runs / "sota_program_gate.json")
@@ -151,6 +157,40 @@ def build_open_challenge_pack(
     aif_regime_rows = _leaderboard_rows(runs / "aif_regime_search.csv", {})
     candidate_table_completeness = _program_candidate_table_status(sota_program_rows)
     robustness_table_completeness = _program_candidate_table_status(robustness_rows)
+    ledger = _read_required_json(runs / "multiplicity_ledger.json")
+    diagnostic_correction = diagnostic_family_evidence(runs, ledger)
+    if not diagnostic_correction["current"]:
+        raise ValueError(
+            "challenge diagnostics require the current complete joint multiplicity ledger: "
+            + diagnostic_correction.get(
+                "reason", "family membership or source bindings differ"
+            )
+        )
+    hashes = diagnostic_correction["source_artifact_sha256"]
+    try:
+        aif_regime_search = read_comparison_artifact(
+            runs / "aif_regime_search.json",
+            expected_sha256=hashes["aif_regime_search.json"],
+        )
+        aif_regime_gate = read_comparison_artifact(
+            runs / "aif_regime_sota_gate.json",
+            expected_sha256=hashes["aif_regime_sota_gate.json"],
+        )
+        sota_program = read_comparison_artifact(
+            runs / "sota_program_gate.json",
+            expected_sha256=hashes["sota_program_gate.json"],
+        )
+        robustness_diagnostics = read_comparison_artifact(
+            runs / "sota_program_robustness_grid.json",
+            expected_sha256=hashes["sota_program_robustness_grid.json"],
+        )
+    except MultiplicityLedgerError as exc:
+        raise ValueError(
+            f"challenge diagnostic family changed during admission: {exc}"
+        ) from exc
+    sota_program_run_parameters = _canonical_sota_program_parameters(
+        sota_program, runs / "sota_program_gate.json"
+    )
 
     payload = {
         "schema": CHALLENGE_PACK_SCHEMA,
@@ -173,7 +213,9 @@ def build_open_challenge_pack(
             _artifact(root, "output/runs/sota_program_robustness_grid.csv"),
             _artifact(root, "output/runs/aif_regime_search.csv"),
             _artifact(root, "output/runs/aif_regime_search.json"),
+            _artifact(root, "output/runs/aif_regime_diagnostic_repetitions.csv"),
             _artifact(root, "output/runs/aif_regime_sota_gate.json"),
+            _artifact(root, "output/runs/multiplicity_ledger.json"),
             _artifact(root, "output/runs/fair_inference_external_realizations.json"),
             _artifact(root, "output/runs/visual_quality_audit.json"),
             _artifact(root, "output/runs/visual_claim_audit.json"),
@@ -195,6 +237,9 @@ def build_open_challenge_pack(
             "global_sota_boundary": aif_regime_search.get("global_sota_boundary", ""),
             "controls": aif_regime_search.get("controls", {}),
             "regime_summaries": aif_regime_search.get("regime_summaries", {}),
+            "diagnostic_repetitions": aif_regime_search.get(
+                "diagnostic_repetitions", {}
+            ),
         },
         "aif_regime_sota_gate": {
             "schema": aif_regime_gate.get("schema", "unavailable"),
@@ -210,6 +255,15 @@ def build_open_challenge_pack(
                 "all_diagnostic_lanes_scored", False
             ),
             "lane_statuses": robustness_diagnostics.get("lane_statuses", []),
+            "run_parameters": robustness_diagnostics.get("run_parameters", {}),
+            "profile_count": robustness_diagnostics.get("profile_count", 0),
+            "profile_draw_identity_count": robustness_diagnostics.get(
+                "profile_draw_identity_count", 0
+            ),
+            "expected_cell_count": robustness_diagnostics.get("expected_cell_count", 0),
+            "scored_cell_count": robustness_diagnostics.get("scored_cell_count", 0),
+            "diagnostic_lanes": robustness_diagnostics.get("diagnostic_lanes", {}),
+            "joint_multiplicity": diagnostic_correction,
             "boundary": robustness_diagnostics.get("boundary", ""),
         },
         "sota_program_readiness": sota_program.get("readiness", {}),

@@ -242,3 +242,154 @@ def test_replicated_sensitivity_writes_summary_artifacts(tmp_path) -> None:
         .read_text(encoding="utf-8")
         .startswith("metric,n,mean,std,min,max,normal_approx_low,normal_approx_high")
     )
+
+
+@pytest.mark.parametrize("lanes", [("fixture", "external"), ("external", "fixture")])
+def test_scope23_contract_sensitivity_lanes_preserve_owned_outputs(
+    tmp_path, monkeypatch, lanes
+) -> None:
+    import yaml
+    from active_fractal_rabbit import sweeps
+    from active_fractal_rabbit.types import PipelineResult
+
+    base_path = _config(
+        tmp_path, Path("data/fixtures/fractalrabbit_sample.csv").resolve()
+    )
+    raw = yaml.safe_load(base_path.read_text())
+    owned = tmp_path / "owned"
+    config_paths = {}
+    for lane in lanes:
+        lane_raw = dict(raw)
+        lane_raw["output_dir"] = str(owned / lane)
+        lane_raw["fractalrabbit"] = dict(raw["fractalrabbit"], execution=lane)
+        path = base_path.parent / f"{lane}.yaml"
+        path.write_text(yaml.safe_dump(lane_raw))
+        config_paths[lane] = path
+    seen = []
+
+    def record_pipeline(config, source):
+        seen.append(config)
+        marker = 1.0 if config.fractalrabbit.execution == "fixture" else 9.0
+        metrics = {key: marker for key in sweeps.SUMMARY_METRICS}
+        config.output_dir.mkdir(parents=True, exist_ok=True)
+        metric_path = config.output_dir / "metrics.json"
+        metric_path.write_text(json.dumps(metrics))
+        return PipelineResult(
+            config.run_id,
+            Path(source),
+            config.output_dir,
+            config.output_dir / "observations.csv",
+            metrics,
+            None,
+            (),
+            {"metrics": metric_path},
+            {
+                "engine": config.inference.model.engine,
+                "controls": config.inference.model.controls,
+            },
+        )
+
+    monkeypatch.setattr(sweeps, "run_pipeline", record_pipeline)
+    saved = {}
+    summaries = {}
+    for lane in lanes:
+        summaries[lane] = sweeps.run_replicated_sensitivity(config_paths[lane])
+        for path, content in saved.items():
+            assert path.read_bytes() == content
+        saved.update(
+            {
+                cfg.output_dir / "metrics.json": (
+                    cfg.output_dir / "metrics.json"
+                ).read_bytes()
+                for cfg in seen
+                if cfg.fractalrabbit.execution == lane
+            }
+        )
+    fixture_runs = {
+        cfg.run_id for cfg in seen if cfg.fractalrabbit.execution == "fixture"
+    }
+    external_runs = {
+        cfg.run_id for cfg in seen if cfg.fractalrabbit.execution == "external"
+    }
+    assert fixture_runs.isdisjoint(external_runs)
+    assert "sensitivity_no_location" in fixture_runs
+    assert external_runs == {name + "_external" for name in fixture_runs}
+    for cfg in seen:
+        assert cfg.output_dir == owned / cfg.run_id
+        assert cfg.fractalrabbit.output_prefix == cfg.run_id
+        assert cfg.inference.model.engine == "reference"
+    for lane, paths in summaries.items():
+        assert paths["json"].parent == owned
+        payload = json.loads(paths["json"].read_text())
+        assert payload["lane"] == lane
+        for row in payload["runs"]:
+            assert Path(row["output_dir"]) == owned / row["run_id"]
+            artifact = Path(row["artifacts"]["metrics"])
+            assert json.loads(artifact.read_text())["mean_predictive_loss"] == (
+                1.0 if lane == "fixture" else 9.0
+            )
+    assert not (tmp_path / "output").exists()
+
+
+def test_scope23_contract_closed_loop_preserves_custom_collection(
+    tmp_path, monkeypatch
+) -> None:
+    import yaml
+    from active_fractal_rabbit import closed_loop
+    from active_fractal_rabbit.types import PipelineResult
+
+    path = _config(tmp_path, Path("data/fixtures/fractalrabbit_sample.csv").resolve())
+    raw = yaml.safe_load(path.read_text())
+    raw["output_dir"] = str(tmp_path / "owned" / "base")
+    path.write_text(yaml.safe_dump(raw))
+    seen = []
+
+    def record_pipeline(config, source):
+        seen.append(config)
+        return PipelineResult(
+            config.run_id,
+            Path(source),
+            config.output_dir,
+            config.output_dir / "observations.csv",
+            {},
+            "high",
+            (),
+            {},
+            {},
+        )
+
+    monkeypatch.setattr(closed_loop, "run_pipeline", record_pipeline)
+    closed_loop.run_closed_loop(path)
+    assert [cfg.output_dir for cfg in seen] == [
+        tmp_path / "owned" / f"test_iter_{i}" for i in (1, 2)
+    ]
+    assert [cfg.fractalrabbit.output_prefix for cfg in seen] == [
+        "test_iter_1",
+        "test_iter_2",
+    ]
+    assert [cfg.fractalrabbit.params.number_of_reports for cfg in seen] == [6, 8]
+    summary = json.loads((tmp_path / "owned" / "test_closed_loop.json").read_text())
+    assert [row["output_dir"] for row in summary] == [
+        str(cfg.output_dir) for cfg in seen
+    ]
+    assert not (tmp_path / "output").exists()
+
+
+def test_scope23_contract_direct_pipeline_rejects_invalid_candidates_before_writes(
+    tmp_path,
+) -> None:
+    from dataclasses import replace
+    from active_fractal_rabbit.pipeline import run_pipeline
+
+    path = _config(tmp_path, Path("data/fixtures/fractalrabbit_sample.csv").resolve())
+    config = load_config(path)
+    invalid = replace(
+        config.closed_loop.candidates[0],
+        params=replace(config.fractalrabbit.params, number_of_reports=0),
+    )
+    config = replace(
+        config, closed_loop=replace(config.closed_loop, candidates=(invalid,))
+    )
+    with pytest.raises(ValueError, match="number_of_reports"):
+        run_pipeline(config, path)
+    assert not config.output_dir.exists()

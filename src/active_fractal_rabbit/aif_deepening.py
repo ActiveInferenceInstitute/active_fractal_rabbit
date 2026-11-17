@@ -6,19 +6,52 @@ import json
 from pathlib import Path
 from typing import Any
 
+from .multiplicity_ledger import (
+    MultiplicityLedgerError,
+    diagnostic_family_evidence,
+    read_comparison_artifact,
+)
+
 AIF_DEEPENING_SCHEMA = "active-fractal-rabbit-aif-deepening-candidates-v1"
 
 
-def aif_deepening_candidates(project_root: str | Path) -> dict[str, Any]:
+def aif_deepening_candidates(
+    project_root: str | Path, *, runs_dir: str | Path | None = None
+) -> dict[str, Any]:
     """Summarize AIF deepening surfaces without promoting audit-only rows."""
 
     root = Path(project_root).resolve()
-    runs = root / "output" / "runs"
+    runs = Path(runs_dir) if runs_dir is not None else root / "output" / "runs"
     factorial = _read_json(runs / "factorial_pymdp_analysis_fixture.json")
-    regime_gate = _read_json(runs / "aif_regime_sota_gate.json")
-    sota_gate = _read_json(runs / "sota_program_gate.json")
-    robustness = _read_json(runs / "sota_program_robustness_grid.json")
+    regime_gate: dict[str, Any] = {}
+    sota_gate: dict[str, Any] = {}
+    robustness: dict[str, Any] = {}
     adaptive = _read_json(runs / "adaptive_aif_ablation.json")
+    correction = diagnostic_family_evidence(
+        runs, _read_json(runs / "multiplicity_ledger.json")
+    )
+    if correction["current"]:
+        hashes = correction["source_artifact_sha256"]
+        try:
+            regime_gate = read_comparison_artifact(
+                runs / "aif_regime_sota_gate.json",
+                expected_sha256=hashes["aif_regime_sota_gate.json"],
+            )
+            sota_gate = read_comparison_artifact(
+                runs / "sota_program_gate.json",
+                expected_sha256=hashes["sota_program_gate.json"],
+            )
+            robustness = read_comparison_artifact(
+                runs / "sota_program_robustness_grid.json",
+                expected_sha256=hashes["sota_program_robustness_grid.json"],
+            )
+        except MultiplicityLedgerError as exc:
+            regime_gate, sota_gate, robustness = {}, {}, {}
+            correction = {
+                "status": "unavailable_or_stale",
+                "current": False,
+                "reason": str(exc),
+            }
 
     rows = [
         _factorial_row(factorial),
@@ -39,6 +72,9 @@ def aif_deepening_candidates(project_root: str | Path) -> dict[str, Any]:
         "scored_protocol_candidate_count": scored,
         "audit_surface_count": len(rows),
         "rows": rows,
+        "input_runs_dir": str(runs.resolve()),
+        "diagnostic_correction": correction,
+        "diagnostic_regime_repetitions": regime_gate.get("diagnostic_repetitions", {}),
         "locked_protocol": "Candidate.predict(PredictContext) -> np.ndarray",
         "boundary": (
             "Factorial tensors, EFE/VFE diagnostics, multiscale beliefs, and adaptation surfaces "
@@ -52,6 +88,8 @@ def aif_deepening_candidates(project_root: str | Path) -> dict[str, Any]:
 def run_and_write_aif_deepening_candidates(
     project_root: str | Path,
     out_path: str | Path | None = None,
+    *,
+    runs_dir: str | Path | None = None,
 ) -> Path:
     """Write ``aif_deepening_candidates.json``."""
 
@@ -61,7 +99,7 @@ def run_and_write_aif_deepening_candidates(
         if out_path
         else root / "output" / "runs" / "aif_deepening_candidates.json"
     )
-    payload = aif_deepening_candidates(root)
+    payload = aif_deepening_candidates(root, runs_dir=runs_dir)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(
         json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8"
@@ -120,6 +158,14 @@ def _online_adaptation_row(
         "diagnostic_lane_count": len(lane_statuses)
         if isinstance(lane_statuses, list)
         else 0,
+        "diagnostic_profile_count": robustness.get("profile_count", 0),
+        "diagnostic_profile_draw_identity_count": robustness.get(
+            "profile_draw_identity_count", 0
+        ),
+        "diagnostic_expected_cell_count": robustness.get("expected_cell_count", 0),
+        "diagnostic_scored_cell_count": robustness.get("scored_cell_count", 0),
+        "diagnostic_run_parameters": robustness.get("run_parameters", {}),
+        "diagnostics_count_as_adaptation_trials": False,
         "predictive_gate_clears": False,
         "improves_fixed_aif": bool(adaptive.get("adaptive_improves_fixed")),
         "adaptive_improvement_nats": adaptive.get("adaptive_improvement_nats"),

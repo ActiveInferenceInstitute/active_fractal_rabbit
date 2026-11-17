@@ -505,3 +505,44 @@ def test_gnn_variables_come_from_the_shared_reader_runtime(
         "gnn_pin_path": ".github/gnn-pin.json",
         "gnn_commit": "75c834bd8519dc7b5adc4d24f16bf393cfd1ecdf",
     }
+
+
+def test_scope23_contract_deep_latent_tokens_remain_fixture_bound(
+    tmp_path, monkeypatch
+) -> None:
+    monkeypatch.delenv("GNN_RUNTIME_PYTHON", raising=False)
+    (tmp_path / "configs").mkdir()
+    (tmp_path / "configs" / "default.yaml").write_text(
+        "run_id: default\n"
+        "fractalrabbit:\n  execution: fixture\n  fixture_csv: fixture.csv\n"
+        "observation:\n  spatial_bins: 1\n  time_bins_per_day: 1\n"
+        "model:\n  smoothing: 0.1\n"
+        "closed_loop:\n  iterations: 1\n  candidates: []\n"
+    )
+    metrics = {
+        "reference_brier_skill_vs_base_rate": 0.125,
+        "reference_brier_skill_vs_persistence": 0.25,
+        "state_recovery_reference_mean_mass_on_true_cell": 0.375,
+        "state_recovery_reference_top1_accuracy": 0.5,
+        "mean_posterior_entropy": 0.625,
+    }
+    runs = tmp_path / "output" / "runs"
+    for name, values in [
+        ("sensitivity_no_location", metrics),
+        ("sensitivity_no_location_external", {key: 9.0 for key in metrics}),
+    ]:
+        path = runs / name / "metrics.json"
+        path.parent.mkdir(parents=True)
+        path.write_text(json.dumps(values))
+    variables = compute_variables(tmp_path)
+    for token, value in zip(
+        [
+            "DEEP_LATENT_BRIER_SKILL_VS_BASE_RATE",
+            "DEEP_LATENT_BRIER_SKILL_VS_PERSISTENCE",
+            "DEEP_LATENT_RECOVERY_MASS",
+            "DEEP_LATENT_RECOVERY_TOP1",
+            "DEEP_LATENT_ENTROPY",
+        ],
+        metrics.values(),
+    ):
+        assert float(variables[token]) == value

@@ -123,9 +123,8 @@ def _verify_individual_vs_population_confinement(root: Path) -> dict:
     """
     from .config import load_config
     from .confound_controls import mobility_summary
-    from .fractalrabbit import parse_waypoint_csv
     from .individual_vs_population import advantage_vs_population_size
-    from .observations import discretize_observations
+    from .observation_sources import load_observation_sequence
 
     config_path = root / "configs" / "fractalrabbit_external.yaml"
     if not config_path.is_file():
@@ -135,17 +134,16 @@ def _verify_individual_vs_population_confinement(root: Path) -> dict:
             "evidence": f"external-lane config absent ({config_path}); cannot resolve the real trace",
         }
     cfg = load_config(config_path)
-    trace = cfg.output_dir / f"{cfg.fractalrabbit.output_prefix}XY.csv"
-    if not trace.is_file():
+    try:
+        sequence = load_observation_sequence(
+            cfg, requested_role="confinement observations"
+        )
+    except (OSError, ValueError) as exc:
         return {
             "verified": False,
             "kind": KIND_LIVE_ARTIFACT,
-            "evidence": (
-                f"real external-simulator trace absent ({trace}); the confinement/dominant-cell "
-                "claim cannot be re-derived without a cached external-lane run"
-            ),
+            "evidence": f"real external-simulator trace absent or unqualified: {exc}",
         }
-    sequence = discretize_observations(parse_waypoint_csv(trace), cfg.inference)
     mobility = mobility_summary(sequence)
     confined = not bool(mobility["is_mobile"])
     dominant = advantage_vs_population_size(sequence, smoothing=0.05, rho=1.0)
@@ -248,6 +246,8 @@ def _verify_regime_clearance_was_an_instrumentation_bug(root: Path) -> dict:
             "evidence": "multiplicity_ledger.json has zero comparisons — cannot re-derive the invariant",
         }
     independent_gate_clears: dict[str, bool] = {}
+    regime = {}
+    sota = {}
     if regime_path.is_file():
         regime = json.loads(regime_path.read_text(encoding="utf-8"))
         for regime_id, summary in regime.get("regime_summaries", {}).items():
@@ -255,6 +255,12 @@ def _verify_regime_clearance_was_an_instrumentation_bug(root: Path) -> dict:
                 independent_gate_clears[f"aif_regime::{regime_id}"] = bool(
                     summary.get("gate_clears", False)
                 )
+        for regime_id, summary in (
+            regime.get("diagnostic_repetitions", {}).get("regime_summaries", {}).items()
+        ):
+            independent_gate_clears[f"aif_regime_diagnostic::{regime_id}"] = bool(
+                summary["gate_clears"]
+            )
     if sota_path.is_file():
         sota = json.loads(sota_path.read_text(encoding="utf-8"))
         for lane_id, lane in sota.get("lanes", {}).items():
@@ -262,12 +268,30 @@ def _verify_regime_clearance_was_an_instrumentation_bug(root: Path) -> dict:
                 independent_gate_clears[f"sota_lane::{lane_id}"] = bool(
                     lane.get("aif_beats_strongest_fair", False)
                 )
+    grid_path = root / "output" / "runs" / "sota_program_robustness_grid.json"
+    if grid_path.is_file():
+        grid = json.loads(grid_path.read_text(encoding="utf-8"))
+        for lane_id, lane in grid.get("diagnostic_lanes", {}).items():
+            independent_gate_clears[f"sota_diagnostic::{lane_id}"] = bool(
+                lane["aif_beats_strongest_fair"]
+            )
     checked = 0
     mismatches = []
+    declared_diagnostics = (
+        "diagnostic_repetitions" in regime
+        or "diagnostic_lanes" in sota.get("run_parameters", {})
+        or grid_path.is_file()
+    )
+    if declared_diagnostics:
+        from .multiplicity_ledger import diagnostic_family_evidence
+
+        if not diagnostic_family_evidence(root / "output" / "runs", ledger)["current"]:
+            mismatches.append("diagnostic_family_not_current")
     for c in comparisons:
         cid = c.get("comparison_id")
         if cid not in independent_gate_clears:
-            continue  # upstream artifact missing this id — not adjudicable, not a mismatch
+            mismatches.append(cid)
+            continue
         checked += 1
         if bool(c.get("uncorrected_significant")) != independent_gate_clears[cid]:
             mismatches.append(cid)

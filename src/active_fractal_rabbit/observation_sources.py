@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
-from .fractalrabbit import parse_waypoint_csv
+from .fractalrabbit import file_sha256, parse_waypoint_csv
 from .observations import discretize_observations
 from .types import ObservationSequence, ProjectConfig
 
@@ -50,6 +51,36 @@ def resolve_observations_path(
             f"current external-lane observations file does not exist: {source}. "
             "Run the external pipeline before requesting external evidence."
         )
+    manifest_path = config.output_dir / "provenance_manifest.json"
+    if not manifest_path.is_file():
+        raise FileNotFoundError(
+            f"Current external-lane completion receipt missing: {manifest_path}"
+        )
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    build = manifest.get("observation_bundle", {}).get("build") or {}
+    if (
+        manifest.get("execution") != "external"
+        or manifest.get("run_id") != config.run_id
+        or manifest.get("configured_upstream_commit")
+        != config.fractalrabbit.upstream_commit
+        or build.get("requested_revision") != config.fractalrabbit.upstream_commit
+        or build.get("upstream_repo") != config.fractalrabbit.upstream_repo
+        or not build.get("commit")
+        or build["commit"] != manifest.get("upstream_commit")
+    ):
+        raise ValueError(
+            f"External completion receipt does not match configured run: {manifest_path}"
+        )
+    for key, path in (
+        ("observations", source),
+        ("metrics", config.output_dir / "metrics.json"),
+    ):
+        if not path.is_file() or manifest.get("artifact_sha256", {}).get(
+            key
+        ) != file_sha256(path):
+            raise ValueError(
+                f"External completion receipt does not bind current {key}: {path}"
+            )
     return source
 
 

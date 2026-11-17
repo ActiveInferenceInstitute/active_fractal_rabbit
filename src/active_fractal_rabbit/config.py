@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from dataclasses import replace
+from dataclasses import asdict, replace
 from pathlib import Path
 from typing import Any
 
@@ -241,7 +241,8 @@ def load_config(path: str | Path) -> ProjectConfig:
     loop_raw = _mapping(raw, "closed_loop")
     candidates = tuple(
         ClosedLoopCandidate(
-            name=str(item["name"]), params=replace(params, **_mapping(item, "params"))
+            name=str(item["name"]),
+            params=_params(asdict(replace(params, **_mapping(item, "params")))),
         )
         for item in loop_raw.get("candidates", [])
     )
@@ -258,7 +259,7 @@ def load_config(path: str | Path) -> ProjectConfig:
         raise ValueError(
             "closed_loop.objective must be predictive_loss or posterior_entropy"
         )
-    _validate_closed_loop(closed_loop)
+    validate_closed_loop(closed_loop)
 
     return ProjectConfig(
         run_id=run_id,
@@ -284,6 +285,29 @@ def parameter_rows(params: FractalRabbitParams) -> list[tuple[str, str]]:
     return rows
 
 
+def derived_run(
+    config: ProjectConfig,
+    run_id: str,
+    *,
+    fractalrabbit: FractalRabbitConfig | None = None,
+    inference: InferenceConfig | None = None,
+    seed: int | None = None,
+) -> ProjectConfig:
+    """Derive a sibling run in the caller's configured output collection."""
+
+    return replace(
+        config,
+        run_id=run_id,
+        output_dir=config.output_dir.parent / run_id,
+        fractalrabbit=replace(
+            config.fractalrabbit if fractalrabbit is None else fractalrabbit,
+            output_prefix=run_id,
+        ),
+        inference=config.inference if inference is None else inference,
+        seed=config.seed if seed is None else seed,
+    )
+
+
 def with_candidate(
     config: ProjectConfig, candidate: ClosedLoopCandidate, run_id: str
 ) -> ProjectConfig:
@@ -292,12 +316,7 @@ def with_candidate(
     fr_config = replace(
         config.fractalrabbit, params=candidate.params, output_prefix=run_id
     )
-    return replace(
-        config,
-        run_id=run_id,
-        output_dir=config.project_root / "output" / "runs" / run_id,
-        fractalrabbit=fr_config,
-    )
+    return derived_run(config, run_id, fractalrabbit=fr_config)
 
 
 def _find_project_root(config_path: Path) -> Path:
@@ -339,6 +358,11 @@ def _params(raw: Mapping[str, Any]) -> FractalRabbitParams:
         number_of_days=float(raw.get("number_of_days", 14.0)),
         number_of_reports=float(raw.get("number_of_reports", 200.0)),
     )
+    _validate_params(params)
+    return params
+
+
+def _validate_params(params: FractalRabbitParams) -> None:
     if params.space_dimension != 2:
         raise ValueError(
             "This scaffold currently supports 2D FractalRabbit output only"
@@ -357,7 +381,6 @@ def _params(raw: Mapping[str, Any]) -> FractalRabbitParams:
         raise ValueError("number_of_days must be positive")
     if params.number_of_reports <= 0:
         raise ValueError("number_of_reports must be positive")
-    return params
 
 
 def _project_path(project_root: Path, value: Any) -> Path:
@@ -525,7 +548,14 @@ def _validate_experiment(config: ExperimentConfig) -> None:
         raise ValueError("tie_breaker must be declaration_order or name")
 
 
-def _validate_closed_loop(config: ClosedLoopConfig) -> None:
+def validate_closed_loop(config: ClosedLoopConfig) -> None:
+    """Admit candidate identities and parameters before any run side effects."""
+
+    names = [str(candidate.name) for candidate in config.candidates]
+    if len(set(names)) != len(names):
+        raise ValueError("closed_loop candidate names must be unique")
+    for candidate in config.candidates:
+        _validate_params(candidate.params)
     if config.objective_direction not in {"minimize", "maximize"}:
         raise ValueError("closed_loop.objective_direction must be minimize or maximize")
     if config.tie_breaker not in {"declaration_order", "name"}:

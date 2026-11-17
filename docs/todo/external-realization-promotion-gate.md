@@ -11,9 +11,26 @@ runs the current pinned external lane plus three deterministic pinned external
 repeats when prerequisites pass, then writes completed, unavailable, and failed
 row accounting to `output/runs/fair_inference_external_realizations.json`.
 
+The following is a retained, **unverified earlier documentary assertion**, not
+a current completion observation:
+
 The current artifact has all required rows completed and no unavailable rows,
 but promotion remains blocked because the completed rows do not agree on the
 fair-ladder oracle-boundary controls.
+
+Its supporting artifact/generation binding was not located in the inspected
+evidence. Do not attribute that assertion to a presumed saved generation:
+the inspected source reads only repeated the assertion, and the named contract
+fixture is not an external execution receipt. The separately inspected canonical
+manifest did not establish this all-completed outcome, and the reviewed worktree
+lacks the claimed manifest. This limitation is not proof that no historical
+execution existed. Preserve the assertion and oracle-control/promotion holds
+without upgrading it to observed history or current custody.
+
+The contract in [`external_lane.md`](../external_lane.md) requires newly qualified
+build/executable and fresh-bundle execution before current completion can be
+asserted. Documentation and offline contract acceptance do not establish a new
+external build, realization, or scientific result.
 
 ## Blocked And Unblocked Conditions
 

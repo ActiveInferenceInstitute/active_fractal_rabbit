@@ -15,9 +15,13 @@ artifacts.
 
 ## Blocked And Unblocked Conditions
 
-External publication remains open until a destination, release posture, fresh
-render, release manifest, notices, challenge artifacts, and non-operational
-usage statement are all current. Additional pinned stressor and realization
+The repository and v0.2.0 release are already public, as recorded in
+CITATION.cff and docs/ip_license_status.md. This task concerns a current or
+subsequent challenge-pack publication: the owner must select the target
+version and publication authority, then qualify its fresh render, release
+manifest, notices, challenge artifacts, and non-operational usage statement.
+
+Additional pinned stressor and realization
 lanes remain future expansion, not prerequisites for local dry-run validity.
 
 ## Implementation Scope

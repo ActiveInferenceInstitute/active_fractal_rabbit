@@ -27,6 +27,8 @@ from active_fractal_rabbit.sota_program_harness import (  # noqa: E402
     DEFAULT_EPS,
     DEFAULT_BOOT_SEED,
     DEFAULT_N_BOOT,
+    DEFAULT_DIAGNOSTIC_N_BOOT,
+    DIAGNOSTIC_STRESSOR_LANES,
     DEFAULT_N_TRAVELLERS,
     DEFAULT_SPATIAL_BINS,
     run_and_write,
@@ -44,6 +46,8 @@ def main() -> int:
     parser.add_argument("--spatial-bins", type=int, default=DEFAULT_SPATIAL_BINS)
     parser.add_argument("--n-boot", type=int, default=DEFAULT_N_BOOT)
     parser.add_argument("--boot-seed", type=int, default=DEFAULT_BOOT_SEED)
+    parser.add_argument("--diagnostic-lane", action="append", choices=DIAGNOSTIC_STRESSOR_LANES)
+    parser.add_argument("--diagnostic-n-boot", type=int, default=DEFAULT_DIAGNOSTIC_N_BOOT)
     args = parser.parse_args()
 
     out_dir = ROOT / args.out_dir
@@ -55,6 +59,8 @@ def main() -> int:
         spatial_bins=args.spatial_bins,
         n_boot=args.n_boot,
         boot_seed=args.boot_seed,
+        diagnostic_lane_ids=tuple(args.diagnostic_lane) if args.diagnostic_lane else None,
+        diagnostic_n_boot=args.diagnostic_n_boot,
     )
 
     print(str(paths["leaderboard"]))

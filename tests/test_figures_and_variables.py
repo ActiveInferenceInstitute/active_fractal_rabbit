@@ -377,7 +377,7 @@ def test_figures_and_manuscript_variables_are_generated(repo_sandbox) -> None:
         project_root=".",
         fixture_config="configs/default.yaml",
         external_config="configs/fractalrabbit_external.yaml",
-        external_ready=False,
+        external_observations=None,
     )
     run_and_write_sota_benchmark("configs/default.yaml", "output/runs")
     run_and_write_sota_program(
