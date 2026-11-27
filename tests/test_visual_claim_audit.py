@@ -94,7 +94,7 @@ def test_visual_claim_audit_rejects_false_privacy_utility_graceful_caption(
         "FIGURE_EXPECTATIONS",
         {"privacy_utility_frontier": expectation},
     )
-    (tmp_path / "manuscript" / "01.md").write_text(
+    (tmp_path / "docs" / "manuscript" / "01.md").write_text(
         "![caption](../output/figures/privacy_utility_frontier.png){#fig:privacy-utility-frontier}\n",
         encoding="utf-8",
     )
@@ -148,7 +148,7 @@ def test_visual_claim_audit_rejects_stale_privacy_utility_failed_caption_when_ga
         "FIGURE_EXPECTATIONS",
         {"privacy_utility_frontier": expectation},
     )
-    (tmp_path / "manuscript" / "01.md").write_text(
+    (tmp_path / "docs" / "manuscript" / "01.md").write_text(
         "![caption](../output/figures/privacy_utility_frontier.png){#fig:privacy-utility-frontier}\n",
         encoding="utf-8",
     )
@@ -209,7 +209,7 @@ def test_visual_claim_audit_rejects_false_uniform_phase_caption(
         "FIGURE_EXPECTATIONS",
         {"regime_switch_phase_diagnostic": expectation},
     )
-    (tmp_path / "manuscript" / "01.md").write_text(
+    (tmp_path / "docs" / "manuscript" / "01.md").write_text(
         "![caption](../output/figures/regime_switch_phase_diagnostic.png)"
         "{#fig:regime-switch-phase-diagnostic}\n",
         encoding="utf-8",
@@ -286,7 +286,7 @@ def test_visual_claim_audit_rejects_swapped_registered_figure(
             )
         },
     )
-    (tmp_path / "manuscript" / "01.md").write_text(
+    (tmp_path / "docs" / "manuscript" / "01.md").write_text(
         "![caption](../output/figures/test_layer.png){#fig:test-layer}\n",
         encoding="utf-8",
     )
@@ -334,8 +334,8 @@ def _seed_visual_project(root: Path) -> None:
     (root / "output" / "figures").mkdir(parents=True)
     (root / "output" / "runs" / "default").mkdir(parents=True)
     (root / "output" / "cover").mkdir(parents=True)
-    (root / "manuscript").mkdir()
-    (root / "manuscript" / "01.md").write_text(
+    (root / "docs" / "manuscript").mkdir(parents=True)
+    (root / "docs" / "manuscript" / "01.md").write_text(
         "![caption](../output/figures/test_layer.png){#fig:test-layer}\n",
         encoding="utf-8",
     )

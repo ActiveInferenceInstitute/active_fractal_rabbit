@@ -101,7 +101,7 @@ If any condition fails, a reason is appended and `status = "sota_not_cleared"`. 
 
 ### Current Status Blocks Promotion
 
-As of the roadmap milestone (§[Roadmap](../../manuscript/07_roadmap.md)), the gate reports `sota_not_cleared` because:
+As of the roadmap milestone (§[Roadmap](../manuscript/07_roadmap.md)), the gate reports `sota_not_cleared` because:
 
 - Required foundation-model and language-model baseline families are declared unavailable.
 - No implemented candidate beats the strongest honest baseline on the locked split.
@@ -156,9 +156,9 @@ The harness is a claim-level and gate-level discipline, not an execution-level r
 
 ## Related Documents Carry Adjacent Contracts
 
-- [../manuscript/07_roadmap.md](../../manuscript/07_roadmap.md): Forward gates and state-of-the-art decision boundary.
-- [validation.md](../validation.md): Test surface including the SOTA benchmark test suite.
-- [empirical_validation_protocol.md](../empirical_validation_protocol.md): Real-waypoint validation gate (separate, prerequisite for real-trace claims).
+- [../manuscript/07_roadmap.md](../manuscript/07_roadmap.md): Forward gates and state-of-the-art decision boundary.
+- [validation.md](../validation/validation.md): Test surface including the SOTA benchmark test suite.
+- [empirical_validation_protocol.md](../governance/empirical_validation_protocol.md): Real-waypoint validation gate (separate, prerequisite for real-trace claims).
 
 ## References Anchor the Protocol
 

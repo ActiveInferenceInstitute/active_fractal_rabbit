@@ -24,7 +24,7 @@ The model-selection rule is practical: use the simplest predictor whose informat
 
 The AIF-deepening audit in [@fig:aif-deepening-candidates] separates modular surfaces by predictive admission: factorial tensor provenance and multiscale soft-belief backoff remain audit-only, while online transition adaptation enters `Candidate.predict(PredictContext)` and is scored through a genuinely nested train/validation contract. Protocol candidates currently admitted: {{AIF_DEEPENING_PROTOCOL_CANDIDATES}}; predictive gate clears: {{AIF_DEEPENING_PREDICTIVE_GATE_CLEARS}}. Across {{ADAPTIVE_AIF_REALIZATIONS}} distinct synthetic generator/noise realizations sharing the locked split rule, the adaptive candidate improves the separately tuned fixed-transition AIF by a mean {{ADAPTIVE_AIF_MEAN_GAIN}} nats (range {{ADAPTIVE_AIF_GAIN_LOW}} to {{ADAPTIVE_AIF_GAIN_HIGH}}), with traveller-clustered separation on {{ADAPTIVE_AIF_FIXED_CI_CLEARS}} realizations. It beats the predeclared online-base-rate comparator with clustered separation on {{ADAPTIVE_AIF_FAIR_CI_CLEARS}} realizations, so the repeated predictive gate remains {{ADAPTIVE_AIF_GATE_CLEARS}}. This advances the generative model and localizes the remaining gap without clearing promotion.
 
-![{{FIG_CAPTION_AIF_DEEPENING_CANDIDATES}}](../output/figures/aif_deepening_candidates.png){#fig:aif-deepening-candidates width={{FIGURE_WIDTH}}%}
+![{{FIG_CAPTION_AIF_DEEPENING_CANDIDATES}}](../../output/figures/aif_deepening_candidates.png){#fig:aif-deepening-candidates width={{FIGURE_WIDTH}}%}
 
 ## The Fair Ladder Assigns Most Gain to Soft Marginalization {#sec:discussion-fair-ladder}
 
@@ -38,7 +38,7 @@ At the clean setting, single-step soft marginalization leads the recursive activ
 
 Positive controls verify the comparison: an identity emission collapses every inferring predictor onto the oracle, and the oracle-fed baseline remains the ceiling. The fair ladder therefore assigns most of the gain to single-step soft marginalization and the remaining noise-dependent gain to recursion. The broader benchmark gate remains `{{SOTA_CLAIM_GATE_STATUS}}`.
 
-![{{FIG_CAPTION_FAIR_INFERENCE}}](../output/figures/fair_inference.png){#fig:fair-inference width={{FIGURE_WIDTH}}%}
+![{{FIG_CAPTION_FAIR_INFERENCE}}](../../output/figures/fair_inference.png){#fig:fair-inference width={{FIGURE_WIDTH}}%}
 
 ## The Regime Map Keeps the Advantage Sparse and Noisy {#sec:discussion-power-regime}
 
@@ -60,7 +60,7 @@ The advantage re-emerges under observation noise as a monotone gradient across t
 
 For the target sparse-waypoint regime, recursive temporal belief earns its keep when the emission is uninformative, while a simpler boosted Markov suffices when locations are dense and clean. The oracle-fed baseline remains the ceiling, and the advantage follows the noise gradient rather than extending across regimes ([@fig:fair-power-regime]).
 
-![{{FIG_CAPTION_FAIR_POWER_REGIME}}](../output/figures/fair_power_regime.png){#fig:fair-power-regime width={{FIGURE_WIDTH}}%}
+![{{FIG_CAPTION_FAIR_POWER_REGIME}}](../../output/figures/fair_power_regime.png){#fig:fair-power-regime width={{FIGURE_WIDTH}}%}
 
 ## Oracle Asymmetry and Cross-Generator Nulls Block Promotion {#sec:discussion-limits}
 

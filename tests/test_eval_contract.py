@@ -22,7 +22,7 @@ from active_fractal_rabbit.eval_contract import (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-MANUSCRIPT = ROOT / "manuscript"
+MANUSCRIPT = ROOT / "docs" / "manuscript"
 
 
 def test_real_manuscript_passes_the_contract() -> None:
@@ -303,7 +303,7 @@ def test_g5_allows_explicitly_negated_deployment_surveillance_claim() -> None:
 
 def test_g5_real_manuscript_has_zero_deployment_surveillance_violations() -> None:
     """Negative-control-free-manuscript sanity check: the project's own honest,
-    already-bounded prose in manuscript/*.md must not trip G5 (no false
+    already-bounded prose in docs/manuscript/*.md must not trip G5 (no false
     rejections), matching the specialist's confirmation that current prose is
     already clean of unnegated deployment/surveillance language."""
 

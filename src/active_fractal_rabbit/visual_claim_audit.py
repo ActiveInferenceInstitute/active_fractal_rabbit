@@ -811,7 +811,7 @@ def _audit_cover(root: Path) -> dict[str, Any]:
 
 def _manuscript_blob(root: Path) -> str:
     parts = []
-    for path in sorted((root / "manuscript").glob("*.md")):
+    for path in sorted((root / "docs" / "manuscript").glob("*.md")):
         if path.name == "AGENTS.md":
             continue
         parts.append(path.read_text(encoding="utf-8"))

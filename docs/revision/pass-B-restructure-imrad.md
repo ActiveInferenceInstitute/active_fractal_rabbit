@@ -20,7 +20,7 @@
 >   every-figure-referenced + required-substrings) and `docs_contract`.
 >
 > The manuscript has evolved since this snapshot (e.g. supplement `S09_confound_taxonomy` was added
-> later); the `manuscript/` directory itself is authoritative for the current structure. This
+> later); the `docs/manuscript/` directory itself is authoritative for the current structure. This
 > banner and the plan below are a historical record, not a description of the current manuscript.
 
 # Manuscript Restructuring Plan: IMRaD Reorientation with Results-Bearing Titles
@@ -472,11 +472,11 @@ This plan restructures *active_fractal_rabbit* from a diagnostic-focused layout 
 - [ ] **Read all current section files** (00–08, S01–S02, 99) — ✓ DONE
 - [ ] **Identify token dependencies**: Every {{TOKEN}} in old sections must map to new sections.
   - Example: {{PYMDP_SOTA_STATUS}} cited in 08_conclusion becomes cited in 03_results H2:5 and 04_discussion H2:2.
-  - Validation: Search manuscript/ for all {{...}} tokens; cross-reference with `manuscript_variables.json` provenance.
+  - Validation: Search docs/manuscript/ for all {{...}} tokens; cross-reference with `manuscript_variables.json` provenance.
 - [ ] **Map anchor cross-references**: Every [@sec:old-anchor] must either stay or redirect.
   - Example: 08_conclusion cites [@sec:results-fixture-diagnostics] — stays valid.
   - Example: 08_conclusion cites [@sec:roadmap-aif-deepening] → becomes [@sec:results-fair-comparison] once moved.
-  - Validation: Run `grep -r "@sec:" manuscript/` and update all internal refs.
+  - Validation: Run `grep -r "@sec:" docs/manuscript/` and update all internal refs.
 
 ### Phase 2: File-Level Edits (When Execution Begins)
 - [ ] **Merge 05_limitations + 07_roadmap + 08_conclusion into new 04_discussion.md**

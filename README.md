@@ -78,7 +78,7 @@ scholarly outputs are licensed under CC-BY-4.0 in `LICENSE-DOCS.md` unless a
 file states otherwise. Citation metadata, including the Zenodo DOI, lives in
 `CITATION.cff`; third-party simulator and dependency notices live in
 `THIRD_PARTY_NOTICES.md`; the current IP/license and publication-readiness
-status is recorded in `docs/ip_license_status.md`.
+status is recorded in `docs/governance/ip_license_status.md`.
 
 This repository reached public release as `v0.2.0` (2026-07-12): a current
 template render, full test gate (658 tests, 91.33% coverage), claim and
@@ -236,7 +236,7 @@ gh pr checks "$PR_NUMBER" --repo "$repo" --required --json name,bucket </dev/nul
 | `src/active_fractal_rabbit/` | Config, simulator boundary, observation, POMDP, inference, and loop code |
 | `scripts/` | Thin CLI entrypoints |
 | `tests/` | Unit, fixture-pipeline, and optional external integration tests |
-| `manuscript/` | Template-renderable research write-up |
+| `docs/manuscript/` | Template-renderable research write-up |
 | `output/` | Generated runs, figures, and manuscript variables |
 | `LICENSE`, `LICENSE-DOCS.md`, `CITATION.cff`, `THIRD_PARTY_NOTICES.md` | Code, scholarly-output, citation, and third-party notice surfaces |
 | `run.sh` | Single gate entry point: `lint`, `test`, `test-full`, `docs`, `gnn` arms |

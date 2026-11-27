@@ -155,7 +155,7 @@ manuscript claim-audit layer.
 
 ## Related Docs Share the Same Statistical Boundary
 
-- Architecture and pipeline structure: see [`architecture.md`](../architecture.md).
-- Claim-ledger mappings: see [`claim_ledger.md`](../claim_ledger.md).
-- Validation gates: see [`validation.md`](../validation.md).
-- Empirical extension protocol: see [`empirical_validation_protocol.md`](../empirical_validation_protocol.md).
+- Architecture and pipeline structure: see [`architecture.md`](../architecture/architecture.md).
+- Claim-ledger mappings: see [`claim_ledger.md`](../validation/claim_ledger.md).
+- Validation gates: see [`validation.md`](../validation/validation.md).
+- Empirical extension protocol: see [`empirical_validation_protocol.md`](../governance/empirical_validation_protocol.md).

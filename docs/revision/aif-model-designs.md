@@ -539,9 +539,9 @@ The fixture uses a 3x3 cell grid (9 cells) with 4 travellers over 12 timepoints.
   - `src/active_fractal_rabbit/config.py` — add `model.reporting_model` field (default "null")
 - **Modified test files**: Add imports in `tests/test_pipeline.py` for the new config knob flip test
 - **Modified docs/artifact files**:
-  - `docs/config_schema.md` — document `model.reporting_model` field
-  - `docs/claim_ledger.md` — +1 row for the MNAR reporting gate
-  - `manuscript/` — new section with hydrated tokens for Brier improvements and MI measures
+  - `docs/reference/config_schema.md` — document `model.reporting_model` field
+  - `docs/validation/claim_ledger.md` — +1 row for the MNAR reporting gate
+  - `docs/manuscript/` — new section with hydrated tokens for Brier improvements and MI measures
 - **Output artifacts**: `output/runs/{default,external}/mnar_reporting_analysis.json` + `figures/reporting_gap_analysis.png`
 - **Estimated effort**: ~4–6 hours to build, test, and integrate into the pipeline; ~2 hours for manuscript reporting.
 

@@ -136,7 +136,9 @@ def test_model_card_and_artifact_render(tmp_path: Path) -> None:
     assert "| `location` | 16 | cell |" in single_card
     assert "| `location` | 16 | cell |" in factorial_card
 
-    docs_card = Path("docs/generative_model_card.md").read_text(encoding="utf-8")
+    docs_card = Path("docs/methods/generative_model_card.md").read_text(
+        encoding="utf-8"
+    )
     assert "| `location` | 16 | cell |" in docs_card
     assert "| `location` | 9 | cell |" not in docs_card
 

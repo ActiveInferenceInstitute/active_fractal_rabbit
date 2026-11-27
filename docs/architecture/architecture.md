@@ -43,7 +43,7 @@ Active FractalRabbit has seven explicit layers.
    Manuscript captions are hydrated from this registry, so visual claims stay
    tied to generated artifact paths rather than handwritten figure prose.
 6. **Claim-audit layer.** `claim_audit.py`, `eval_contract.py`,
-   `variable_provenance.py`, and `docs/scholarship_ledger.md` attack
+   `variable_provenance.py`, and `docs/validation/scholarship_ledger.md` attack
    false-certification paths above the analysis code: wrong-regime skill claims,
    unsupported performance language, stale result tokens, orphan high-risk claim
    families, claim-ledger rows that point at missing local evidence, and
@@ -58,7 +58,7 @@ Active FractalRabbit has seven explicit layers.
 The project does not copy FractalRabbit or pymdp source. It stores only the
 pinned upstream commit, configs, fixtures, and analysis code.
 `THIRD_PARTY_NOTICES.md` records the pinned FractalRabbit Apache-2.0/NOTICE
-boundary and the `pymdp` MIT dependency boundary; `docs/ip_license_status.md`
+boundary and the `pymdp` MIT dependency boundary; `docs/governance/ip_license_status.md`
 records the current private release-candidate publication status.
 
 ## Grouped Config Keeps Lanes Explicit

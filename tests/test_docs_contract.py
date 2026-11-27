@@ -17,19 +17,19 @@ PUBLIC_DOC_PATHS = (
     "README.md",
     "AGENTS.md",
     "data/AGENTS.md",
-    "docs/architecture.md",
-    "docs/config_schema.md",
-    "docs/quickstart.md",
-    "docs/validation.md",
-    "docs/claim_ledger.md",
-    "docs/ip_license_status.md",
-    "docs/scholarship_ledger.md",
+    "docs/architecture/architecture.md",
+    "docs/reference/config_schema.md",
+    "docs/guides/quickstart.md",
+    "docs/validation/validation.md",
+    "docs/validation/claim_ledger.md",
+    "docs/governance/ip_license_status.md",
+    "docs/validation/scholarship_ledger.md",
     "docs/methods/benchmark-protocol.md",
     "docs/methods/fair-frontier-sota.md",
     "docs/methods/statistics.md",
-    "manuscript/README.md",
-    "manuscript/S02_reproducibility.md",
-    "manuscript/07_roadmap.md",
+    "docs/manuscript/README.md",
+    "docs/manuscript/S02_reproducibility.md",
+    "docs/manuscript/07_roadmap.md",
 )
 
 CLAIM_BOUNDARY_PATHS = PUBLIC_DOC_PATHS + (
@@ -38,11 +38,11 @@ CLAIM_BOUNDARY_PATHS = PUBLIC_DOC_PATHS + (
     "docs/revision/pass-C-pymdp-push.md",
     "docs/revision/REVISION_PROGRAM.md",
     "docs/revision/pass-B-restructure-imrad.md",
-    "manuscript/00_abstract.md",
-    "manuscript/03b_results_null_hierarchy_and_multiplicity.md",
-    "manuscript/04_discussion.md",
-    "manuscript/08_conclusion.md",
-    "manuscript/S01_validation_and_threat_model.md",
+    "docs/manuscript/00_abstract.md",
+    "docs/manuscript/03b_results_null_hierarchy_and_multiplicity.md",
+    "docs/manuscript/04_discussion.md",
+    "docs/manuscript/08_conclusion.md",
+    "docs/manuscript/S01_validation_and_threat_model.md",
 )
 
 REQUIRED_SCHOLARSHIP_SOURCES = {
@@ -206,10 +206,10 @@ def test_documented_figure_counts_match_registry_and_default_config() -> None:
 
     claims: list[tuple[str, int]] = []
     for rel_path in (
-        "docs/architecture.md",
-        "docs/config_schema.md",
-        "docs/quickstart.md",
-        "docs/validation.md",
+        "docs/architecture/architecture.md",
+        "docs/reference/config_schema.md",
+        "docs/guides/quickstart.md",
+        "docs/validation/validation.md",
     ):
         text = (ROOT / rel_path).read_text(encoding="utf-8")
         for pattern in (
@@ -227,7 +227,7 @@ def test_documented_figure_counts_match_registry_and_default_config() -> None:
 
 def test_documented_figure_keys_match_default_config() -> None:
     config = load_config(ROOT / "configs" / "default.yaml")
-    doc = (ROOT / "docs" / "config_schema.md").read_text(encoding="utf-8")
+    doc = (ROOT / "docs" / "reference" / "config_schema.md").read_text(encoding="utf-8")
     section = doc.split("The default manuscript-facing figure keys are:", maxsplit=1)[1]
     section = section.split("## Lane-Suffixed", maxsplit=1)[0]
     documented = set(re.findall(r"`([a-z0-9_]+)`", section))
@@ -256,9 +256,13 @@ def test_public_docs_do_not_carry_stale_release_signposts() -> None:
 
 def test_public_release_instructions_render_before_finalizing() -> None:
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
-    quickstart = (ROOT / "docs" / "quickstart.md").read_text(encoding="utf-8")
-    status = (ROOT / "docs" / "ip_license_status.md").read_text(encoding="utf-8")
-    supplement = (ROOT / "manuscript" / "S02_reproducibility.md").read_text(
+    quickstart = (ROOT / "docs" / "guides" / "quickstart.md").read_text(
+        encoding="utf-8"
+    )
+    status = (ROOT / "docs" / "governance" / "ip_license_status.md").read_text(
+        encoding="utf-8"
+    )
+    supplement = (ROOT / "docs" / "manuscript" / "S02_reproducibility.md").read_text(
         encoding="utf-8"
     )
     for text in (readme, quickstart, status, supplement):
@@ -365,7 +369,7 @@ def test_unchecked_markdown_checklists_are_confined_to_active_or_historical_queu
 
 
 def _bib_entries() -> dict[str, str]:
-    text = (ROOT / "manuscript" / "references.bib").read_text(encoding="utf-8")
+    text = (ROOT / "docs" / "manuscript" / "references.bib").read_text(encoding="utf-8")
     return {
         match.group(1): match.group(2)
         for match in re.finditer(r"@\w+\{([^,]+),([\s\S]*?)(?=\n@|\Z)", text)
@@ -373,7 +377,9 @@ def _bib_entries() -> dict[str, str]:
 
 
 def _scholarship_rows() -> dict[str, dict[str, str]]:
-    text = (ROOT / "docs" / "scholarship_ledger.md").read_text(encoding="utf-8")
+    text = (ROOT / "docs" / "validation" / "scholarship_ledger.md").read_text(
+        encoding="utf-8"
+    )
     rows: dict[str, dict[str, str]] = {}
     headers: list[str] | None = None
     for raw_line in text.splitlines():
@@ -405,7 +411,7 @@ def _source_is_represented_in_bib(source: str, bib_body: str) -> bool:
 
 def _manuscript_citation_keys() -> set[str]:
     citation_keys: set[str] = set()
-    for path in (ROOT / "manuscript").glob("*.md"):
+    for path in (ROOT / "docs" / "manuscript").glob("*.md"):
         text = path.read_text(encoding="utf-8")
         for match in re.finditer(r"\[@([^\]]+)\]", text):
             for raw_key in re.split(r"[;\s]+", match.group(1)):
@@ -459,7 +465,7 @@ def test_scholarship_forbidden_overreach_phrases_stay_quarantined_to_ledger() ->
     checked_paths = [
         path
         for path in [*PUBLIC_DOC_PATHS, *CLAIM_BOUNDARY_PATHS]
-        if path != "docs/scholarship_ledger.md"
+        if path != "docs/validation/scholarship_ledger.md"
     ]
     failures: list[tuple[str, str]] = []
     for rel_path in checked_paths:
@@ -535,9 +541,9 @@ def test_visual_audit_contract_shape_is_documented() -> None:
 
 def test_artifact_inventories_include_canonical_and_lane_qualified_outputs() -> None:
     inventory_paths = (
-        "docs/config_schema.md",
-        "docs/quickstart.md",
-        "manuscript/S02_reproducibility.md",
+        "docs/reference/config_schema.md",
+        "docs/guides/quickstart.md",
+        "docs/manuscript/S02_reproducibility.md",
     )
     for rel_path in inventory_paths:
         text = (ROOT / rel_path).read_text(encoding="utf-8")
@@ -553,18 +559,20 @@ def test_publication_metadata_and_ip_status_are_signposted() -> None:
         "LICENSE-DOCS.md",
         "THIRD_PARTY_NOTICES.md",
         "CITATION.cff",
-        "docs/ip_license_status.md",
+        "docs/governance/ip_license_status.md",
     )
     for rel_path in required_paths:
         assert (ROOT / rel_path).is_file()
 
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
     docs_index = (ROOT / "docs" / "README.md").read_text(encoding="utf-8")
-    status_doc = (ROOT / "docs" / "ip_license_status.md").read_text(encoding="utf-8")
+    status_doc = (ROOT / "docs" / "governance" / "ip_license_status.md").read_text(
+        encoding="utf-8"
+    )
     third_party = (ROOT / "THIRD_PARTY_NOTICES.md").read_text(encoding="utf-8")
 
     for rel_path in required_paths:
-        assert rel_path in readme or rel_path == "docs/ip_license_status.md"
+        assert rel_path in readme or rel_path == "docs/governance/ip_license_status.md"
     assert "ip_license_status.md" in docs_index
     assert "public release" in status_doc.lower()
     assert "release manifest" in status_doc.lower()
@@ -641,7 +649,7 @@ def test_public_docs_do_not_launder_uniqueness_or_privacy_proxy_claims() -> None
     checked_paths = [
         path
         for path in [*PUBLIC_DOC_PATHS, *CLAIM_BOUNDARY_PATHS]
-        if path != "docs/scholarship_ledger.md"
+        if path != "docs/validation/scholarship_ledger.md"
     ]
 
     for rel_path in checked_paths:
@@ -667,7 +675,7 @@ def test_public_docs_do_not_launder_uniqueness_or_privacy_proxy_claims() -> None
 
 
 def test_roadmap_is_forward_only_not_a_delivered_work_recap() -> None:
-    text = (ROOT / "manuscript" / "07_roadmap.md").read_text(encoding="utf-8")
+    text = (ROOT / "docs" / "manuscript" / "07_roadmap.md").read_text(encoding="utf-8")
 
     assert "This revision has delivered" not in text
     assert "## Implemented Gates" not in text

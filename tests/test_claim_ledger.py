@@ -14,7 +14,7 @@ from active_fractal_rabbit.claim_ledger import (
 
 def test_claim_ledger_artifact_parser_and_missing_gate(tmp_path: Path) -> None:
     (tmp_path / "docs").mkdir()
-    ledger = tmp_path / "docs" / "claim_ledger.md"
+    ledger = tmp_path / "docs" / "validation" / "claim_ledger.md"
     ledger.write_text(
         "| claim | source |\n"
         "| --- | --- |\n"
@@ -35,7 +35,9 @@ def test_claim_ledger_artifact_parser_and_missing_gate(tmp_path: Path) -> None:
 
 def test_real_claim_ledger_cites_promoted_artifacts() -> None:
     root = Path(__file__).resolve().parents[1]
-    paths = set(cited_generated_artifacts(root / "docs" / "claim_ledger.md"))
+    paths = set(
+        cited_generated_artifacts(root / "docs" / "validation" / "claim_ledger.md")
+    )
 
     assert {
         "output/runs/latent_regime_hmm.json",
@@ -53,7 +55,9 @@ def test_real_claim_ledger_cites_promoted_artifacts() -> None:
 
 def test_claim_ledger_figure_count_matches_visual_quality_audit() -> None:
     root = Path(__file__).resolve().parents[1]
-    ledger = (root / "docs" / "claim_ledger.md").read_text(encoding="utf-8")
+    ledger = (root / "docs" / "validation" / "claim_ledger.md").read_text(
+        encoding="utf-8"
+    )
     audit_path = root / "output" / "runs" / "visual_quality_audit.json"
     if not audit_path.is_file():
         pytest.skip(

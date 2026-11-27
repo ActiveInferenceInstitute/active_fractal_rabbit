@@ -21,7 +21,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def main() -> int:
-    report = run_contract(ROOT / "manuscript")
+    report = run_contract(ROOT / "docs" / "manuscript")
     if report.passed:
         print("eval contract: PASS — all claim-level guards satisfied")
         return 0

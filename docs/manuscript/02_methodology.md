@@ -4,7 +4,7 @@
 
 The pipeline is organized as a closed research loop rather than a one-shot parser, following reproducible-computational-research practice that keeps inputs, scripts, intermediates, and software identifiers inspectable [@sandve2013reproducible; @wilson2017good_enough; @smith2016software_citation]. After the opening evidence atlas in [@fig:evidence-atlas], this section narrows the same story to its artifact contract: a configured run resolves a FractalRabbit-compatible CSV, validates and sorts waypoint rows, derives categorical observations, constructs normalized POMDP tensors, filters latent spatial-state beliefs, scores inference quality, and ranks the next simulator candidate.
 
-![{{FIG_CAPTION_DATAFLOW}}](../output/figures/dataflow.png){#fig:dataflow width={{FIGURE_WIDTH}}%}
+![{{FIG_CAPTION_DATAFLOW}}](../../output/figures/dataflow.png){#fig:dataflow width={{FIGURE_WIDTH}}%}
 
 [@fig:dataflow] is generated from the source pipeline modules and summarizes the artifact contract as five columns: an input boundary (the pinned generator or fixture CSV, yielding only waypoint observations), an evidence model (discretized categorical features and tensor summaries), the inference lanes (the reference Bayes-filter trace and the pymdp trace), the claim gates (null and risk artifacts), and the reader handoff (the figure registry and manuscript variables). No step in this pipeline imports private simulator internals or real-world mobility labels.
 

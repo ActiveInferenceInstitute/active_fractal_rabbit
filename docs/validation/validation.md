@@ -6,8 +6,8 @@
 and `gnn` are separately runnable, and CI calls the same arms. `test-full` is
 the documented readiness gate described below (full suite, 90% coverage floor).
 The arm list, fast/full split, and measured wall times are in
-[`RUN_GUIDE.md`](RUN_GUIDE.md) and
-[`_generated/gate-timings.md`](_generated/gate-timings.md).
+[`RUN_GUIDE.md`](../RUN_GUIDE.md) and
+[`_generated/gate-timings.md`](../_generated/gate-timings.md).
 
 ## Core Tests Protect Scaffold Interfaces
 
@@ -28,7 +28,7 @@ The core tests cover:
 - figure registry, style-provenance, and visual-quality audit generation with captions, alt text, source artifacts, palette/DPI/backend metadata, readable font-size contract, non-empty dimension-stable PNGs, caption source language, and data-derived source-file existence checks;
 - visual-claim mini-brief generation for every registered figure plus the cover, including story job, source artifact, caption support/non-support contract, manuscript call site, and PDF-export fallback;
 - manuscript token coverage, cross-reference style, figure-file existence, source-bound captions, and rendered-output scans for unresolved tokens or dangling `??` references;
-- primary-source scholarship ledger coverage, verifying that every manuscript citation key is present in `manuscript/references.bib`, source-backed by DOI/arXiv/official URLs or official publisher/project pages, and mapped to allowed wording plus forbidden overreach before manuscript citation;
+- primary-source scholarship ledger coverage, verifying that every manuscript citation key is present in `docs/manuscript/references.bib`, source-backed by DOI/arXiv/official URLs or official publisher/project pages, and mapped to allowed wording plus forbidden overreach before manuscript citation;
 - manuscript claim inventory and claim-ledger coverage for high-risk active-inference, minimization, privacy, integrity, external-lane, gap-filling, factorial-latent, and empirical-boundary claim families;
 - fail-loud manuscript-variable provenance for result-critical tokens, including missing artifact, missing key, checksum drift, rendered-value mismatch, and explicit unavailable handling;
 - additive per-traveller chronological holdout split and scoring, including the
@@ -41,7 +41,7 @@ The core tests cover:
 - the five checked config fixtures under `configs/fixtures/` loading and running
   end-to-end;
 - cover-art generation from canonical run artifacts, including fail-loud missing-artifact behavior and nonblank rendered-image checks;
-- release-manifest checksum construction, verification, tamper detection, deletion detection, required publication metadata (`LICENSE`, `LICENSE-DOCS.md`, `THIRD_PARTY_NOTICES.md`, `CITATION.cff`, `docs/ip_license_status.md`), and coverage of the current robustness, safety-boundary, cover, and rendered-PDF artifacts;
+- release-manifest checksum construction, verification, tamper detection, deletion detection, required publication metadata (`LICENSE`, `LICENSE-DOCS.md`, `THIRD_PARTY_NOTICES.md`, `CITATION.cff`, `docs/governance/ip_license_status.md`), and coverage of the current robustness, safety-boundary, cover, and rendered-PDF artifacts;
 - explicit external-lane skip reasons naming the missing tool or Java version;
 - JDK 21 resolution order (env override, PATH, Homebrew kegs, java_home) with a
   live host probe;
@@ -101,7 +101,7 @@ program-extensions and validation sections.
 - `release.py` now verifies required release artifacts in addition to checksums, so a manifest fails when required analysis JSON, provenance, or rendered PDF paths are absent rather than merely when listed files drift.
 - `visual_quality.py` re-reads `output/figures/figure_registry.json` and every registered PNG, enforcing image dimensions, aspect-ratio sanity, nonblank pixel variance, source-bound captions, alt text, unique keys, style-provenance font floors, and existence of every data-derived CSV/JSON source before the manuscript is rendered. Its `quality_summary` names the shortest, narrowest, lowest-variance, and most extreme-aspect figures plus the contact-sheet surface for manual review, while `layout_critical_figures` names the claim-bearing plots that must be manually checked for clipping, label collisions, legends, and title stacking after regeneration. The current default registry contains 53 manuscript figures, with `evidence_atlas` as the opening orientation figure and `dataflow` as the artifact-contract diagram.
 - The visual layer follows the same scholarship-backed convention used in the manuscript: align quantitative comparisons on shared axes where possible, show uncertainty with an explicit source artifact and boundary, and keep tables/JSON ledgers as the source of record when a plot is only the reader-facing view.
-- `claim_audit.py` inventories manuscript claims by source section, classifies evidence markers, verifies high-risk claim families against `docs/claim_ledger.md`, checks that ledger-cited local paths exist, and — for ledger claims citing a JSON artifact and stating a decimal number — checks that number is actually findable in that artifact (within tolerance), not merely that the cited path exists. `visual_claim_audit.py` turns the visualization critique into one mini-brief per figure plus the cover, failing if a caption can support a claim without a corresponding non-claim boundary and recording each visual's reader task, data shape, encoding, and claim boundary.
+- `claim_audit.py` inventories manuscript claims by source section, classifies evidence markers, verifies high-risk claim families against `docs/validation/claim_ledger.md`, checks that ledger-cited local paths exist, and — for ledger claims citing a JSON artifact and stating a decimal number — checks that number is actually findable in that artifact (within tolerance), not merely that the cited path exists. `visual_claim_audit.py` turns the visualization critique into one mini-brief per figure plus the cover, failing if a caption can support a claim without a corresponding non-claim boundary and recording each visual's reader task, data shape, encoding, and claim boundary.
 
 ## Figure and Reference QA Protect Rendered Claims
 

@@ -6,17 +6,17 @@ This supplement holds the secondary result lanes — anticipatory gap-filling, e
 
 The robustness expansion asks whether those verdicts survive stronger nulls and broader software checks. The return-structure probe in [@fig:return-structure] applies [@eq:return-feature] and [@eq:return-entropy] on move steps only. The measured move-step entropy reduction is {{RETURN_MOVE_ENTROPY_REDUCTION}} nats, persistence headroom is {{RETURN_PERSISTENCE_HEADROOM}}, and the current verdict is `{{RETURN_STRUCTURE_VERDICT}}`; this either promotes a return-conditioned prior as a concrete next model component or records a bounded null in the same artifact. The figure's third bar, `return_skill_vs_persistence`, is a secondary, prototype-only Brier-skill diagnostic of the return-conditioned predictive prior itself, not of the location-observed POMDP posterior; it is negative on the current run and plays no role in the promotion gate above, which is decided solely by the entropy reduction and the persistence-headroom sign, so a negative bar underneath a `promote_return_conditioned_prior` title is expected rather than a contradiction of that verdict. Cross-realization bands in [@fig:variance-bands] repeat the expanded configuration across {{VARIANCE_REALIZATION_COUNT}} synthetic realizations. The gap-filling skill band spans {{VARIANCE_GAP_FILL_LOW}} to {{VARIANCE_GAP_FILL_HIGH}} (interquartile range {{VARIANCE_GAP_FILL_IQR_LOW}}–{{VARIANCE_GAP_FILL_IQR_HIGH}}, SD {{VARIANCE_GAP_FILL_SD}} — min–max over ten draws is extreme-value-dominated, so the rank- and moment-based spreads are reported alongside it), so single-run conclusions can be read against an empirical synthetic-realization spread rather than treated as if one draw were a stable law. The same repeated-realization pass also plots five further verdict metrics discussed at the single-run level elsewhere in this document: the location-blind-limit skill against persistence (`blind_limit_skill`, [@sec:anticipatory]), the no-location frontier recovery mass (`frontier_no_location_mass`, [@sec:program-extensions]), the deep-latent structure-recovery total variation (`structure_deep_latent_tv`, [@sec:program-extensions]), the random-cell anomaly ROC AUC (`anomaly_random_auc`, [@sec:program-extensions]), and the mission EFE-minus-pragmatic recovery margin (`mission_efe_minus_pragmatic`, [@sec:program-extensions]). Because `blind_limit_skill` is the Brier-type skill score in the harder location-blind limit, already reported as strongly negative in [@sec:anticipatory]. Unlike the other four metrics (which stay within a bounded unit-scale range), it is unbounded below — so its band sits roughly an order of magnitude beneath the rest of the figure due to its scale, not a plotting error or a stale realization. These bands are robustness summaries over generated software realizations, not population confidence intervals [@efron1994bootstrap]. Upstream sensitivity in [@fig:upstream-sensitivity] reports `{{UPSTREAM_SENSITIVITY_STATUS}}` after {{UPSTREAM_SENSITIVITY_ATTEMPTS}} attempted prior commits; a blocked result is rendered as evidence about build comparability, not as a missing figure.
 
-![{{FIG_CAPTION_RETURN_STRUCTURE}}](../output/figures/return_structure.png){#fig:return-structure width={{FIGURE_WIDTH}}%}
+![{{FIG_CAPTION_RETURN_STRUCTURE}}](../../output/figures/return_structure.png){#fig:return-structure width={{FIGURE_WIDTH}}%}
 
-![{{FIG_CAPTION_VARIANCE_BANDS}}](../output/figures/variance_bands.png){#fig:variance-bands width={{FIGURE_WIDTH}}%}
+![{{FIG_CAPTION_VARIANCE_BANDS}}](../../output/figures/variance_bands.png){#fig:variance-bands width={{FIGURE_WIDTH}}%}
 
-![{{FIG_CAPTION_UPSTREAM_SENSITIVITY}}](../output/figures/upstream_sensitivity.png){#fig:upstream-sensitivity width={{FIGURE_WIDTH}}%}
+![{{FIG_CAPTION_UPSTREAM_SENSITIVITY}}](../../output/figures/upstream_sensitivity.png){#fig:upstream-sensitivity width={{FIGURE_WIDTH}}%}
 
 The implemented roadmap probes from [@sec:roadmap-implemented-now] extend that robustness layer. The fractal-dimension sweep in [@fig:fractal-dimension-sweep] varies the generator control introduced in [@sec:fractal-dimension-control]; its status is `{{FRACTAL_DIMENSION_SWEEP_STATUS}}`, the best predictive-loss dimension is {{FRACTAL_DIMENSION_BEST_LOSS_D}}, the highest revisit-rate dimension is {{FRACTAL_DIMENSION_REVISIT_D}}, and the predictive-loss sweep range is {{FRACTAL_DIMENSION_LOSS_LOW}} to {{FRACTAL_DIMENSION_LOSS_HIGH}}. The circadian-phase signal in [@fig:circadian-phase-signal] tests whether a phase-conditioned occupancy prior is worth promoting: the current verdict is `{{CIRCADIAN_PHASE_VERDICT}}`, with phase gain {{CIRCADIAN_PHASE_GAIN}}, permuted gain {{CIRCADIAN_PHASE_PERMUTED_GAIN}}, and maximum Jensen-Shannon separation {{CIRCADIAN_PHASE_MAX_JS}}. Against a {{CIRCADIAN_PHASE_N_PERM}}-permutation label null (floored at one over the draw count plus one), the phase gain carries permutation p-value {{CIRCADIAN_PHASE_GAIN_P}} and the maximum Jensen-Shannon separation p-value {{CIRCADIAN_PHASE_MAXJS_P}}, so neither clears at the conventional threshold. Both artifacts are roadmap gates, not behavioral claims.
 
-![{{FIG_CAPTION_FRACTAL_DIMENSION_SWEEP}}](../output/figures/fractal_dimension_sweep.png){#fig:fractal-dimension-sweep width={{FIGURE_WIDTH}}%}
+![{{FIG_CAPTION_FRACTAL_DIMENSION_SWEEP}}](../../output/figures/fractal_dimension_sweep.png){#fig:fractal-dimension-sweep width={{FIGURE_WIDTH}}%}
 
-![{{FIG_CAPTION_CIRCADIAN_PHASE_SIGNAL}}](../output/figures/circadian_phase_signal.png){#fig:circadian-phase-signal width={{FIGURE_WIDTH}}%}
+![{{FIG_CAPTION_CIRCADIAN_PHASE_SIGNAL}}](../../output/figures/circadian_phase_signal.png){#fig:circadian-phase-signal width={{FIGURE_WIDTH}}%}
 
 ## Sequence and Reporting Gates Strengthen the Nulls {#sec:results-sequence-reporting-gates}
 
@@ -26,7 +26,7 @@ The sequence-baseline gate in [@fig:sequence-baselines] implements a prequential
 
 : Prequential next-cell sequence baselines emitted by `sequence_baseline_analysis.json`. {#tbl:sequence-baselines}
 
-![{{FIG_CAPTION_SEQUENCE_BASELINES}}](../output/figures/sequence_baselines.png){#fig:sequence-baselines width={{FIGURE_WIDTH}}%}
+![{{FIG_CAPTION_SEQUENCE_BASELINES}}](../../output/figures/sequence_baselines.png){#fig:sequence-baselines width={{FIGURE_WIDTH}}%}
 
 The reporting-process gate in [@fig:missingness-model] asks whether sparse reporting itself has phase or traveller structure. Treating observation timing as ignorable requires explicit assumptions: classical missing-data theory conditions ignorability on the missingness mechanism, and irregular outcome-dependent observation can bias ordinary marginal analyses when visit intensity and the outcome process are associated [@rubin1976missing_data; @lin2004irregular_followup]. The synthetic gate scores {{MISSINGNESS_INTERVAL_COUNT}} positive inter-report intervals, defines short gaps from the generated interval distribution, and reports verdict `{{MISSINGNESS_VERDICT}}`. The short-gap rate is {{MISSINGNESS_SHORT_GAP_RATE}}, interval coefficient of variation is {{MISSINGNESS_INTERVAL_CV}}, phase gain over a pooled reporter is {{MISSINGNESS_PHASE_GAIN}}, traveller gain is {{MISSINGNESS_TRAVELLER_GAIN}}, combined phase-traveller gain is {{MISSINGNESS_COMBINED_GAIN}}, and permuted-phase gain is {{MISSINGNESS_PERMUTED_GAIN}}. It tests report timing in generated waypoints; it neither establishes ignorability nor characterizes real nonresponse behavior.
 
@@ -34,7 +34,7 @@ The reporting-process gate in [@fig:missingness-model] asks whether sparse repor
 
 : Reporting-process log-loss gains emitted by `missingness_model_analysis.json`. {#tbl:missingness-model}
 
-![{{FIG_CAPTION_MISSINGNESS_MODEL}}](../output/figures/missingness_model.png){#fig:missingness-model width={{FIGURE_WIDTH}}%}
+![{{FIG_CAPTION_MISSINGNESS_MODEL}}](../../output/figures/missingness_model.png){#fig:missingness-model width={{FIGURE_WIDTH}}%}
 
 ## Lane-Resolved Gates Keep Fixture and External Evidence Separate {#sec:results-model-gate-matrix}
 
@@ -44,7 +44,7 @@ The singleton sequence and reporting-process artifacts remain for backward compa
 
 : Lane-resolved model gate matrix emitted by `model_gate_matrix.json`. {#tbl:model-gate-matrix}
 
-![{{FIG_CAPTION_MODEL_GATE_MATRIX}}](../output/figures/model_gate_matrix.png){#fig:model-gate-matrix width={{FIGURE_WIDTH}}%}
+![{{FIG_CAPTION_MODEL_GATE_MATRIX}}](../../output/figures/model_gate_matrix.png){#fig:model-gate-matrix width={{FIGURE_WIDTH}}%}
 
 The return-plus-phase prior is the first concrete M9 model idea. In [@tbl:return-phase-prior], it compares pooled, phase-only, return-only, and return-plus-phase priors against persistence and permuted-phase nulls before promotion. The current canonical-lane verdict is `{{RETURN_PHASE_VERDICT}}`; the best model is `{{RETURN_PHASE_BEST_MODEL}}` with mean predictive loss {{RETURN_PHASE_BEST_LOSS}}, gain {{RETURN_PHASE_GAIN_VS_PERSISTENCE}} over persistence, and gain {{RETURN_PHASE_GAIN_OVER_PERMUTED}} over the permuted-phase comparator. A promoted verdict would justify adding the factor to the generative prior; an honest null keeps the manuscript from treating return and circadian texture as a model improvement merely because they are plausible.
 
@@ -64,7 +64,7 @@ The table deliberately keeps lane disagreements visible rather than merging lane
 
 : Promoted forward-gate summary emitted by `forward_gates_summary.json`. {#tbl:forward-gates}
 
-![{{FIG_CAPTION_M10_FORWARD_GATES}}](../output/figures/m10_forward_gates.png){#fig:m10-forward-gates width={{FIGURE_WIDTH}}%}
+![{{FIG_CAPTION_M10_FORWARD_GATES}}](../../output/figures/m10_forward_gates.png){#fig:m10-forward-gates width={{FIGURE_WIDTH}}%}
 
 ## Gap Filling Still Faces the Persistence Oracle {#sec:anticipatory}
 
@@ -74,7 +74,7 @@ Two regimes separate cleanly. In the **location-blind limit** — the location m
 
 The target synthetic gap-filling regime is **sporadic-reporting interpolation**: location is observed at sparse reports and missing in between, so both the filter and persistence know the last *reported* cell and the question is what happens across a gap. [@fig:anticipatory] reports recovery scored on the {{GAP_FILL_N_STEPS}} held-out gap steps of the current pinned-fixture run (location hidden there). Persistence rigidly holds the last reported cell (Brier {{GAP_FILL_PERSISTENCE_BRIER}}). Against that oracle the regenerated run scores skill {{GAP_FILL_FLAT_SKILL}} for the flat belief filter and {{GAP_FILL_SCRP_SKILL}} for the speed-conditioned variant (positive = clears persistence; speed-clamp edge {{GAP_FILL_SPEED_EDGE}}) — on the current canonical regeneration both are positive, so both variants clear the persistence oracle here, with the speed-conditioned filter strongest. We do not promote these margins as a win: they are single-run synthetic software measurements that lean on the disclosed displacement-derived speed cue, they sit outside the clustered-bootstrap multiplicity family of [@sec:results-multiplicity], and the controlled harness's role remains proving the machinery can detect a planted speed-to-move coupling. Speed is derived from inter-report displacement, so it is a strong kinematic cue for *whether* the cell changed — we disclose this rather than hide it, report the speed-free flat filter alongside, and confine all of these to synthetic-data software measurements on the pinned simulator, never empirical mobility validation.
 
-![{{FIG_CAPTION_ANTICIPATORY}}](../output/figures/anticipatory.png){#fig:anticipatory width={{FIGURE_WIDTH}}%}
+![{{FIG_CAPTION_ANTICIPATORY}}](../../output/figures/anticipatory.png){#fig:anticipatory width={{FIGURE_WIDTH}}%}
 
 ## Expected Free Energy Separates Epistemic and Pragmatic Value {#sec:efe}
 
@@ -86,7 +86,7 @@ We also tested whether that epistemic value is *useful* for scheduling: under a 
 
 Scored honestly on the full non-first trajectory — every schedule covers the identical evaluation set, so the metric cannot be flattered by a schedule that leaves only easy steps unobserved — the answer is an honest null: epistemic-led acquisition beats only a fraction {{ACTIVE_SENSING_BEATEN_FRACTION}} of random schedules on the current pinned-fixture run. The speed-conditioned dynamics already anticipate where the cell will change, so most of the uncertainty an information-greedy fix would target is uncertainty the transition model has already resolved; choosing *which* step to observe by information gain therefore adds little over choosing blindly. We report this null rather than search for a framing that inverts it.
 
-![{{FIG_CAPTION_EFE_DECOMPOSITION}}](../output/figures/efe_decomposition.png){#fig:efe-decomposition width={{FIGURE_WIDTH}}%}
+![{{FIG_CAPTION_EFE_DECOMPOSITION}}](../../output/figures/efe_decomposition.png){#fig:efe-decomposition width={{FIGURE_WIDTH}}%}
 
 ## Detection, Structure Recovery, and Minimization Stay Program Extensions {#sec:program-extensions}
 
@@ -100,6 +100,6 @@ For mission-conditioned collection, allocating a fixed location-fix budget by ex
 
 Composing these, the recoverability frontier ([@fig:recoverability-frontier]) maps recovery against the observed modality set: with all modalities the filter holds mean mass {{FRONTIER_ALL_MASS}} on the true cell, but withholding location collapses it to {{FRONTIER_NO_LOCATION_MASS}} — an oversight-positive statement of how protective location-minimization is and how little the specific cell is recoverable from time, speed, and reporting-burst metadata alone. All of these are synthetic-data software measurements on the pinned generator, not empirical mobility findings.
 
-![{{FIG_CAPTION_ANOMALY_DETECTION}}](../output/figures/anomaly_detection.png){#fig:anomaly-detection width={{FIGURE_WIDTH}}%}
+![{{FIG_CAPTION_ANOMALY_DETECTION}}](../../output/figures/anomaly_detection.png){#fig:anomaly-detection width={{FIGURE_WIDTH}}%}
 
-![{{FIG_CAPTION_RECOVERABILITY_FRONTIER}}](../output/figures/recoverability_frontier.png){#fig:recoverability-frontier width={{FIGURE_WIDTH}}%}
+![{{FIG_CAPTION_RECOVERABILITY_FRONTIER}}](../../output/figures/recoverability_frontier.png){#fig:recoverability-frontier width={{FIGURE_WIDTH}}%}

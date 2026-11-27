@@ -35,7 +35,7 @@ non-peer-reviewed exposition and no stronger source is available.
 
 ## Implementation Scope
 
-Maintain `docs/scholarship_ledger.md`, `manuscript/references.bib`, challenge
+Maintain `docs/validation/scholarship_ledger.md`, `docs/manuscript/references.bib`, challenge
 pack literature candidates, and docs-contract coverage. Add only DOI, arXiv,
 official publisher, or official project sources.
 
@@ -58,8 +58,8 @@ and dependency-audit requirements.
 
 ## Artifact And Provenance Surfaces
 
-Primary surfaces include `docs/scholarship_ledger.md`,
-`manuscript/references.bib`, `open_challenge_pack.json`,
+Primary surfaces include `docs/validation/scholarship_ledger.md`,
+`docs/manuscript/references.bib`, `open_challenge_pack.json`,
 `sota_program_leaderboard.csv`, claim-ledger rows, and rendered manuscript
 citations.
 

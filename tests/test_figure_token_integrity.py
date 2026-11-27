@@ -24,7 +24,7 @@ def _manuscript_text() -> str:
     excluded = {"AGENTS.md", "README.md", "SYNTAX.md"}
     return "\n".join(
         p.read_text(encoding="utf-8")
-        for p in sorted((ROOT / "manuscript").glob("*.md"))
+        for p in sorted((ROOT / "docs" / "manuscript").glob("*.md"))
         if p.name not in excluded
     )
 

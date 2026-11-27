@@ -17,7 +17,7 @@ Peer review recommends repositioning as a BENCHMARK/EVALUATION paper first, acti
 
 ## PHASE 1: Manuscript Repositioning & Comparison-Contract Table (Items 1-4)
 
-### 1.1 Abstract Rewrite — `manuscript/00_abstract.md`
+### 1.1 Abstract Rewrite — `docs/manuscript/00_abstract.md`
 **Current state:** Abstract leads with pymdp as a primary contribution, then pivots to "where it helps and where it doesn't."
 
 **Change:** Reposition the benchmark-governance framing to the lead position (first 2 sentences), defer active inference to a supporting role (final sentence). The abstract's honest core is the fair-comparison result + the regime-bound advantage finding (power analysis).
@@ -31,7 +31,7 @@ Peer review recommends repositioning as a BENCHMARK/EVALUATION paper first, acti
 
 ---
 
-### 1.2 Introduction Reshaping — `manuscript/01_introduction.md`
+### 1.2 Introduction Reshaping — `docs/manuscript/01_introduction.md`
 
 **Current state:** §01 leads with "synthetic benchmarking without surveillance claims" and only reaches active inference in §01.2.
 
@@ -47,7 +47,7 @@ Peer review recommends repositioning as a BENCHMARK/EVALUATION paper first, acti
 
 ---
 
-### 1.3 Create New "Comparison Contract Table" — `manuscript/01_introduction.md` (new subsection) + Python generator
+### 1.3 Create New "Comparison Contract Table" — `docs/manuscript/01_introduction.md` (new subsection) + Python generator
 
 **Current state:** The fair-comparison ladder (oracle, hard, soft, soft+boost, aif) is buried in the Methods and Results. It is the intellectual core but not presented as a design contract.
 
@@ -89,7 +89,7 @@ Peer review recommends repositioning as a BENCHMARK/EVALUATION paper first, acti
 
 ---
 
-### 1.4 Early Results Restructuring — `manuscript/03_results.md` (§03.0 NEW)
+### 1.4 Early Results Restructuring — `docs/manuscript/03_results.md` (§03.0 NEW)
 
 **Current state:** Results opens with fixture diagnostics (spatial resolution, fixture stats). The fair-comparison ladder is buried in §03.7 "recovery calibration."
 
@@ -240,7 +240,7 @@ Peer review recommends repositioning as a BENCHMARK/EVALUATION paper first, acti
 
 ## PHASE 5: Main-Text Figure Reduction & Clarity (Item 10)
 
-### 5.1 Curate Core Figures — `manuscript/03_results.md` (remove artifact-audit figs)
+### 5.1 Curate Core Figures — `docs/manuscript/03_results.md` (remove artifact-audit figs)
 
 **Current core figures (keep in main text):**
 1. Evidence atlas (intro context)
@@ -322,7 +322,7 @@ It does NOT produce surveillance-ready algorithms, privacy guarantees, or operat
 
 **Binding:** Placed in docs/ and cross-referenced from the manuscript (add footnote in abstract/introduction).
 
-### 7.2 Add Bibliography Entries — `manuscript/references.bib`
+### 7.2 Add Bibliography Entries — `docs/manuscript/references.bib`
 
 **New entries to add:**
 ```bibtex

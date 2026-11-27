@@ -35,4 +35,4 @@ src/
 
 Agent rules, the module-ownership map, and the claim boundary are in
 [`active_fractal_rabbit/AGENTS.md`](active_fractal_rabbit/AGENTS.md); design context is
-in [`../docs/architecture.md`](../docs/architecture.md).
+in [`../docs/architecture/architecture.md`](../docs/architecture/architecture.md).

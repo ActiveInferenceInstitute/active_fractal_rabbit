@@ -103,7 +103,7 @@ def _ensure_source_tree_for_verifiers(root: Path) -> None:
 
 
 def _materialize_release_inputs(root: Path) -> None:
-    for name in ("data", "docs", "manuscript", "src", "scripts", "tests"):
+    for name in ("data", "docs", "src", "scripts", "tests"):
         target = root / name
         if target.is_symlink():
             target.unlink()

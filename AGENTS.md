@@ -36,7 +36,7 @@ regime-qualified AIF search into global SOTA language.
 - `scripts/` - orchestration entrypoints; no heavy domain logic.
 - `src/active_fractal_rabbit/` - simulator ingestion, analysis, figures,
   manuscript variables, release, and audit logic.
-- `manuscript/` - Pandoc source that consumes variables and generated figures.
+- `docs/manuscript/` - Pandoc source that consumes variables and generated figures.
 - `docs/` - lifecycle docs for fixture-first and optional external workflows.
 - `output/runs/` - JSON, CSV, manifests, gates, and run directories.
 - `output/figures/` - generated figures and figure registries.

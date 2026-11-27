@@ -31,7 +31,7 @@ uv run python scripts/29_finalize_publication_package.py --verify-only
 
 The release-manifest step also verifies the root publication metadata:
 `LICENSE`, `LICENSE-DOCS.md`, `THIRD_PARTY_NOTICES.md`, `CITATION.cff`,
-`pyproject.toml`, `README.md`, and `docs/ip_license_status.md`.
+`pyproject.toml`, `README.md`, and `docs/governance/ip_license_status.md`.
 
 For a smaller development loop that does not build every roadmap and
 safety-boundary artifact, run the component stages directly:
@@ -126,7 +126,7 @@ uv run python scripts/07_run_full_study.py --lane both
 
 Run the external FractalRabbit lane after installing JDK 21 and Maven
 (`brew install openjdk@21 maven` — the boundary layer resolves the keg-only JDK
-automatically; see `docs/external_lane.md`):
+automatically; see `docs/guides/external_lane.md`):
 
 ```bash
 uv run python scripts/01_prepare_fractalrabbit.py --config configs/fractalrabbit_external.yaml

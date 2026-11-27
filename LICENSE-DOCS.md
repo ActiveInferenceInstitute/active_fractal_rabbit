@@ -14,4 +14,4 @@ Recommended attribution:
 
 This license does not override third-party notices, upstream licenses, dataset
 terms, or generated-artifact restrictions documented in `THIRD_PARTY_NOTICES.md`
-and `docs/ip_license_status.md`.
+and `docs/governance/ip_license_status.md`.

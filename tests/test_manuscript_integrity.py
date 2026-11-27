@@ -58,7 +58,7 @@ STRUCTURAL_NUMERALS = frozenset({"21", "256", "1", "95"})
 #: honest because test_publication_identifier_scoping_keeps_prose_drift_failing
 #: proves other numerals still fail, and
 #: test_abstract_publication_identifiers_match_configured_doi pins the
-#: abstract's identifiers to manuscript/config.yaml.
+#: abstract's identifiers to docs/manuscript/config.yaml.
 PUBLICATION_IDENTIFIER_PATTERNS = (
     re.compile(r"https?://\S+"),
     re.compile(r"10\.\d{4,}/\S+"),
@@ -206,7 +206,7 @@ def _manuscript_texts() -> list[str]:
     excluded = {"AGENTS.md", "README.md", "SYNTAX.md"}
     return [
         path.read_text(encoding="utf-8")
-        for path in sorted((ROOT / "manuscript").glob("*.md"))
+        for path in sorted((ROOT / "docs" / "manuscript").glob("*.md"))
         if path.name not in excluded
     ]
 
@@ -216,7 +216,7 @@ def _active_formalism_paths() -> list[Path]:
     return [
         *[
             path
-            for path in sorted((ROOT / "manuscript").glob("*.md"))
+            for path in sorted((ROOT / "docs" / "manuscript").glob("*.md"))
             if path.name not in excluded
         ],
         *sorted((ROOT / "docs" / "methods").glob("*.md")),
@@ -268,7 +268,9 @@ def test_manuscript_tokens_citations_and_figure_paths_resolve(repo_sandbox) -> N
 
     bib_keys = set(
         BIB_KEY_RE.findall(
-            (ROOT / "manuscript" / "references.bib").read_text(encoding="utf-8")
+            (ROOT / "docs" / "manuscript" / "references.bib").read_text(
+                encoding="utf-8"
+            )
         )
     )
     citation_keys = {
@@ -371,7 +373,7 @@ def test_active_formalisms_are_display_labelled_for_auto_numbering() -> None:
 
 def test_manuscript_and_docs_avoid_known_review_regressions() -> None:
     corpus_paths = [
-        *sorted((ROOT / "manuscript").glob("*.md")),
+        *sorted((ROOT / "docs" / "manuscript").glob("*.md")),
         *sorted((ROOT / "docs").glob("*.md")),
         ROOT / "README.md",
     ]
@@ -380,7 +382,7 @@ def test_manuscript_and_docs_avoid_known_review_regressions() -> None:
         for path in corpus_paths
         if path.name not in {"AGENTS.md", "SYNTAX.md"}
     )
-    bib = (ROOT / "manuscript" / "references.bib").read_text(encoding="utf-8")
+    bib = (ROOT / "docs" / "manuscript" / "references.bib").read_text(encoding="utf-8")
 
     assert "HMM-style" not in corpus
     assert "95% CI" not in corpus
@@ -393,16 +395,16 @@ def test_manuscript_and_docs_avoid_known_review_regressions() -> None:
     assert "near-unbeatable" not in corpus
     assert "B_t (t_i" not in corpus
     assert "preference cross-entropy proxy" in (
-        ROOT / "manuscript" / "02b_formal_model.md"
+        ROOT / "docs" / "manuscript" / "02b_formal_model.md"
     ).read_text(encoding="utf-8")
     assert "Identity-emission collapse" in (
-        ROOT / "manuscript" / "02b_formal_model.md"
+        ROOT / "docs" / "manuscript" / "02b_formal_model.md"
     ).read_text(encoding="utf-8")
     assert "set-valued signature is intentional" in (
-        ROOT / "manuscript" / "S04_formal_diagnostics_and_pymdp.md"
+        ROOT / "docs" / "manuscript" / "S04_formal_diagnostics_and_pymdp.md"
     ).read_text(encoding="utf-8")
     assert "scripts/z_generate_manuscript_variables.py" in (
-        ROOT / "manuscript" / "S02_reproducibility.md"
+        ROOT / "docs" / "manuscript" / "S02_reproducibility.md"
     ).read_text(encoding="utf-8")
     assert "/master/resources/" not in bib
     assert "/master/src/" not in bib
@@ -420,7 +422,7 @@ def test_manuscript_and_docs_avoid_known_review_regressions() -> None:
     overclaim_paths = [
         path
         for path in corpus_paths
-        if path.relative_to(ROOT).as_posix() != "docs/scholarship_ledger.md"
+        if path.relative_to(ROOT).as_posix() != "docs/validation/scholarship_ledger.md"
     ]
     overclaim_corpus = "\n".join(
         path.read_text(encoding="utf-8").lower()
@@ -444,7 +446,7 @@ def test_manuscript_and_docs_avoid_known_review_regressions() -> None:
     )
     assert not offenders, f"Bayesian-mechanics overclaim phrase(s): {offenders}"
     s08 = (
-        (ROOT / "manuscript" / "S08_results_safety_privacy_and_external.md")
+        (ROOT / "docs" / "manuscript" / "S08_results_safety_privacy_and_external.md")
         .read_text(encoding="utf-8")
         .lower()
     )
@@ -464,7 +466,7 @@ def test_active_surfaces_do_not_reintroduce_legacy_method_language() -> None:
         ),
         *sorted(
             path
-            for path in (ROOT / "manuscript").glob("*.md")
+            for path in (ROOT / "docs" / "manuscript").glob("*.md")
             if path.name
             not in {"AGENTS.md", "README.md", "SYNTAX.md", "references.bib"}
         ),
@@ -498,9 +500,9 @@ def test_s01_execution_only_enumeration_matches_eval_contract_constant() -> None
     silently re-diverge again the next time EXECUTION_ONLY_CLASSES grows."""
     from active_fractal_rabbit.eval_contract import EXECUTION_ONLY_CLASSES
 
-    s01 = (ROOT / "manuscript" / "S01_validation_and_threat_model.md").read_text(
-        encoding="utf-8"
-    )
+    s01 = (
+        ROOT / "docs" / "manuscript" / "S01_validation_and_threat_model.md"
+    ).read_text(encoding="utf-8")
     # Distinctive, tense-robust fragments per class (manuscript prose paraphrases the code
     # constant's present-tense docstring-style wording into past-tense narrative prose).
     distinctive_fragments = (
@@ -520,7 +522,7 @@ def test_s01_execution_only_enumeration_matches_eval_contract_constant() -> None
 
 def test_manuscript_title_margin_and_new_section_references() -> None:
     config = yaml.safe_load(
-        (ROOT / "manuscript" / "config.yaml").read_text(encoding="utf-8")
+        (ROOT / "docs" / "manuscript" / "config.yaml").read_text(encoding="utf-8")
     )
     manuscript = "\n".join(_manuscript_texts())
     section_titles = {
@@ -590,7 +592,7 @@ def test_manuscript_title_margin_and_new_section_references() -> None:
     assert config["metadata"]["documentclass"] == "extarticle"
     assert config["metadata"]["fontsize"] == "8pt"
     for filename, title in section_titles.items():
-        assert (ROOT / "manuscript" / filename).read_text(
+        assert (ROOT / "docs" / "manuscript" / filename).read_text(
             encoding="utf-8"
         ).splitlines()[0] == title
     offenders = sorted(title for title in stale_titles if title in manuscript)
@@ -639,7 +641,9 @@ def test_resolved_manuscript_has_no_unresolved_tokens_or_refs(repo_sandbox) -> N
 def test_abstract_is_problem_framed_not_environment_framed() -> None:
     """The abstract should lead with analytic purpose, not package/toolchain mechanics."""
 
-    abstract = (ROOT / "manuscript" / "00_abstract.md").read_text(encoding="utf-8")
+    abstract = (ROOT / "docs" / "manuscript" / "00_abstract.md").read_text(
+        encoding="utf-8"
+    )
     body_lines = [
         line.strip()
         for line in abstract.splitlines()
@@ -682,7 +686,9 @@ def test_abstract_is_problem_framed_not_environment_framed() -> None:
 
 
 def test_conclusion_all_positive_claim_excludes_clean_zero_noise_level() -> None:
-    conclusion = (ROOT / "manuscript" / "08_conclusion.md").read_text(encoding="utf-8")
+    conclusion = (ROOT / "docs" / "manuscript" / "08_conclusion.md").read_text(
+        encoding="utf-8"
+    )
     assert "positive at every nonzero noise level" in conclusion
     assert "per-level resamplings positive" not in conclusion
 
@@ -691,7 +697,7 @@ def test_validation_and_reproducibility_are_supplemental() -> None:
     """Reproducibility and validation/threat-model material must live in S-prefixed
     supplemental sections (rendered after the main body, before references), not in the
     numbered main IMRaD flow. Anchors are preserved so cross-references still resolve."""
-    md = ROOT / "manuscript"
+    md = ROOT / "docs" / "manuscript"
     supplemental = {p.name for p in md.glob("S*.md")}
     assert "S01_validation_and_threat_model.md" in supplemental
     assert "S02_reproducibility.md" in supplemental
@@ -713,9 +719,13 @@ def test_validation_and_reproducibility_are_supplemental() -> None:
 
 
 def test_confound_taxonomy_is_supplemental_not_main_discussion() -> None:
-    discussion = (ROOT / "manuscript" / "04_discussion.md").read_text(encoding="utf-8")
-    roadmap = (ROOT / "manuscript" / "07_roadmap.md").read_text(encoding="utf-8")
-    supplement = (ROOT / "manuscript" / "S09_confound_taxonomy.md").read_text(
+    discussion = (ROOT / "docs" / "manuscript" / "04_discussion.md").read_text(
+        encoding="utf-8"
+    )
+    roadmap = (ROOT / "docs" / "manuscript" / "07_roadmap.md").read_text(
+        encoding="utf-8"
+    )
+    supplement = (ROOT / "docs" / "manuscript" / "S09_confound_taxonomy.md").read_text(
         encoding="utf-8"
     )
     assert (
@@ -731,7 +741,9 @@ def test_confound_taxonomy_is_supplemental_not_main_discussion() -> None:
 
 
 def test_discussion_model_map_states_where_models_work_and_why() -> None:
-    discussion = (ROOT / "manuscript" / "04_discussion.md").read_text(encoding="utf-8")
+    discussion = (ROOT / "docs" / "manuscript" / "04_discussion.md").read_text(
+        encoding="utf-8"
+    )
     assert "{#sec:discussion-model-map}" in discussion
     for regime in (
         "Clean or directly observed cell",
@@ -742,12 +754,18 @@ def test_discussion_model_map_states_where_models_work_and_why() -> None:
     ):
         assert regime in discussion
     assert "there is no global winner" in discussion.lower()
-    abstract = (ROOT / "manuscript" / "00_abstract.md").read_text(encoding="utf-8")
-    introduction = (ROOT / "manuscript" / "01_introduction.md").read_text(
+    abstract = (ROOT / "docs" / "manuscript" / "00_abstract.md").read_text(
         encoding="utf-8"
     )
-    results = (ROOT / "manuscript" / "03_results.md").read_text(encoding="utf-8")
-    conclusion = (ROOT / "manuscript" / "08_conclusion.md").read_text(encoding="utf-8")
+    introduction = (ROOT / "docs" / "manuscript" / "01_introduction.md").read_text(
+        encoding="utf-8"
+    )
+    results = (ROOT / "docs" / "manuscript" / "03_results.md").read_text(
+        encoding="utf-8"
+    )
+    conclusion = (ROOT / "docs" / "manuscript" / "08_conclusion.md").read_text(
+        encoding="utf-8"
+    )
     assert "lowest-loss implemented predictor" in abstract
     assert "statistical tie" in abstract
     assert "[@sec:discussion-model-map]" in introduction
@@ -756,8 +774,12 @@ def test_discussion_model_map_states_where_models_work_and_why() -> None:
 
 
 def test_completed_adaptive_aif_result_is_not_hosted_in_forward_roadmap() -> None:
-    discussion = (ROOT / "manuscript" / "04_discussion.md").read_text(encoding="utf-8")
-    roadmap = (ROOT / "manuscript" / "07_roadmap.md").read_text(encoding="utf-8")
+    discussion = (ROOT / "docs" / "manuscript" / "04_discussion.md").read_text(
+        encoding="utf-8"
+    )
+    roadmap = (ROOT / "docs" / "manuscript" / "07_roadmap.md").read_text(
+        encoding="utf-8"
+    )
     assert "{#sec:discussion-adaptive-aif}" in discussion
     assert "#fig:aif-deepening-candidates" in discussion
     assert "ADAPTIVE_AIF_MEAN_GAIN" in discussion
@@ -778,7 +800,7 @@ def test_no_hardcoded_run_dependent_numbers() -> None:
         "preamble.md",
     }
     offenders: list[str] = []
-    for path in sorted((ROOT / "manuscript").glob("*.md")):
+    for path in sorted((ROOT / "docs" / "manuscript").glob("*.md")):
         if path.name in excluded:
             continue
         text = path.read_text(encoding="utf-8")
@@ -830,13 +852,15 @@ def test_abstract_publication_identifiers_match_configured_doi() -> None:
 
     The numeric-prose scans no longer flag the abstract's DOI digits (they are
     publication metadata). Instead the abstract must cite exactly the concept
-    DOI and repository URL recorded in ``manuscript/config.yaml``, so a drifted
+    DOI and repository URL recorded in ``docs/manuscript/config.yaml``, so a drifted
     or typo'd identifier fails here.
     """
 
-    abstract = (ROOT / "manuscript" / "00_abstract.md").read_text(encoding="utf-8")
+    abstract = (ROOT / "docs" / "manuscript" / "00_abstract.md").read_text(
+        encoding="utf-8"
+    )
     config = yaml.safe_load(
-        (ROOT / "manuscript" / "config.yaml").read_text(encoding="utf-8")
+        (ROOT / "docs" / "manuscript" / "config.yaml").read_text(encoding="utf-8")
     )
     publication = config["publication"]
     cited_dois = set(re.findall(r"10\.\d{4,}/[^\s)\]]+", abstract))
@@ -848,7 +872,7 @@ def test_manuscript_and_docs_do_not_make_positive_operational_claims() -> None:
     """Operational/tasking terms may appear only as explicit limits or nulls."""
 
     corpus_paths = [
-        *sorted((ROOT / "manuscript").glob("*.md")),
+        *sorted((ROOT / "docs" / "manuscript").glob("*.md")),
         *sorted((ROOT / "docs").glob("*.md")),
         ROOT / "README.md",
     ]

@@ -27,7 +27,7 @@ lacks the claimed manifest. This limitation is not proof that no historical
 execution existed. Preserve the assertion and oracle-control/promotion holds
 without upgrading it to observed history or current custody.
 
-The contract in [`external_lane.md`](../external_lane.md) requires newly qualified
+The contract in [`external_lane.md`](../guides/external_lane.md) requires newly qualified
 build/executable and fresh-bundle execution before current completion can be
 asserted. Documentation and offline contract acceptance do not establish a new
 external build, realization, or scientific result.
@@ -59,7 +59,7 @@ and manuscript prose remain lane-qualified.
 
 Primary surfaces are `fair_inference_external_realizations.json`,
 `fair_inference.json`, external run directories, manuscript variables,
-`docs/external_lane.md`, `docs/claim_ledger.md`, and the release manifest.
+`docs/guides/external_lane.md`, `docs/validation/claim_ledger.md`, and the release manifest.
 
 ## Claim Boundary
 
