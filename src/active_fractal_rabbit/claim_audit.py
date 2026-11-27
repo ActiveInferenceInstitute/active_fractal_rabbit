@@ -13,6 +13,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from .claim_ledger import CLAIM_LEDGER_PATH
 from .eval_contract import _any_marker_at_word_boundary
 
 CLAIM_AUDIT_SCHEMA = "active-fractal-rabbit-claim-audit-v1"
@@ -267,7 +268,7 @@ def audit_claims(
     """
 
     root = Path(project_root).resolve()
-    ledger_rows = _parse_claim_ledger(root / "docs" / "validation" / "claim_ledger.md")
+    ledger_rows = _parse_claim_ledger(root / CLAIM_LEDGER_PATH)
     records = _extract_manuscript_claims(root)
     violations: list[str] = []
     family_rows: list[dict[str, Any]] = []

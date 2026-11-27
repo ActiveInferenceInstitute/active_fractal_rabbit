@@ -2,7 +2,13 @@
 
 This ledger ties manuscript-level claims to the evidence type that supports them.
 It is intentionally lightweight: claims that require empirical mobility evidence
-are marked as limitations rather than inferred from the fixture lane.
+are marked as limitations rather than inferred from the fixture lane. The
+publication verifier requires the [render manifest](../../output/render_manifest.json)
+and [release manifest](../../output/release_manifest.json) after typesetting.
+The fixture audit runs before those files are generated. The optional external
+lane records [simulator provenance](../../output/runs/fractalrabbit_external/provenance_manifest.json)
+and a [replicate summary](../../output/runs/sensitivity_summary_external.json)
+when that lane runs. The fixture audit requires neither external artifact.
 
 ## Evidence Rows Bind Claims to Sources
 
@@ -29,17 +35,17 @@ are marked as limitations rather than inferred from the fixture lane.
 | Holdout metrics are additive and never change headline full-data metrics | code, flip test | `src/active_fractal_rabbit/pipeline.py`, `tests/test_holdout.py::test_pipeline_holdout_knob_flip_changes_metrics` |
 | The pipeline responds directionally to destroyed structure | code, test, artifact | `src/active_fractal_rabbit/negative_controls.py`, `tests/test_negative_controls.py`, `output/runs/negative_controls_summary.json` |
 | Negative controls are seeded and deterministic per seed | code, flip test | `seed` config key, `tests/test_negative_controls.py::test_negative_controls_consume_seed_flip` |
-| Release bundles are verifiable byte-for-byte; a content-addressed fingerprint embedded in PDF and HTML prevents timestamp-only re-certification around stale render inputs | code, test, artifact | `src/active_fractal_rabbit/release.py`, `src/active_fractal_rabbit/render_freshness.py`, `tests/test_release_manifest.py`, `tests/test_render_freshness.py`, `output/cover/active_fractal_rabbit_cover.png`, `output/render_manifest.json`, `output/release_manifest.json` |
+| Release bundles are verifiable byte-for-byte; a content-addressed fingerprint embedded in PDF and HTML prevents timestamp-only re-certification around stale render inputs | code, test, artifact | `src/active_fractal_rabbit/release.py`, `src/active_fractal_rabbit/render_freshness.py`, `tests/test_release_manifest.py`, `tests/test_render_freshness.py`, `output/cover/active_fractal_rabbit_cover.png`, `scripts/29_finalize_publication_package.py` |
 | External-lane unavailability is always explained, never silent | code, test | `preflight.external_lane_status`, `tests/test_fractalrabbit_external.py` |
 | Empirical validation requires the separate drafted protocol | limitation, document | `docs/governance/empirical_validation_protocol.md`, `docs/manuscript/04_discussion.md` |
-| The pinned simulator builds and runs end to end under JDK 21 + Maven | code, integration test, artifact | `fractalrabbit.resolve_java`, `tests/test_fractalrabbit_external.py`, `output/runs/fractalrabbit_external/provenance_manifest.json` |
+| The optional pinned simulator lane builds and runs under JDK 21 and Maven when those tools are available | code, config, integration test | `fractalrabbit.resolve_java`, `configs/fractalrabbit_external.yaml`, `tests/test_fractalrabbit_external.py`, `docs/guides/external_lane.md` |
 | pymdp state inference matches the exact Bayes posterior under matched priors | code, test, artifact | `src/active_fractal_rabbit/pymdp_agent.py`, `tests/test_pymdp_agent.py`, `pymdp_exact_inference_max_abs_delta` in `metrics.json` |
 | Closed-loop divergence between lanes is an action-selection property, not an inference bug | equation, code, figure | `docs/manuscript/02b_formal_model.md`, `pymdp_trace.csv`, `output/figures/pymdp_agreement.png` |
 | Dropping the location modality produces genuine latent uncertainty | code, flip test | `model.modalities`, `tests/test_modalities.py::test_dropping_location_modality_raises_posterior_uncertainty` |
-| External replicate dispersion reflects real simulator stochasticity | code, artifact | `sweeps.py` lane-aware caveat, `output/runs/sensitivity_summary_external.json` |
+| The optional external sweep reports dispersion across synthetic simulator draws in `sensitivity_summary_external.json` | code, test, limitation | `src/active_fractal_rabbit/sweeps.py`, `tests/test_pipeline.py::test_sensitivity_replicates_follow_experiment_repetitions`, `docs/guides/external_lane.md` |
 | XY and PLACES outputs are row-aligned and jointly ingested | code, test, artifact | `fractalrabbit.parse_places_csv`, `ground_truth.align_places`, `ground_truth.csv` |
 | Recovery is near-perfect when location is observed — stated as construction, not achievement | manuscript, code | `docs/manuscript/03_results.md`, `ground_truth.state_recovery` |
-| Latent location without location reports shows only a marginal signal above chance on the production fixture and loses to both the base-rate and persistence nulls (top-1 accuracy ~0.077 vs 1/16 chance) | flip test, artifact | `tests/test_ground_truth.py`, `output/runs/sensitivity_no_location/metrics.json` |
+| In the canonical fixture run `sensitivity_no_location`, withheld-location top-1 accuracy is approximately 0.0804 against 1/16 chance. Brier skill is negative against both the base-rate and persistence nulls | flip test, artifact | `tests/test_ground_truth.py`, `output/runs/sensitivity_no_location/metrics.json` (`state_recovery_reference_top1_accuracy`, `reference_brier_skill_vs_base_rate`, `reference_brier_skill_vs_persistence`) |
 | All pymdp diagnostics (VFE, runtimes, per-policy EFE) are run artifacts | code, test | `pymdp_agent.run_pymdp_inference`, `pymdp_trace.csv`, `tests/test_pymdp_agent.py` |
 | The seven CSV parameters are the full upstream-configurable surface; internals are documented constants | upstream source, manuscript table | pinned `MainClassFR.java`, `docs/manuscript/S03_simulator_boundary.md` |
 | Latent-state recovery does not degrade monotonically as reports thin — the sparsest level currently scores highest, so the lane reprices available evidence rather than demonstrating degradation (this fixture/model) | artifact, figure, test | `output/runs/sparsity_analysis.json`, `output/figures/sparsity_recovery.png`, `tests/test_sparsity.py` |

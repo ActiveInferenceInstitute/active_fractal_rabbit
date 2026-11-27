@@ -13,8 +13,8 @@ from active_fractal_rabbit.claim_ledger import (
 
 
 def test_claim_ledger_artifact_parser_and_missing_gate(tmp_path: Path) -> None:
-    (tmp_path / "docs").mkdir()
     ledger = tmp_path / "docs" / "validation" / "claim_ledger.md"
+    ledger.parent.mkdir(parents=True)
     ledger.write_text(
         "| claim | source |\n"
         "| --- | --- |\n"

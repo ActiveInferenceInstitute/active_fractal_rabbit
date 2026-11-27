@@ -12,6 +12,7 @@ import json
 import sys
 from pathlib import Path
 
+from .claim_ledger import CLAIM_LEDGER_PATH
 from .variable_provenance import (
     DEFAULT_TOKEN_PROVENANCE,
     ProvenanceError,
@@ -146,7 +147,7 @@ REQUIRED_PUBLICATION_PATHS: tuple[str, ...] = (
     "THIRD_PARTY_NOTICES.md",
     "CITATION.cff",
     "docs/governance/ip_license_status.md",
-    "docs/validation/claim_ledger.md",
+    CLAIM_LEDGER_PATH,
     "docs/methods/generative_model_card.md",
     "docs/guides/quickstart.md",
 )
