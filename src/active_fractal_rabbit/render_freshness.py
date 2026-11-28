@@ -28,12 +28,12 @@ RENDER_FINGERPRINT_PATTERN = re.compile(
     re.MULTILINE,
 )
 RENDER_INPUT_PATHS: tuple[str, ...] = (
-    "manuscript/config.yaml",
+    "docs/manuscript/config.yaml",
     "output/data/manuscript_variables.json",
     "output/data/manuscript_variable_provenance.json",
     "output/figures/figure_registry.json",
     "output/figures/style_provenance.json",
-    "manuscript/preamble.md",
+    "docs/manuscript/preamble.md",
     "output/cover/active_fractal_rabbit_cover.png",
 )
 RENDER_OUTPUT_PATHS: tuple[str, ...] = (
@@ -71,8 +71,8 @@ def _render_input_paths(root: Path) -> tuple[str, ...]:
     paths.update(
         str(path.relative_to(root))
         for pattern in (
-            "manuscript/*.md",
-            "manuscript/*.bib",
+            "docs/manuscript/*.md",
+            "docs/manuscript/*.bib",
             "output/manuscript/*",
             "output/figures/*",
         )
@@ -85,9 +85,9 @@ def _render_input_paths(root: Path) -> tuple[str, ...]:
 def _publication_fingerprint_paths(root: Path) -> tuple[Path, ...]:
     paths: set[Path] = set()
     for pattern in (
-        "manuscript/*.md",
-        "manuscript/*.bib",
-        "manuscript/*.yaml",
+        "docs/manuscript/*.md",
+        "docs/manuscript/*.bib",
+        "docs/manuscript/*.yaml",
         "output/manuscript/*",
         "output/figures/*",
         "output/data/manuscript_variables.json",

@@ -14,11 +14,11 @@ Multi-factor interpretability is not a performance claim. [@fig:factorial-model-
 
 : Factorial pymdp model comparison emitted by `factorial_pymdp_analysis_fixture.json`. {#tbl:factorial-pymdp}
 
-![{{FIG_CAPTION_FACTORIAL_PYMDP_MODES}}](../output/figures/factorial_pymdp_modes.png){#fig:factorial-pymdp-modes width={{FIGURE_WIDTH}}%}
+![{{FIG_CAPTION_FACTORIAL_PYMDP_MODES}}](../../output/figures/factorial_pymdp_modes.png){#fig:factorial-pymdp-modes width={{FIGURE_WIDTH}}%}
 
-![{{FIG_CAPTION_LATENT_MODE_RECOVERY}}](../output/figures/latent_mode_recovery.png){#fig:latent-mode-recovery width={{FIGURE_WIDTH}}%}
+![{{FIG_CAPTION_LATENT_MODE_RECOVERY}}](../../output/figures/latent_mode_recovery.png){#fig:latent-mode-recovery width={{FIGURE_WIDTH}}%}
 
-![{{FIG_CAPTION_FACTORIAL_MODEL_GATE_MATRIX}}](../output/figures/factorial_model_gate_matrix.png){#fig:factorial-model-gate-matrix width={{FIGURE_WIDTH}}%}
+![{{FIG_CAPTION_FACTORIAL_MODEL_GATE_MATRIX}}](../../output/figures/factorial_model_gate_matrix.png){#fig:factorial-model-gate-matrix width={{FIGURE_WIDTH}}%}
 
 ## Location-Minimization and Integrity Gates Stay Oversight-Positive {#sec:results-location-risk-integrity}
 
@@ -26,23 +26,23 @@ The promoted safety-boundary artifacts in [@sec:results-forward-gates] sharpen t
 
 [@fig:efe-location-frontier] prices location in expected-free-energy terms: the location joint share is {{EFE_LOCATION_SHARE}}, the metadata-bundle structure-null p-value is {{EFE_METADATA_NULL_P}}, the residual fraction localized without location is {{EFE_RESIDUAL_WITHOUT_LOCATION}}, and the verdict is `{{EFE_LOCATION_VERDICT}}`. The 4x4 expanded fixture therefore demotes any blanket metadata-recovery claim: the artifact verdict, not prior prose, decides whether the metadata residual clears the structure null, and withholding location still sharply reduces localizability on this generator.
 
-![{{FIG_CAPTION_EFE_LOCATION_FRONTIER}}](../output/figures/efe_location_frontier.png){#fig:efe-location-frontier width={{FIGURE_WIDTH}}%}
+![{{FIG_CAPTION_EFE_LOCATION_FRONTIER}}](../../output/figures/efe_location_frontier.png){#fig:efe-location-frontier width={{FIGURE_WIDTH}}%}
 
 The linkage-risk frontier in [@fig:linkage-risk-frontier] measures aggregate synthetic traveller re-linkability under minimization regimes. Full location has linkage {{LINKAGE_LOCATION_LINKAGE}} and verdict `{{LINKAGE_RISK_VERDICT}}`; the no-location regime exceeds its structure-null band: {{LINKAGE_NO_LOCATION_EXCEEDS_NULL}}. This is a defensive data-minimization statistic over synthetic IDs, not a matcher, re-identification product, formal privacy mechanism, or real-population claim [@demontjoye2013unique; @dwork2006differential_privacy; @buchholz2024trajectory_privacy_sok].
 
-![{{FIG_CAPTION_LINKAGE_RISK_FRONTIER}}](../output/figures/linkage_risk_frontier.png){#fig:linkage-risk-frontier width={{FIGURE_WIDTH}}%}
+![{{FIG_CAPTION_LINKAGE_RISK_FRONTIER}}](../../output/figures/linkage_risk_frontier.png){#fig:linkage-risk-frontier width={{FIGURE_WIDTH}}%}
 
 The poisoning-robustness gate in [@fig:poisoning-robustness] checks whether the analyst's own VFE surprise flags corrupted inputs before downstream interpretation trusts them. Its verdict is `{{POISONING_VERDICT}}`: gross teleport poisoning detected {{POISONING_GROSS_DETECTED}}, subtle drift remains a null against the Markov baseline {{POISONING_SUBTLE_NULL}}, and the teleport mid-rate VFE AUC is {{POISONING_TELEPORT_AUC}}. The 4x4 regeneration changes the prior fixture conclusion, so the verdict is deliberately reported as a regime-change diagnostic rather than a generalized assurance claim; which stressors separate from the Markov baseline is read from the artifact's per-mode gates, not carried over from an earlier fixture. The stressors are crude synthetic data-integrity probes and the output is a defensive self-monitoring diagnostic.
 
-![{{FIG_CAPTION_POISONING_ROBUSTNESS}}](../output/figures/poisoning_robustness.png){#fig:poisoning-robustness width={{FIGURE_WIDTH}}%}
+![{{FIG_CAPTION_POISONING_ROBUSTNESS}}](../../output/figures/poisoning_robustness.png){#fig:poisoning-robustness width={{FIGURE_WIDTH}}%}
 
 ## Privacy Frontier and External Evidence Do Not Certify Deployment {#sec:results-privacy-external}
 
 The older privacy and hardened-anomaly extensions complement the promoted artifact-bound safety checks in [@sec:results-location-risk-integrity]. [@fig:privacy-frontier] reports [@eq:privacy-frontier]: synthetic unicity is {{PRIVACY_FRONTIER_ALL_UNICITY}} with all modalities and {{PRIVACY_FRONTIER_NO_LOCATION_UNICITY}} without location, while location-blind co-travel coincidence is {{PRIVACY_FRONTIER_NO_LOCATION_COTRAVEL}}. These are data-minimization risk indicators on synthetic traces, not association claims about people, privacy proofs, compliance determinations, or complete adversarial evaluations [@buchholz2024trajectory_privacy_sok; @bouras2026privacy_eval; @cherigui2026synthetic_trajectory_dual]. [@fig:hardened-anomaly-detection] compares filter surprise to the online Markov-surprise baseline from [@eq:markov-surprise] on subtler probes: the speed-regime shift scores VFE AUC {{HARDENED_ANOMALY_SPEED_VFE_AUC}} versus Markov AUC {{HARDENED_ANOMALY_SPEED_MARKOV_AUC}}, and preferred-set drift scores VFE AUC {{HARDENED_ANOMALY_DRIFT_VFE_AUC}}. The point is not to produce an alerting system; it is to ensure the anomaly result still has signal when novelty is replaced by a transition-aware null.
 
-![{{FIG_CAPTION_PRIVACY_FRONTIER}}](../output/figures/privacy_frontier.png){#fig:privacy-frontier width={{FIGURE_WIDTH}}%}
+![{{FIG_CAPTION_PRIVACY_FRONTIER}}](../../output/figures/privacy_frontier.png){#fig:privacy-frontier width={{FIGURE_WIDTH}}%}
 
-![{{FIG_CAPTION_HARDENED_ANOMALY_DETECTION}}](../output/figures/hardened_anomaly_detection.png){#fig:hardened-anomaly-detection width={{FIGURE_WIDTH}}%}
+![{{FIG_CAPTION_HARDENED_ANOMALY_DETECTION}}](../../output/figures/hardened_anomaly_detection.png){#fig:hardened-anomaly-detection width={{FIGURE_WIDTH}}%}
 
 The integrity boundary here is read from the regenerated artifacts rather than from a fixed narrative. On the hardened-anomaly artifact ([@fig:hardened-anomaly-detection]), distinct from the poisoning gate above, the timing-manipulation probe is not a null on this fixture: its VFE surprise shows a modest above-chance separation while the online Markov baseline stays near chance; that artifact carries no positive-control field, so no positive-control claim is attached to the timing probe, and the separation is reported as a synthetic perturbation-response diagnostic rather than a detector. On the poisoning gate, the transition-aware comparison is the negative one reported above: at the mid-rate gate neither teleport nor label-flip separates from the online Markov baseline (gross teleport poisoning detected {{POISONING_GROSS_DETECTED}}), with label-flip clearing only the above-chance floor, so no poisoning mode currently carries signal above the transition-aware null. Timing-channel integrity as a designed capability would still require a generative model in which report timing is itself informative.
 
@@ -54,12 +54,12 @@ The privacy frontier of [@sec:results-privacy-external] measures only the *risk*
 
 Reading the tradeoff as a **minimum-collection operating point** sharpens the governance question into a falsifiable one: what is the coarsest grid — the least location disclosed — that still clears a {{MINCOLLECT_UTILITY_FLOOR}}-bit predictive-utility floor while holding re-identification event-uniqueness below {{MINCOLLECT_RISK_CEILING}}? On this larger synthetic generator the answer is source-positive (operating point found: {{MINCOLLECT_FOUND}}): {{MINCOLLECT_REGIME}} preserves {{MINCOLLECT_EXCESS_UTILITY}} excess utility bits while reducing event-uniqueness risk to {{MINCOLLECT_REID}}. The binding caveat is scope, not threshold failure. This is a precise statement about this generated fixture, this grid ladder, and this next-cell prediction task; it is not evidence that the same minimization policy would preserve utility or privacy under real mobility, different tasks, temporal coarsening, suppression, k-anonymity, or deployment constraints [@gdpr2016; @nist2020privacy; @sweeney2002kanonymity]. The thresholds remain deliberately strict so future regenerated artifacts can fail rather than inherit this positive.
 
-![{{FIG_CAPTION_PRIVACY_UTILITY_FRONTIER}}](../output/figures/privacy_utility_frontier.png){#fig:privacy-utility-frontier width={{FIGURE_WIDTH}}%}
+![{{FIG_CAPTION_PRIVACY_UTILITY_FRONTIER}}](../../output/figures/privacy_utility_frontier.png){#fig:privacy-utility-frontier width={{FIGURE_WIDTH}}%}
 
 The repeated-draw audit in [@fig:privacy-utility-repeats] keeps this privacy-utility reading honest across available generated observations. It records {{PRIVACY_UTILITY_REPEATS_COMPLETED}} completed repeat rows and {{PRIVACY_UTILITY_REPEATS_UNAVAILABLE}} unavailable variance-realization rows. Unavailable rows are not imputed and do not count as failures or successes; they block repeat-stability wording until the source observations exist and the regenerated gate clears. Completing every row does not by itself clear the claim: the audit content-hashes each completed source and flags any realization byte-identical to the canonical fixture as a determinism rerun rather than an independent draw, and a repeated-draw claim requires more than one genuinely distinct draw among the completed rows. When the completed rows are almost entirely byte-identical reruns of the canonical fixture, the repeat-stability wording stays blocked for that reason — lack of independent draws — even with zero unavailable rows, and the figure attests determinism rather than independent-sample stability in that case.
 
-![{{FIG_CAPTION_PRIVACY_UTILITY_REPEATS}}](../output/figures/privacy_utility_repeats.png){#fig:privacy-utility-repeats width={{FIGURE_WIDTH}}%}
+![{{FIG_CAPTION_PRIVACY_UTILITY_REPEATS}}](../../output/figures/privacy_utility_repeats.png){#fig:privacy-utility-repeats width={{FIGURE_WIDTH}}%}
 
 The task-utility/privacy screen in [@fig:synthetic-task-utility-privacy] makes release-utility language thresholded rather than rhetorical. It joins surviving predictive utility with re-identification event uniqueness, co-travel, recoverability, and linkage-minimization context. Current joint operating points: {{TASK_PRIVACY_JOINT_OPERATING_POINTS}}; release-utility wording allowed: {{TASK_PRIVACY_RELEASE_UTILITY_ALLOWED}}. This remains a synthetic governance screen, not a privacy guarantee or operational usefulness claim.
 
-![{{FIG_CAPTION_SYNTHETIC_TASK_UTILITY_PRIVACY}}](../output/figures/synthetic_task_utility_privacy.png){#fig:synthetic-task-utility-privacy width={{FIGURE_WIDTH}}%}
+![{{FIG_CAPTION_SYNTHETIC_TASK_UTILITY_PRIVACY}}](../../output/figures/synthetic_task_utility_privacy.png){#fig:synthetic-task-utility-privacy width={{FIGURE_WIDTH}}%}

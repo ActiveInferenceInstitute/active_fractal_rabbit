@@ -102,8 +102,8 @@ def test_no_obsolete_default_resolution_claims() -> None:
         re.compile(r"1/9\s+for\s+the\s+default", re.IGNORECASE),
     ]
     paths = [
-        *Path("manuscript").glob("*.md"),
-        Path("docs/claim_ledger.md"),
+        *Path("docs/manuscript").glob("*.md"),
+        Path("docs/validation/claim_ledger.md"),
         Path("README.md"),
         Path("TODO.md"),
         Path("tasks.yaml"),

@@ -8,7 +8,7 @@ Top-level signpost phrase: Real waypoint-data validation stays blocked
 
 The current project evidence is synthetic-only: checked fixtures, pinned
 external simulator rows, generated figures, claim audits, and release manifests.
-`docs/empirical_validation_protocol.md` is a drafted prerequisite, not an
+`docs/governance/empirical_validation_protocol.md` is a drafted prerequisite, not an
 executed empirical study.
 
 ## Blocked And Unblocked Conditions

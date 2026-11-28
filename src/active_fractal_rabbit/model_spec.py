@@ -524,7 +524,7 @@ def check_conformance(
 
 
 def model_card_markdown(spec: GenerativeModelSpec) -> str:
-    """Render a human-readable model-card table for the manuscript/docs."""
+    """Render a human-readable model-card table for the docs/manuscript/docs."""
 
     lines = [
         f"### Generative model: `{spec.name}`",

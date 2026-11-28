@@ -12,6 +12,7 @@ import json
 import sys
 from pathlib import Path
 
+from .claim_ledger import CLAIM_LEDGER_PATH
 from .variable_provenance import (
     DEFAULT_TOKEN_PROVENANCE,
     ProvenanceError,
@@ -30,16 +31,16 @@ MANIFEST_GLOBS: tuple[tuple[str, str], ...] = (
     ("project_metadata", "LICENSE-DOCS.md"),
     ("project_metadata", "THIRD_PARTY_NOTICES.md"),
     ("project_metadata", "CITATION.cff"),
-    ("project_metadata", "docs/ip_license_status.md"),
+    ("project_metadata", "docs/governance/ip_license_status.md"),
     ("documentation", "docs/**/*.md"),
     ("source", "src/**/*.py"),
     ("scripts", "scripts/*.py"),
     ("tests", "tests/**/*.py"),
     ("configs", "configs/**/*.yaml"),
     ("fixtures", "data/fixtures/*.csv"),
-    ("manuscript", "manuscript/*.md"),
-    ("manuscript", "manuscript/*.bib"),
-    ("manuscript", "manuscript/config.yaml"),
+    ("manuscript", "docs/manuscript/*.md"),
+    ("manuscript", "docs/manuscript/*.bib"),
+    ("manuscript", "docs/manuscript/config.yaml"),
     ("default_run", "output/runs/default/*"),
     ("negative_controls", "output/runs/negative_controls_summary.json"),
     ("sparsity", "output/runs/sparsity_analysis.json"),
@@ -145,10 +146,10 @@ REQUIRED_PUBLICATION_PATHS: tuple[str, ...] = (
     "LICENSE-DOCS.md",
     "THIRD_PARTY_NOTICES.md",
     "CITATION.cff",
-    "docs/ip_license_status.md",
-    "docs/claim_ledger.md",
-    "docs/generative_model_card.md",
-    "docs/quickstart.md",
+    "docs/governance/ip_license_status.md",
+    CLAIM_LEDGER_PATH,
+    "docs/methods/generative_model_card.md",
+    "docs/guides/quickstart.md",
 )
 
 REQUIRED_ANALYSIS_PATHS: tuple[str, ...] = (

@@ -640,7 +640,7 @@ def _run_external_realization_repeats(
 
 
 def _check_eval_contract() -> dict[str, object]:
-    report = run_contract(ROOT / "manuscript")
+    report = run_contract(ROOT / "docs" / "manuscript")
     if not report.passed:
         violations = [f"{item.guard}: {item.sentence}" for item in report.violations]
         raise RuntimeError("evaluation contract failed: " + "; ".join(violations))

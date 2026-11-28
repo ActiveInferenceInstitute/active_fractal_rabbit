@@ -4,11 +4,11 @@
 
 This section frames state recovery and model performance against explicit baselines: ground-truth recovery on observed and latent configurations, skill scoring against uniform-chance and persistence nulls, and proper-score calibration diagnostics that decompose predictive loss into per-modality contributions and honest uncertainty pricing.
 
-![{{FIG_CAPTION_STATE_RECOVERY}}](../output/figures/state_recovery.png){#fig:state-recovery width={{FIGURE_WIDTH}}%}
+![{{FIG_CAPTION_STATE_RECOVERY}}](../../output/figures/state_recovery.png){#fig:state-recovery width={{FIGURE_WIDTH}}%}
 
 [@fig:state-recovery] reports ground-truth state recovery. Because the true latent cell of every report is computable exactly from the reported coordinates, any posterior can be scored against it. On the default configuration — where location is itself an observation modality — recovery is near-perfect by construction (reference mean mass on the true cell {{RECOVERY_REFERENCE_MASS}}, top-1 accuracy {{RECOVERY_REFERENCE_TOP1}}; pymdp {{RECOVERY_PYMDP_MASS}} and {{RECOVERY_PYMDP_TOP1}}), and we state that plainly rather than presenting it as an achievement. The non-trivial result is the deep-latent configuration from the sensitivity lane: with the location modality removed, the filter recovers mean mass {{DEEP_LATENT_RECOVERY_MASS}} on the true cell with top-1 accuracy {{DEEP_LATENT_RECOVERY_TOP1}} from time-of-day, speed, and reporting-burst evidence alone, at mean posterior entropy {{DEEP_LATENT_ENTROPY}} nats. Latent location structure is partially recoverable without any direct location report on this synthetic configuration — though, as the calibration analysis below shows, most of this recovered mass reflects occupancy structure and mobility autocorrelation (the base-rate and persistence baselines below) rather than the time-of-day, speed, and reporting-burst evidence itself. Within the modeled situation this is simultaneously the analytic point and a privacy-relevant observation; whether the same recoverability holds for real mobility traces is exactly the empirical question that [@sec:validation] leaves open, not something these synthetic numbers settle.
 
-![{{FIG_CAPTION_CALIBRATION}}](../output/figures/calibration.png){#fig:calibration width={{FIGURE_WIDTH}}%}
+![{{FIG_CAPTION_CALIBRATION}}](../../output/figures/calibration.png){#fig:calibration width={{FIGURE_WIDTH}}%}
 
 [@fig:calibration] and [@tbl:per-modality] decompose and calibrate the headline objectives rather than leaving them as single numbers. First, the joint one-step predictive loss is split into per-modality marginal losses under the running prior. For any observed modality $m$, the joint predictive probability is bounded above by its marginal because
 
@@ -40,7 +40,7 @@ Fifth, even the base-rate null is loose for mobility, because reports are highly
 
 : Per-modality marginal predictive losses against each lane's joint loss, from `calibration.json`. {#tbl:per-modality}
 
-![{{FIG_CAPTION_SPARSITY_RECOVERY}}](../output/figures/sparsity_recovery.png){#fig:sparsity-recovery width={{FIGURE_WIDTH}}%}
+![{{FIG_CAPTION_SPARSITY_RECOVERY}}](../../output/figures/sparsity_recovery.png){#fig:sparsity-recovery width={{FIGURE_WIDTH}}%}
 
 [@fig:sparsity-recovery] and [@tbl:sparsity] give the comprehensive form of the latent-state question: recovery as a function of report density across {{SPARSITY_LEVEL_COUNT}} subsampling levels. With the full report set the deep-latent reference filter holds mean mass {{SPARSITY_DENSEST_LATENT_MASS}} on the true cell, against {{SPARSITY_SPARSEST_LATENT_MASS}} at the sparsest level; the full model dominates every deep-latent curve at every level, and the gap between them prices the value of direct location evidence at each report density. The pymdp column of the table is a variational-free-energy trace from the validated state updater, not an independent closed-loop recovery curve: its deep-latent recovery reuses the matched reference posterior by construction once the sentinel agreement check passes, so the table carries one recovery curve per configuration. The accompanying uncertainty diagnostics — deep-latent posterior entropy and pymdp variational free energy — are reported per level rather than asserted to follow a fixed direction, because their movement depends on how subsampling reshapes the interval and speed evidence. {{SPARSITY_CAVEAT}}
 
@@ -62,7 +62,7 @@ Under Holm–Bonferroni correction, which bounds the family-wise error rate unde
 
 Across the family the mean advantages range from {{MULTIPLICITY_MIN_ADVANTAGE_NATS}} to {{MULTIPLICITY_MAX_ADVANTAGE_NATS}} nats, so most comparisons favor the fair baseline outright, and none clears its own uncorrected threshold, let alone survives correction. The regime-qualified gate of [@sec:roadmap-sota-gates] is therefore read here as not clearing even before multiplicity is priced in. That is the honest reading across the whole family: no directional win, corrected or uncorrected, survives.
 
-![{{FIG_CAPTION_MULTIPLICITY_LEDGER}}](../output/figures/multiplicity_ledger.png){#fig:multiplicity-ledger width={{FIGURE_WIDTH}}%}
+![{{FIG_CAPTION_MULTIPLICITY_LEDGER}}](../../output/figures/multiplicity_ledger.png){#fig:multiplicity-ledger width={{FIGURE_WIDTH}}%}
 
 The single fair-by-construction positive — soft marginalization under a noisy emission ([@sec:results-partial-observability]) — sits outside this bootstrap family because it is established by a stricter criterion: unanimous sign-stability across {{PARTIAL_OBS_MULTIPLICITY_DRAWS}} independent generator draws, a replication requirement that is multiplicity-robust by construction.
 

@@ -18,7 +18,7 @@ The between-draw check repeats the construction across {{PARTIAL_OBS_CROSS_DRAW_
 
 The advantage varies in magnitude and remains unanimous in sign, while the broader benchmark gate stays `{{PYMDP_SOTA_STATUS}}`. The fair-comparison ladder and traveller×noise power map locate the active-inference row within this mechanism in the Discussion ([@sec:discussion]).
 
-![{{FIG_CAPTION_PARTIAL_OBSERVABILITY}}](../output/figures/partial_observability.png){#fig:partial-observability width={{FIGURE_WIDTH}}%}
+![{{FIG_CAPTION_PARTIAL_OBSERVABILITY}}](../../output/figures/partial_observability.png){#fig:partial-observability width={{FIGURE_WIDTH}}%}
 
 #### Where Belief-Marginalizing Methods Lead: The Within-Regime Model Comparison {#sec:results-model-comparison}
 
@@ -26,4 +26,4 @@ The advantage varies in magnitude and remains unanimous in sign, while the broad
 
 Active inference's advantage over the strongest non-AIF method (`{{MODEL_COMPARISON_STRONGEST_NON_AIF}}`) is {{MODEL_COMPARISON_AIF_VS_NONAIF_GAP}} nats, with a clustered interval that crosses zero. It is therefore the point leader and a statistical member of the top belief-preserving cluster. The separated result is belief preservation versus early commitment to a point estimate or raw observation; active inference does not clear a resolved margin over the strongest non-AIF belief filter, and that comparison stays a statistical tie. This ordering is specific to the noisy hidden-state lane, remains below the oracle-fed ceiling, and leaves the cross-generator gate at `{{SOTA_PROGRAM_STATUS}}`.
 
-![{{FIG_CAPTION_MODEL_COMPARISON_UNDER_NOISE}}](../output/figures/model_comparison_under_noise.png){#fig:model-comparison-under-noise width={{FIGURE_WIDTH}}%}
+![{{FIG_CAPTION_MODEL_COMPARISON_UNDER_NOISE}}](../../output/figures/model_comparison_under_noise.png){#fig:model-comparison-under-noise width={{FIGURE_WIDTH}}%}

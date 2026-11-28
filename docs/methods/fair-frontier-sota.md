@@ -157,7 +157,7 @@ The claim gate in `sota_benchmark.py:run_sota_benchmark()` requires:
 
 The gate is not vacuous — a clean, calibrated, externally confirmed candidate with no regressions would clear it — but no current method meets that condition. The oracle-fed baseline and fair-frontier result are permanently non-clearing by design: fair comparison is never SOTA.
 
-See `sota_benchmark.py` lines 258–425 for the gate logic and `manuscript/07_roadmap.md` section "State-of-the-Art Gates Still Not Cleared" for the forward path.
+See `sota_benchmark.py` lines 258–425 for the gate logic and `docs/manuscript/07_roadmap.md` section "State-of-the-Art Gates Still Not Cleared" for the forward path.
 
 ## Related Analyses Preserve the Same Boundary
 

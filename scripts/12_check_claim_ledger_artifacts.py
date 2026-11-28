@@ -1,4 +1,4 @@
-"""Verify generated artifacts cited by docs/claim_ledger.md exist."""
+"""Verify generated artifacts cited by docs/validation/claim_ledger.md exist."""
 
 from __future__ import annotations
 

@@ -49,7 +49,6 @@ if str(SRC) not in sys.path:
 #: rather than walking up into an unrelated enclosing repository.
 _SANDBOX_LINKS = (
     "data",
-    "manuscript",
     "docs",
     "pyproject.toml",
     "src",

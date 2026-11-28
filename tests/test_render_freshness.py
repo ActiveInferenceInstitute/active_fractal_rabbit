@@ -102,7 +102,7 @@ def test_touching_outputs_cannot_certify_unrendered_manuscript_change(
     monkeypatch, tmp_path: Path
 ) -> None:
     _seed_render_tree(tmp_path)
-    manuscript = tmp_path / "manuscript" / "00_abstract.md"
+    manuscript = tmp_path / "docs" / "manuscript" / "00_abstract.md"
     manuscript.parent.mkdir(parents=True, exist_ok=True)
     manuscript.write_text("original manuscript\n", encoding="utf-8")
     resolved = tmp_path / "output" / "manuscript" / "S02_reproducibility.md"

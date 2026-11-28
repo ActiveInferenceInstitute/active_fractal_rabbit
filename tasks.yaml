@@ -288,7 +288,7 @@ tasks:
   - evidence
   - provenance
   notes: >-
-    Represents completed TODO M5 evidence: docs/claim_ledger.md ties claims to
+    Represents completed TODO M5 evidence: docs/validation/claim_ledger.md ties claims to
     code, generated artifacts, figures, citations, or explicit limitations, and
     scripts/12_check_claim_ledger_artifacts.py checked 53 generated paths with
     no missing artifacts.
@@ -338,7 +338,7 @@ tasks:
   - validation
   - protocol
   notes: >-
-    Represents completed TODO M5 protocol drafting: docs/empirical_validation_protocol.md
+    Represents completed TODO M5 protocol drafting: docs/governance/empirical_validation_protocol.md
     exists as a draft prerequisite. Execution on real waypoint data remains
     blocked by afr-23 and the standing boundary.
 - id: afr-22

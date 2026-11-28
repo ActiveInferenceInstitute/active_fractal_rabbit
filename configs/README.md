@@ -2,7 +2,7 @@
 
 Study-lane configuration for Active FractalRabbit. Each file selects a lane and its
 simulator, observation, model, experiment, figure, and robustness settings. The
-per-key contract is documented in [`../docs/config_schema.md`](../docs/config_schema.md);
+per-key contract is documented in [`../docs/reference/config_schema.md`](../docs/reference/config_schema.md);
 agent rules are in [`AGENTS.md`](AGENTS.md).
 
 ## What is here

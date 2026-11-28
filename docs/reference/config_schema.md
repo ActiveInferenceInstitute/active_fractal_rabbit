@@ -78,7 +78,7 @@ Full-study downstream stages consume the completed `PipelineResult` observations
 and metrics. If no current external result is available, its downstream outputs
 remain unavailable; previously saved canonical files cannot stand in for that
 result. The external build and observation-bundle requirements are documented in
-[`external_lane.md`](external_lane.md).
+[`external_lane.md`](../guides/external_lane.md).
 
 Completed-run provenance names the published run leaf, including when the
 configured collection has a symlinked ancestor. Temporary staging paths are

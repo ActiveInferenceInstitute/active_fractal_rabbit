@@ -54,7 +54,7 @@ def test_load_default_config() -> None:
 
 
 def test_config_schema_doc_mentions_groups_and_artifacts() -> None:
-    schema = Path("docs/config_schema.md").read_text(encoding="utf-8")
+    schema = Path("docs/reference/config_schema.md").read_text(encoding="utf-8")
 
     for group in [
         "fractalrabbit",

@@ -51,14 +51,14 @@ The first command clones the pinned commit into `.cache/fractalrabbit/` and
 builds the jar-with-dependencies artifact; the second writes the base run to the
 configured `output_dir` (by default `output/runs/fractalrabbit_external/`).
 Derived runs use that leaf's parent collection, as described in
-[`config_schema.md`](config_schema.md). External **sensitivity** children and
+[`config_schema.md`](../reference/config_schema.md). External **sensitivity** children and
 their simulator prefixes are lane-qualified; this does not guarantee isolation
 for variance-realization or fractal-dimension children in a shared collection.
 Select separate collections or supported explicit destinations for those families.
 
 The FractalRabbit source and jars remain cache-local and are not tracked in this
 project. `THIRD_PARTY_NOTICES.md` records the pinned upstream Apache-2.0 license
-and NOTICE boundary, and `docs/ip_license_status.md` records what must be carried
+and NOTICE boundary, and `docs/governance/ip_license_status.md` records what must be carried
 forward if a public bundle ever distributes upstream source, jars, or derivative
 simulator code.
 

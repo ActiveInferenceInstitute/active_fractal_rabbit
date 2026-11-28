@@ -4,7 +4,7 @@
 > This is a frozen planning snapshot from the revision program. All quantitative values quoted
 > below (fair rates, nats gaps, traveller/report counts, fixture sizes) are snapshots of the runs
 > current when this plan was written and are superseded by the current `output/runs/` artifacts,
-> `docs/claim_ledger.md`, and the rendered manuscript — several headline numbers here (e.g. the
+> `docs/validation/claim_ledger.md`, and the rendered manuscript — several headline numbers here (e.g. the
 > "organizing fact" fair-rate and soft-marginalization gain, and the 6-traveller/480-report
 > fixture narrative) no longer match the shipped fixture or artifacts. Some planned steps were
 > deliberately not executed (e.g. the comparison-contract table/module and the discussion-collapse

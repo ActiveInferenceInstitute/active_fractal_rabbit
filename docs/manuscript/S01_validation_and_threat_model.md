@@ -21,7 +21,7 @@ The primary failure modes are concrete:
 | pipeline insensitive to destroyed structure | seeded negative-control lane with directional probes ([@fig:negative-controls], [@tbl:negative-controls]) |
 | in-sample-only scoring | additive per-traveller chronological holdout metrics in `metrics.json` |
 | roadmap artifact overpromotion | fractal-dimension, circadian-phase, sequence-baseline, reporting-process, forward-gate, and `pymdp` benchmark artifacts carry explicit status and caveats |
-| claim-ledger stale artifacts | `scripts/12_check_claim_ledger_artifacts.py` parses generated `output/` paths cited in `docs/claim_ledger.md` and fails on missing artifacts |
+| claim-ledger stale artifacts | `scripts/12_check_claim_ledger_artifacts.py` parses generated `output/` paths cited in `docs/validation/claim_ledger.md` and fails on missing artifacts |
 | release bundle drift | checksummed `release_manifest.json` over configs, fixtures, run artifacts, variables, figures, and rendered PDF |
 
 : Validation threat model for the synthetic waypoint analysis. {#tbl:validation-threats}

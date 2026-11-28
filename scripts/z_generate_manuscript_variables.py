@@ -42,7 +42,7 @@ def _template_root() -> Path | None:
 
 def _verify_tokens(variables: dict[str, str]) -> int:
     used: set[str] = set()
-    for path in sorted((ROOT / "manuscript").glob("*.md")):
+    for path in sorted((ROOT / "docs" / "manuscript").glob("*.md")):
         if path.name in EXCLUDED:
             continue
         used.update(TOKEN_RE.findall(path.read_text(encoding="utf-8")))

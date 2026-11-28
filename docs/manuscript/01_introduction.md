@@ -28,7 +28,7 @@ FractalRabbit is useful for this purpose because the public, open-source Nationa
 
 That same design prevents a common overreach: simulator output is not empirical mobility validation against known regularities, scaling behavior, or predictability limits in real human trajectories [@gonzalez2008mobility; @song2010scaling; @song2010predictability]. Those predictability limits are themselves task- and binning-dependent — estimates shift with the prediction target and temporal aggregation [@ikanovic2016predictability] — which is a further reason to treat simulator output as a controlled testbed, not a statement about real mobility. FractalRabbit lets this manuscript ask questions about uncertainty, minimization, and integrity without making surveillance claims; the supplement documents the pinned simulator boundary, while the main text uses it only as the setting for a bounded methodological comparison.
 
-![{{FIG_CAPTION_EVIDENCE_ATLAS}}](../output/figures/evidence_atlas.png){#fig:evidence-atlas width={{FIGURE_WIDTH}}%}
+![{{FIG_CAPTION_EVIDENCE_ATLAS}}](../../output/figures/evidence_atlas.png){#fig:evidence-atlas width={{FIGURE_WIDTH}}%}
 
 [@fig:evidence-atlas] previews the whole evidence path before the technical sections unpack it: synthetic waypoint reports become categorical evidence, categorical evidence updates hidden-state beliefs, belief traces face null gates, and the remaining outputs are bounded by minimization and integrity checks.
 

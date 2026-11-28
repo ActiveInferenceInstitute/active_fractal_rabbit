@@ -198,7 +198,7 @@ def test_claim_critical_sota_fair_aif_power_tokens_are_provenance_declared() -> 
     root = Path(__file__).resolve().parents[1]
     manuscript_tokens: set[str] = set()
     token_re = re.compile(r"\{\{([A-Z0-9_]+)\}\}")
-    for path in sorted((root / "manuscript").glob("*.md")):
+    for path in sorted((root / "docs" / "manuscript").glob("*.md")):
         manuscript_tokens.update(token_re.findall(path.read_text(encoding="utf-8")))
 
     critical = {
@@ -220,7 +220,7 @@ def test_every_provenance_bound_token_is_used_in_manuscript() -> None:
     root = Path(__file__).resolve().parents[1]
     token_re = re.compile(r"\{\{([A-Z0-9_]+)\}\}")
     used: set[str] = set()
-    for path in sorted((root / "manuscript").glob("*.md")):
+    for path in sorted((root / "docs" / "manuscript").glob("*.md")):
         used.update(token_re.findall(path.read_text(encoding="utf-8")))
     declared = {spec.token for spec in DEFAULT_TOKEN_PROVENANCE}
 
